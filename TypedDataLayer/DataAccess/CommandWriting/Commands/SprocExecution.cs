@@ -22,9 +22,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// <summary>
 		/// Adds the specified parameter to this command.
 		/// </summary>
-		public void AddParameter( DbCommandParameter parameter ) {
-			parameters.Add( parameter );
-		}
+		public void AddParameter( DbCommandParameter parameter ) => parameters.Add( parameter );
 
 		/// <summary>
 		/// Executes this procedure against the specified database connection to get a data reader and then executes the specified method with the reader.

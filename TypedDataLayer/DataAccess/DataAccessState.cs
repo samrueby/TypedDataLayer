@@ -59,9 +59,7 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Gets the connection to the primary database.
 		/// </summary>
-		public DBConnection PrimaryDatabaseConnection {
-			get { return initConnection( primaryConnection ?? ( primaryConnection = new DBConnection( database != null ? getDatabaseInfo( "", database ) : null ) ) ); }
-		}
+		public DBConnection PrimaryDatabaseConnection => initConnection( primaryConnection ?? ( primaryConnection = new DBConnection( database != null ? getDatabaseInfo( "", database ) : null ) ) );
 
 		private DatabaseInfo getDatabaseInfo( string secondaryDatabaseName, DatabaseConfiguration database ) {
 			if( database is SqlServerDatabase ) {

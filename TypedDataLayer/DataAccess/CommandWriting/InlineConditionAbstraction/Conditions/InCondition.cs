@@ -22,18 +22,14 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			command.CommandText += columnName + " IN ( " + subQuery + " )";
 		}
 
-		public override bool Equals( object obj ) {
-			return Equals( obj as InlineDbCommandCondition );
-		}
+		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandCondition );
 
 		public bool Equals( InlineDbCommandCondition other ) {
 			var otherInCondition = other as InCondition;
 			return otherInCondition != null && columnName == otherInCondition.columnName && subQuery == otherInCondition.subQuery;
 		}
 
-		public override int GetHashCode() {
-			return new { columnName, subQuery }.GetHashCode();
-		}
+		public override int GetHashCode() => new { columnName, subQuery }.GetHashCode();
 
 		int IComparable.CompareTo( object obj ) {
 			var otherCondition = obj as InlineDbCommandCondition;

@@ -57,38 +57,34 @@ namespace TypedDataLayer.DatabaseAbstraction {
 			this.allowsNull = allowsNull;
 		}
 
-		public string Name { get { return name; } }
-		public string PascalCasedName { get { return pascalCasedName; } }
-		public string PascalCasedNameExceptForOracle { get { return pascalCasedNameExceptForOracle; } }
-		public string CamelCasedName { get { return pascalCasedName.LowercaseString(); } }
+		public string Name => name;
+		public string PascalCasedName => pascalCasedName;
+		public string PascalCasedNameExceptForOracle => pascalCasedNameExceptForOracle;
+		public string CamelCasedName => pascalCasedName.LowercaseString();
 
-		public Type DataType { get { return dataType; } }
+		public Type DataType => dataType;
 
 		/// <summary>
 		/// Gets the name of the data type for this container, or the nullable data type if the container allows null.
 		/// </summary>
-		public string DataTypeName { get { return allowsNull ? NullableDataTypeName : dataType.ToString(); } }
+		public string DataTypeName => allowsNull ? NullableDataTypeName : dataType.ToString();
 
 		/// <summary>
 		/// Gets the name of the nullable data type for this container, regardless of whether the container allows null. The nullable data type is equivalent to the
 		/// data type if the latter is a reference type or if the null value is represented with an expression other than "null".
 		/// </summary>
-		public string NullableDataTypeName { get { return dataType.IsValueType && !nullValueExpression.Any() ? dataType + "?" : dataType.ToString(); } }
+		public string NullableDataTypeName => dataType.IsValueType && !nullValueExpression.Any() ? dataType + "?" : dataType.ToString();
 
-		public string NullValueExpression { get { return nullValueExpression; } }
+		public string NullValueExpression => nullValueExpression;
 
-		public string UnconvertedDataTypeName { get { return unconvertedDataType.ToString(); } }
+		public string UnconvertedDataTypeName => unconvertedDataType.ToString();
 
-		public string GetIncomingValueConversionExpression( string valueExpression ) {
-			return incomingValueConversionExpressionGetter( valueExpression );
-		}
+		public string GetIncomingValueConversionExpression( string valueExpression ) => incomingValueConversionExpressionGetter( valueExpression );
 
-		public object ConvertIncomingValue( object value ) {
-			return incomingValueConverter( value );
-		}
+		public object ConvertIncomingValue( object value ) => incomingValueConverter( value );
 
-		public int Size { get { return size; } }
-		public bool AllowsNull { get { return allowsNull; } }
+		public int Size => size;
+		public bool AllowsNull => allowsNull;
 
 		public string GetParameterValueExpression( string valueExpression ) {
 			var conversionExpression = outgoingValueConversionExpressionGetter( valueExpression );

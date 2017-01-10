@@ -14,8 +14,6 @@ namespace TypedDataLayer.DataAccess.RetrievalCaching {
 		}
 
 		//[ EditorBrowsable( EditorBrowsableState.Never ) ]
-		public IEnumerable<RowType> GetResultSet( object[] parameterValues, Func<IEnumerable<RowType>> resultSetCreator ) {
-			return cache.GetOrAdd( parameterValues, resultSetCreator );
-		}
+		public IEnumerable<RowType> GetResultSet( object[] parameterValues, Func<IEnumerable<RowType>> resultSetCreator ) => cache.GetOrAdd( parameterValues, resultSetCreator );
 	}
 }

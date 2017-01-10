@@ -20,9 +20,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// <summary>
 		/// Add a data parameter to the command. Value may be null.
 		/// </summary>
-		public void AddColumnModification( InlineDbCommandColumnValue columnModification ) {
-			columnModifications.Add( columnModification );
-		}
+		public void AddColumnModification( InlineDbCommandColumnValue columnModification ) => columnModifications.Add( columnModification );
 
 		/// <summary>
 		/// Executes this command against the specified database connection and returns the auto-increment value of the inserted row, or null if it is not an

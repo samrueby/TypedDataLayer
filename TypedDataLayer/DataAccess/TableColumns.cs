@@ -12,24 +12,24 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Returns either all components of the primary key, or the identity (alone).
 		/// </summary>
-		internal IEnumerable<Column> KeyColumns { get { return keyColumns; } }
+		internal IEnumerable<Column> KeyColumns => keyColumns;
 
 		private readonly Column identityColumn;
-		internal Column IdentityColumn { get { return identityColumn; } }
+		internal Column IdentityColumn => identityColumn;
 
 		internal readonly Column RowVersionColumn;
 		internal readonly IEnumerable<Column> AllColumnsExceptRowVersion;
 		internal readonly IEnumerable<Column> AllNonIdentityColumnsExceptRowVersion;
 
 		private readonly Column primaryKeyAndRevisionIdColumn;
-		internal Column PrimaryKeyAndRevisionIdColumn { get { return primaryKeyAndRevisionIdColumn; } }
+		internal Column PrimaryKeyAndRevisionIdColumn => primaryKeyAndRevisionIdColumn;
 
 		private readonly IEnumerable<Column> dataColumns;
 
 		/// <summary>
 		/// Gets all columns that are not the identity column, the row version column, or the primary key and revision ID column.
 		/// </summary>
-		internal IEnumerable<Column> DataColumns { get { return dataColumns; } }
+		internal IEnumerable<Column> DataColumns => dataColumns;
 
 		internal TableColumns( DBConnection cn, string table, bool forRevisionHistoryLogic ) {
 			try {

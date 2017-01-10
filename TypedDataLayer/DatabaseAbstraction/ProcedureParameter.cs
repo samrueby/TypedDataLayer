@@ -29,18 +29,14 @@ namespace TypedDataLayer.DatabaseAbstraction {
 			this.direction = direction;
 		}
 
-		public string Name { get { return valueContainer.Name; } }
-		public string DataTypeName { get { return valueContainer.DataTypeName; } }
-		public string UnconvertedDataTypeName { get { return valueContainer.UnconvertedDataTypeName; } }
+		public string Name => valueContainer.Name;
+		public string DataTypeName => valueContainer.DataTypeName;
+		public string UnconvertedDataTypeName => valueContainer.UnconvertedDataTypeName;
 
-		public string GetIncomingValueConversionExpression( string valueExpression ) {
-			return valueContainer.GetIncomingValueConversionExpression( valueExpression );
-		}
+		public string GetIncomingValueConversionExpression( string valueExpression ) => valueContainer.GetIncomingValueConversionExpression( valueExpression );
 
-		public ParameterDirection Direction { get { return direction; } }
+		public ParameterDirection Direction => direction;
 
-		public string GetParameterValueExpression( string valueExpression ) {
-			return valueContainer.GetParameterValueExpression( valueExpression );
-		}
+		public string GetParameterValueExpression( string valueExpression ) => valueContainer.GetParameterValueExpression( valueExpression );
 	}
 }

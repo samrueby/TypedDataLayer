@@ -17,23 +17,15 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 			this.value = value;
 		}
 
-		internal string ColumnName { get { return columnName; } }
+		internal string ColumnName => columnName;
 
-		internal DbCommandParameter GetParameter( string name = "" ) {
-			return new DbCommandParameter( name.Any() ? name : columnName, value );
-		}
+		internal DbCommandParameter GetParameter( string name = "" ) => new DbCommandParameter( name.Any() ? name : columnName, value );
 
-		public override bool Equals( object obj ) {
-			return Equals( obj as InlineDbCommandColumnValue );
-		}
+		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandColumnValue );
 
-		public bool Equals( InlineDbCommandColumnValue other ) {
-			return other != null && columnName == other.columnName && EwlStatics.AreEqual( value, other.value );
-		}
+		public bool Equals( InlineDbCommandColumnValue other ) => other != null && columnName == other.columnName && EwlStatics.AreEqual( value, other.value );
 
-		public override int GetHashCode() {
-			return new { columnName, value }.GetHashCode();
-		}
+		public override int GetHashCode() => new { columnName, value }.GetHashCode();
 
 		int IComparable.CompareTo( object obj ) {
 			var otherCondition = obj as InlineDbCommandColumnValue;

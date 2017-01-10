@@ -14,7 +14,7 @@ namespace TypedDataLayer.DatabaseAbstraction.Databases {
 			this.info = info;
 		}
 
-		string Database.SecondaryDatabaseName { get { return ( info as DatabaseInfo ).SecondaryDatabaseName; } }
+		string Database.SecondaryDatabaseName => ( info as DatabaseInfo ).SecondaryDatabaseName;
 
 		//void Database.ExecuteSqlScriptInTransaction( string script ) {
 		//	using( var sw = new StringWriter() ) {
@@ -103,9 +103,7 @@ namespace TypedDataLayer.DatabaseAbstraction.Databases {
 		//	}
 		//}
 
-		private string getHostAndAuthenticationArguments() {
-			return "--host=localhost --user=root --password=password";
-		}
+		private string getHostAndAuthenticationArguments() => "--host=localhost --user=root --password=password";
 
 		//void Database.BackupTransactionLog( string folderPath ) {
 		//	throw new NotSupportedException();

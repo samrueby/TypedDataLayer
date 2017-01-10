@@ -17,8 +17,6 @@ namespace TypedDataLayer {
 			writer.WriteLine( "/// <param name=\"" + name + "\">" + description + "</param>" );
 		}
 
-		internal static void AddGeneratedCodeUseOnlyComment( TextWriter writer ) {
-			AddSummaryDocComment( writer, "Auto-generated code use only." );
-		}
+		internal static void AddGeneratedCodeUseOnlyComment( TextWriter writer ) => AddSummaryDocComment( writer, "Auto-generated code use only." );
 	}
 }

@@ -10,9 +10,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 	internal static class TableRetrievalStatics {
 		private const string oracleRowVersionDataType = "decimal";
 
-		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) {
-			return "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "TableRetrieval {";
-		}
+		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) => "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "TableRetrieval {";
 
 		internal static void Generate(
 			DBConnection cn, TextWriter writer, string namespaceDeclaration, Database database, IEnumerable<string> tableNames, XML_Schemas.Database configuration ) {
@@ -118,9 +116,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			}
 		}
 
-		internal static string GetClassName( DBConnection cn, string table ) {
-			return EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableRetrieval" );
-		}
+		internal static string GetClassName( DBConnection cn, string table ) => EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableRetrieval" );
 
 		private static void writeCacheClass(
 			DBConnection cn, TextWriter writer, Database database, string table, TableColumns tableColumns, bool isRevisionHistoryTable ) {
@@ -340,15 +336,11 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 				StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.Name ).ToArray() ) );
 		}
 
-		private static string getCommandConditionAddingStatement( string commandName ) {
-			return "foreach( var i in commandConditions ) {0}.AddCondition( i );".FormatWith( commandName );
-		}
+		private static string getCommandConditionAddingStatement( string commandName ) => "foreach( var i in commandConditions ) {0}.AddCondition( i );".FormatWith( commandName );
 
-		private static string getPkAndVersionTupleTypeArguments( DBConnection cn, TableColumns tableColumns ) {
-			return "{0}, {1}".FormatWith(
-				getPkTupleTypeArguments( tableColumns ),
-				cn.DatabaseInfo is OracleInfo ? oracleRowVersionDataType : tableColumns.RowVersionColumn.DataTypeName );
-		}
+		private static string getPkAndVersionTupleTypeArguments( DBConnection cn, TableColumns tableColumns ) => "{0}, {1}".FormatWith(
+			getPkTupleTypeArguments( tableColumns ),
+			cn.DatabaseInfo is OracleInfo ? oracleRowVersionDataType : tableColumns.RowVersionColumn.DataTypeName );
 
 		private static string getPkTupleTypeArguments( TableColumns tableColumns ) {
 			return StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.DataTypeName ).ToArray() );

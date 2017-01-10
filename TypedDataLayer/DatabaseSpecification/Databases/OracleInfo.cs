@@ -9,7 +9,7 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 	/// </summary>
 	public class OracleInfo: DatabaseInfo {
 		private static DbProviderFactory factoryField;
-		private static DbProviderFactory factory { get { return factoryField ?? ( factoryField = DbProviderFactories.GetFactory( "Oracle.DataAccess.Client" ) ); } }
+		private static DbProviderFactory factory => factoryField ?? ( factoryField = DbProviderFactories.GetFactory( "Oracle.DataAccess.Client" ) );
 
 		private readonly string secondaryDatabaseName;
 		private readonly string dataSource;
@@ -31,43 +31,38 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 			this.supportsLinguisticIndexes = supportsLinguisticIndexes;
 		}
 
-		string DatabaseInfo.SecondaryDatabaseName { get { return secondaryDatabaseName; } }
+		string DatabaseInfo.SecondaryDatabaseName => secondaryDatabaseName;
 
-		string DatabaseInfo.ParameterPrefix { get { return ":"; } }
+		string DatabaseInfo.ParameterPrefix => ":";
 
-		string DatabaseInfo.LastAutoIncrementValueExpression {
-			get {
-				// Oracle doesn't have identities.
-				return "";
-			}
-		}
+		string DatabaseInfo.LastAutoIncrementValueExpression => "";
 
-		string DatabaseInfo.QueryCacheHint { get { return "/*+ RESULT_CACHE */"; } }
+		string DatabaseInfo.QueryCacheHint => "/*+ RESULT_CACHE */";
 
 		/// <summary>
 		/// Gets the data source.
 		/// </summary>
-		public string DataSource { get { return dataSource; } }
+		public string DataSource => dataSource;
 
 		/// <summary>
 		/// Gets the user/schema.
 		/// </summary>
-		public string UserAndSchema { get { return userAndSchema; } }
+		public string UserAndSchema => userAndSchema;
 
 		/// <summary>
 		/// Gets the password.
 		/// </summary>
-		public string Password { get { return password; } }
+		public string Password => password;
 
 		/// <summary>
 		/// Gets whether the database supports connection pooling.
 		/// </summary>
-		public bool SupportsConnectionPooling { get { return supportsConnectionPooling; } }
+		public bool SupportsConnectionPooling => supportsConnectionPooling;
 
 		/// <summary>
 		/// Gets whether the database supports linguistic indexes, which impacts whether or not it can enable case-insensitive comparisons.
 		/// </summary>
-		public bool SupportsLinguisticIndexes { get { return supportsLinguisticIndexes; } }
+		public bool SupportsLinguisticIndexes => supportsLinguisticIndexes;
 
 		DbConnection DatabaseInfo.CreateConnection( string connectionString ) {
 			var connection = factory.CreateConnection();
@@ -92,13 +87,9 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 			return new ProfiledDbCommand( c, null, MiniProfiler.Current );
 		}
 
-		DbParameter DatabaseInfo.CreateParameter() {
-			return factory.CreateParameter();
-		}
+		DbParameter DatabaseInfo.CreateParameter() => factory.CreateParameter();
 
-		string DatabaseInfo.GetDbTypeString( object databaseSpecificType ) {
-			return Enum.GetName( factory.GetType().Assembly.GetType( "Oracle.DataAccess.Client.OracleDbType" ), databaseSpecificType );
-		}
+		string DatabaseInfo.GetDbTypeString( object databaseSpecificType ) => Enum.GetName( factory.GetType().Assembly.GetType( "Oracle.DataAccess.Client.OracleDbType" ), databaseSpecificType );
 
 		void DatabaseInfo.SetParameterType( DbParameter parameter, string dbTypeString ) {
 			var oracleDbTypeProperty = parameter.GetType().GetProperty( "OracleDbType" );

@@ -70,11 +70,11 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getQueryCacheType( Query query, QueryPostSelectFromClause postSelectFromClause ) {
-			return DataAccessStatics.GetNamedParamList( info, query.selectFromClause + " " + postSelectFromClause.Value ).Any()
-				       ? "QueryRetrievalQueryCache<Row>"
-				       : "ParameterlessQueryCache<Row>";
-		}
+		private static string getQueryCacheType( Query query, QueryPostSelectFromClause postSelectFromClause )
+			=>
+				DataAccessStatics.GetNamedParamList( info, query.selectFromClause + " " + postSelectFromClause.Value ).Any()
+					? "QueryRetrievalQueryCache<Row>"
+					: "ParameterlessQueryCache<Row>";
 
 		private static void writeQueryMethod( TextWriter writer, Database database, Query query, QueryPostSelectFromClause postSelectFromClause ) {
 			// header
@@ -108,9 +108,9 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getQueryCacheName( Query query, QueryPostSelectFromClause postSelectFromClause, bool getFieldName ) {
-			return ( getFieldName ? "rows" : "Rows" ) + postSelectFromClause.name +
-			       ( DataAccessStatics.GetNamedParamList( info, query.selectFromClause + " " + postSelectFromClause.Value ).Any() ? "Queries" : "Query" );
-		}
+		private static string getQueryCacheName( Query query, QueryPostSelectFromClause postSelectFromClause, bool getFieldName )
+			=>
+				( getFieldName ? "rows" : "Rows" ) + postSelectFromClause.name +
+				( DataAccessStatics.GetNamedParamList( info, query.selectFromClause + " " + postSelectFromClause.Value ).Any() ? "Queries" : "Query" );
 	}
 }

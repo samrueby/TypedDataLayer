@@ -18,6 +18,6 @@ namespace TypedDataLayer {
 		/// <summary>
 		/// Gets the messages that describe the exception.
 		/// </summary>
-		public IReadOnlyCollection<string> Messages { get { return messages; } }
+		public IReadOnlyCollection<string> Messages => messages;
 	}
 }

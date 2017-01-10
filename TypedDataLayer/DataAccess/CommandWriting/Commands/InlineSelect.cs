@@ -28,9 +28,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// <summary>
 		/// Adds a condition to the command.
 		/// </summary>
-		public void AddCondition( InlineDbCommandCondition condition ) {
-			conditions.Add( condition );
-		}
+		public void AddCondition( InlineDbCommandCondition condition ) => conditions.Add( condition );
 
 		/// <summary>
 		/// Executes this command using the specified database connection to get a data reader and then executes the specified method with the reader.

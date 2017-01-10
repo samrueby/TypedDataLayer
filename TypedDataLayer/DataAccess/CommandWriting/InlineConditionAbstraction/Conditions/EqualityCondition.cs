@@ -31,18 +31,14 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			}
 		}
 
-		public override bool Equals( object obj ) {
-			return Equals( obj as InlineDbCommandCondition );
-		}
+		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandCondition );
 
 		public bool Equals( InlineDbCommandCondition other ) {
 			var otherEqualityCondition = other as EqualityCondition;
 			return otherEqualityCondition != null && EwlStatics.AreEqual( columnValue, otherEqualityCondition.columnValue );
 		}
 
-		public override int GetHashCode() {
-			return columnValue.GetHashCode();
-		}
+		public override int GetHashCode() => columnValue.GetHashCode();
 
 		int IComparable.CompareTo( object obj ) {
 			var otherCondition = obj as InlineDbCommandCondition;

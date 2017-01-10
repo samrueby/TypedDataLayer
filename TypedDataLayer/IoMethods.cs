@@ -53,9 +53,7 @@ namespace TypedDataLayer {
 		/// is used as the root path.
 		/// Caller is responsible for properly disposing the stream.
 		/// </summary>
-		public static TextWriter GetTextWriterForWrite( string filePath ) {
-			return new StreamWriter( GetFileStreamForWrite( filePath ) );
-		}
+		public static TextWriter GetTextWriterForWrite( string filePath ) => new StreamWriter( GetFileStreamForWrite( filePath ) );
 
 		/// <summary>
 		/// Returns a file stream for writing a new file or overwriting an existing file.

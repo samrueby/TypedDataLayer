@@ -65,9 +65,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			command.CommandText += newCommandText;
 		}
 
-		public override bool Equals( object obj ) {
-			return Equals( obj as InlineDbCommandCondition );
-		}
+		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandCondition );
 
 		public bool Equals( InlineDbCommandCondition other ) {
 			var otherLikeCondition = other as LikeCondition;
@@ -75,9 +73,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			       searchTerm == otherLikeCondition.searchTerm;
 		}
 
-		public override int GetHashCode() {
-			return new { behavior, columnName, searchTerm }.GetHashCode();
-		}
+		public override int GetHashCode() => new { behavior, columnName, searchTerm }.GetHashCode();
 
 		int IComparable.CompareTo( object obj ) {
 			var otherCondition = obj as InlineDbCommandCondition;

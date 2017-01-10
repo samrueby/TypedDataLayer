@@ -23,7 +23,7 @@ namespace TypedDataLayer.DatabaseAbstraction.Databases {
 			this.latestTableSpaces = latestTableSpaces;
 		}
 
-		string Database.SecondaryDatabaseName { get { return ( info as DatabaseInfo ).SecondaryDatabaseName; } }
+		string Database.SecondaryDatabaseName => ( info as DatabaseInfo ).SecondaryDatabaseName;
 
 		//void Database.ExecuteSqlScriptInTransaction( string script ) {
 		//	using( var sw = new StringWriter() ) {
@@ -341,9 +341,7 @@ namespace TypedDataLayer.DatabaseAbstraction.Databases {
 
 		//void Database.ShrinkAfterPostUpdateDataCommands() {}
 
-		public void ExecuteDbMethod( Action<DBConnection> method ) {
-			executeDbMethodWithSpecifiedDatabaseInfo( info, method );
-		}
+		public void ExecuteDbMethod( Action<DBConnection> method ) => executeDbMethodWithSpecifiedDatabaseInfo( info, method );
 
 		private void executeDbMethodWithSpecifiedDatabaseInfo( OracleInfo info, Action<DBConnection> method ) {
 			executeMethodWithDbExceptionHandling(

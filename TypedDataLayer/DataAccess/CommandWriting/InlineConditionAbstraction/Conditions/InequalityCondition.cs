@@ -59,18 +59,14 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			command.Parameters.Add( parameter.GetAdoDotNetParameter( databaseInfo ) );
 		}
 
-		public override bool Equals( object obj ) {
-			return Equals( obj as InlineDbCommandCondition );
-		}
+		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandCondition );
 
 		public bool Equals( InlineDbCommandCondition other ) {
 			var otherInequalityCondition = other as InequalityCondition;
 			return otherInequalityCondition != null && op == otherInequalityCondition.op && EwlStatics.AreEqual( columnValue, otherInequalityCondition.columnValue );
 		}
 
-		public override int GetHashCode() {
-			return new { op, columnValue }.GetHashCode();
-		}
+		public override int GetHashCode() => new { op, columnValue }.GetHashCode();
 
 		int IComparable.CompareTo( object obj ) {
 			var otherCondition = obj as InlineDbCommandCondition;

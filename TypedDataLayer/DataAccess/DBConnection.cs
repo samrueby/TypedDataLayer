@@ -75,7 +75,7 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// This should only be used by internal tools.
 		/// </summary>
-		public DatabaseInfo DatabaseInfo { get { return databaseInfo; } }
+		public DatabaseInfo DatabaseInfo => databaseInfo;
 
 		/// <summary>
 		/// Opens the connection, executes the specified method, and closes the connection.
@@ -338,9 +338,7 @@ namespace TypedDataLayer.DataAccess {
 			innerTx = null;
 		}
 
-		private Exception createConnectionException( string action, Exception innerException ) {
-			return DataAccessMethods.CreateDbConnectionException( databaseInfo, action, innerException );
-		}
+		private Exception createConnectionException( string action, Exception innerException ) => DataAccessMethods.CreateDbConnectionException( databaseInfo, action, innerException );
 
 		/// <summary>
 		/// Execute a command and return number of rows affected.
@@ -380,23 +378,17 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Executes the specified command to get a data reader and then executes the specified method with the reader.
 		/// </summary>
-		public void ExecuteReaderCommand( DbCommand cmd, Action<DbDataReader> readerMethod ) {
-			executeReaderCommand( cmd, CommandBehavior.Default, readerMethod );
-		}
+		public void ExecuteReaderCommand( DbCommand cmd, Action<DbDataReader> readerMethod ) => executeReaderCommand( cmd, CommandBehavior.Default, readerMethod );
 
 		/// <summary>
 		/// Executes the specified command with SchemaOnly behavior to get a data reader and then executes the specified method with the reader.
 		/// </summary>
-		public void ExecuteReaderCommandWithSchemaOnlyBehavior( DbCommand cmd, Action<DbDataReader> readerMethod ) {
-			executeReaderCommand( cmd, CommandBehavior.SchemaOnly, readerMethod );
-		}
+		public void ExecuteReaderCommandWithSchemaOnlyBehavior( DbCommand cmd, Action<DbDataReader> readerMethod ) => executeReaderCommand( cmd, CommandBehavior.SchemaOnly, readerMethod );
 
 		/// <summary>
 		/// Executes the specified command with SchemaOnly and KeyInfo behavior to get a data reader and then executes the specified method with the reader.
 		/// </summary>
-		public void ExecuteReaderCommandWithKeyInfoBehavior( DbCommand cmd, Action<DbDataReader> readerMethod ) {
-			executeReaderCommand( cmd, CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo, readerMethod );
-		}
+		public void ExecuteReaderCommandWithKeyInfoBehavior( DbCommand cmd, Action<DbDataReader> readerMethod ) => executeReaderCommand( cmd, CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo, readerMethod );
 
 		private void executeReaderCommand( DbCommand command, CommandBehavior behavior, Action<DbDataReader> readerMethod ) {
 			try {
@@ -498,15 +490,11 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Returns true if the specified user transaction ID matches the current user transaction ID.
 		/// </summary>
-		public bool UserTransactionIsCurrent( int userTransactionId ) {
-			return userTransactionId == this.userTransactionId;
-		}
+		public bool UserTransactionIsCurrent( int userTransactionId ) => userTransactionId == this.userTransactionId;
 
 		/// <summary>
 		/// Returns schema information about the database. For Red Stapler Information System use only.
 		/// </summary>
-		public DataTable GetSchema( string collectionName, params string[] restrictionValues ) {
-			return cn.GetSchema( collectionName, restrictionValues );
-		}
+		public DataTable GetSchema( string collectionName, params string[] restrictionValues ) => cn.GetSchema( collectionName, restrictionValues );
 	}
 }

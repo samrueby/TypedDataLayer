@@ -9,9 +9,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 		private static Database database;
 		private static TableColumns columns;
 
-		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) {
-			return "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "Modification {";
-		}
+		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) => "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "Modification {";
 
 		internal static void Generate(
 			DBConnection cn, TextWriter writer, string namespaceDeclaration, Database database, IEnumerable<string> tableNames, XML_Schemas.Database configuration ) {
@@ -113,9 +111,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		internal static string GetRevisionHistorySuffix( bool isRevisionHistoryClass ) {
-			return isRevisionHistoryClass ? "AsRevision" : "";
-		}
+		internal static string GetRevisionHistorySuffix( bool isRevisionHistoryClass ) => isRevisionHistoryClass ? "AsRevision" : "";
 
 		private static void writeInsertRowMethod( string tableName, string revisionHistorySuffix, string additionalLogicSuffix, IEnumerable<Column> keyColumns ) {
 			Column returnColumn = null;
@@ -223,9 +219,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getPostDeleteCallClassName( DBConnection cn, string tableName ) {
-			return "PostDeleteCall<IEnumerable<" + database.SecondaryDatabaseName + "TableRetrieval." + TableRetrievalStatics.GetClassName( cn, tableName ) + ".Row>>";
-		}
+		private static string getPostDeleteCallClassName( DBConnection cn, string tableName ) => "PostDeleteCall<IEnumerable<" + database.SecondaryDatabaseName + "TableRetrieval." + TableRetrievalStatics.GetClassName( cn, tableName ) + ".Row>>";
 
 		private static void writeFieldsAndPropertiesForColumn( Column column ) {
 			var columnIsReadOnly = !columns.DataColumns.Contains( column );
@@ -343,18 +337,13 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getConditionParameterDeclarations( DBConnection cn, string tableName ) {
-			return "" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + " requiredCondition, params " +
-			       DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "[] additionalConditions";
-		}
+		private static string getConditionParameterDeclarations( DBConnection cn, string tableName ) => "" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + " requiredCondition, params " +
+		                                                                                                DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "[] additionalConditions";
 
-		internal static string GetClassName( DBConnection cn, string table, bool isRevisionHistoryTable, bool isRevisionHistoryClass ) {
-			return
-				EwlStatics.GetCSharpIdentifier(
-					isRevisionHistoryTable && !isRevisionHistoryClass
-						? "Direct" + table.TableNameToPascal( cn ) + "ModificationWithRevisionBypass"
-						: table.TableNameToPascal( cn ) + "Modification" );
-		}
+		internal static string GetClassName( DBConnection cn, string table, bool isRevisionHistoryTable, bool isRevisionHistoryClass ) => EwlStatics.GetCSharpIdentifier(
+			isRevisionHistoryTable && !isRevisionHistoryClass
+				? "Direct" + table.TableNameToPascal( cn ) + "ModificationWithRevisionBypass"
+				: table.TableNameToPascal( cn ) + "Modification" );
 
 		private static void writeSetAllDataMethod() {
 			// header
@@ -376,9 +365,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 				CodeGenerationStatics.AddParamDocComment( writer, column.CamelCasedName, getComment( column ) );
 		}
 
-		private static string getComment( Column column ) {
-			return column.AllowsNull && !column.NullValueExpression.Any() ? "Object allows null." : "Object does not allow null.";
-		}
+		private static string getComment( Column column ) => column.AllowsNull && !column.NullValueExpression.Any() ? "Object allows null." : "Object does not allow null.";
 
 		private static void writeColumnParameterDeclarations( IEnumerable<Column> columns ) {
 			writer.Write(
@@ -590,8 +577,6 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getColumnFieldName( Column column ) {
-			return EwlStatics.GetCSharpIdentifier( column.CamelCasedName + "ColumnValue" );
-		}
+		private static string getColumnFieldName( Column column ) => EwlStatics.GetCSharpIdentifier( column.CamelCasedName + "ColumnValue" );
 	}
 }

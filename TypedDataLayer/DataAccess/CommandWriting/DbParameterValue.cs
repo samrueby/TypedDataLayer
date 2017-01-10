@@ -24,21 +24,15 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 			this.dbTypeString = dbTypeString;
 		}
 
-		internal object Value { get { return value; } }
+		internal object Value => value;
 
-		internal string DbTypeString { get { return dbTypeString; } }
+		internal string DbTypeString => dbTypeString;
 
-		public override bool Equals( object obj ) {
-			return Equals( obj as DbParameterValue );
-		}
+		public override bool Equals( object obj ) => Equals( obj as DbParameterValue );
 
-		public bool Equals( DbParameterValue other ) {
-			return other != null && EwlStatics.AreEqual( value, other.value ) && dbTypeString == other.dbTypeString;
-		}
+		public bool Equals( DbParameterValue other ) => other != null && EwlStatics.AreEqual( value, other.value ) && dbTypeString == other.dbTypeString;
 
-		public override int GetHashCode() {
-			return value != null ? value.GetHashCode() : -1;
-		}
+		public override int GetHashCode() => value != null ? value.GetHashCode() : -1;
 
 		int IComparable.CompareTo( object obj ) {
 			var otherCondition = obj as DbParameterValue;

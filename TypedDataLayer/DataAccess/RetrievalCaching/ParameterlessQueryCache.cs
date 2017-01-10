@@ -10,8 +10,6 @@ namespace TypedDataLayer.DataAccess.RetrievalCaching {
 		private IEnumerable<RowType> resultSet;
 
 		[ EditorBrowsable( EditorBrowsableState.Never ) ]
-		public IEnumerable<RowType> GetResultSet( Func<IEnumerable<RowType>> resultSetCreator ) {
-			return resultSet ?? ( resultSet = resultSetCreator() );
-		}
+		public IEnumerable<RowType> GetResultSet( Func<IEnumerable<RowType>> resultSetCreator ) => resultSet ?? ( resultSet = resultSetCreator() );
 	}
 }

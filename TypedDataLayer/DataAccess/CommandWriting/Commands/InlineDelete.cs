@@ -20,9 +20,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// <summary>
 		/// EWL use only.
 		/// </summary>
-		public void AddCondition( InlineDbCommandCondition condition ) {
-			conditions.Add( condition );
-		}
+		public void AddCondition( InlineDbCommandCondition condition ) => conditions.Add( condition );
 
 		/// <summary>
 		/// Executes this command against the specified database connection and returns the number of rows affected.

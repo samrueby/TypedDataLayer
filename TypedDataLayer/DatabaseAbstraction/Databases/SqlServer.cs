@@ -40,7 +40,7 @@ namespace TypedDataLayer.DatabaseAbstraction.Databases {
 			//this.logLogicalFileName = logLogicalFileName;
 		}
 
-		string Database.SecondaryDatabaseName { get { return ( info as DatabaseInfo ).SecondaryDatabaseName; } }
+		string Database.SecondaryDatabaseName => ( info as DatabaseInfo ).SecondaryDatabaseName;
 
 		//void Database.ExecuteSqlScriptInTransaction( string script ) {
 		//	executeMethodWithDbExceptionHandling(
@@ -324,22 +324,18 @@ namespace TypedDataLayer.DatabaseAbstraction.Databases {
 		  GO
  */
 
-		public void ExecuteDbMethod( Action<DBConnection> method ) {
-			executeDbMethodWithSpecifiedDatabaseInfo( info, method );
-		}
+		public void ExecuteDbMethod( Action<DBConnection> method ) => executeDbMethodWithSpecifiedDatabaseInfo( info, method );
 
-		private void executeDbMethodAgainstMaster( Action<DBConnection> method ) {
-			executeDbMethodWithSpecifiedDatabaseInfo(
-				new SqlServerInfo(
-					( info as DatabaseInfo ).SecondaryDatabaseName,
-					info.Server,
-					info.LoginName,
-					info.Password,
-					"master",
-					info.SupportsConnectionPooling,
-					info.FullTextCatalog ),
-				method );
-		}
+		private void executeDbMethodAgainstMaster( Action<DBConnection> method ) => executeDbMethodWithSpecifiedDatabaseInfo(
+			new SqlServerInfo(
+				( info as DatabaseInfo ).SecondaryDatabaseName,
+				info.Server,
+				info.LoginName,
+				info.Password,
+				"master",
+				info.SupportsConnectionPooling,
+				info.FullTextCatalog ),
+			method );
 
 		private void executeDbMethodWithSpecifiedDatabaseInfo( SqlServerInfo info, Action<DBConnection> method ) {
 			executeMethodWithDbExceptionHandling(

@@ -23,11 +23,9 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 		/// <summary>
 		/// Returns true if the value of this parameter is null.
 		/// </summary>
-		internal bool ValueIsNull { get { return value.Value == null; } }
+		internal bool ValueIsNull => value.Value == null;
 
-		public string GetNameForCommandText( DatabaseInfo databaseInfo ) {
-			return databaseInfo.ParameterPrefix + name;
-		}
+		public string GetNameForCommandText( DatabaseInfo databaseInfo ) => databaseInfo.ParameterPrefix + name;
 
 		/// <summary>
 		/// Returns the ADO.NET parameter object for this parameter. The ADO.NET parameter object is created on the first call to this method.

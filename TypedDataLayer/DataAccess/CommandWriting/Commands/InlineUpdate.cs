@@ -10,9 +10,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// <summary>
 		/// Use this to get a parameter name from a number that should be unique to the query.
 		/// </summary>
-		internal static string GetParamNameFromNumber( int number ) {
-			return "p" + number;
-		}
+		internal static string GetParamNameFromNumber( int number ) => "p" + number;
 
 		private readonly string tableName;
 		private readonly List<InlineDbCommandColumnValue> columnModifications = new List<InlineDbCommandColumnValue>();
@@ -28,16 +26,12 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// <summary>
 		/// Add a data parameter.
 		/// </summary>
-		public void AddColumnModification( InlineDbCommandColumnValue columnModification ) {
-			columnModifications.Add( columnModification );
-		}
+		public void AddColumnModification( InlineDbCommandColumnValue columnModification ) => columnModifications.Add( columnModification );
 
 		/// <summary>
 		/// EWL use only.
 		/// </summary>
-		public void AddCondition( InlineDbCommandCondition condition ) {
-			conditions.Add( condition );
-		}
+		public void AddCondition( InlineDbCommandCondition condition ) => conditions.Add( condition );
 
 		/// <summary>
 		/// Executes this command against the specified database connection and returns the number of rows affected.

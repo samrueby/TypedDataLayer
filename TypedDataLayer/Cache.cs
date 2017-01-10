@@ -20,21 +20,17 @@ namespace TypedDataLayer {
 		/// <summary>
 		/// Gets a collection containing the keys in the cache.
 		/// </summary>
-		public ICollection<KeyType> Keys { get { return dictionary.Keys; } }
+		public ICollection<KeyType> Keys => dictionary.Keys;
 
 		/// <summary>
 		/// Returns true if the key was found.
 		/// </summary>
-		public bool ContainsKey( KeyType key ) {
-			return dictionary.ContainsKey( key );
-		}
+		public bool ContainsKey( KeyType key ) => dictionary.ContainsKey( key );
 
 		/// <summary>
 		/// Attempts to get the value associated with the specified key. Returns true if the key was found.
 		/// </summary>
-		public bool TryGetValue( KeyType key, out ValType value ) {
-			return dictionary.TryGetValue( key, out value );
-		}
+		public bool TryGetValue( KeyType key, out ValType value ) => dictionary.TryGetValue( key, out value );
 
 		/// <summary>
 		/// Attempts to add the specified key and value. Returns true if the key/value pair was added.
@@ -70,8 +66,6 @@ namespace TypedDataLayer {
 		/// <summary>
 		/// Attempts to remove the key/value pair with the specified key. Returns true if the key was found and the key/value pair was removed.
 		/// </summary>
-		public bool Remove( KeyType key ) {
-			return dictionary.Remove( key );
-		}
+		public bool Remove( KeyType key ) => dictionary.Remove( key );
 	}
 }
