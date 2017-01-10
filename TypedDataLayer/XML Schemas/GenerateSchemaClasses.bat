@@ -1,0 +1,1 @@
+forfiles /p .\ /m *.xsd /c "cmd /c 0x220x22C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\xsd.exe0x22 @path \"/out:.\" /namespace:TypedDataLayer /classes0x22"

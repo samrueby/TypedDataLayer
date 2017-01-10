@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A81039DF-DEF4-40B8-A770-6DD3450E0961}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TypedDataLayer</RootNamespace>
+    <AssemblyName>TypedDataLayer</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="JetBrains.Annotations, Version=10.2.1.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
+      <HintPath>..\packages\JetBrains.Annotations.10.2.1\lib\net\JetBrains.Annotations.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MiniProfiler, Version=3.2.0.157, Culture=neutral, PublicKeyToken=b44f9351044011a3, processorArchitecture=MSIL">
+      <HintPath>..\packages\MiniProfiler.3.2.0.157\lib\net40\MiniProfiler.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Cache.cs" />
+    <Compile Include="CodeGenerationStatics.cs" />
+    <Compile Include="DataAccessStatics.cs" />
+    <Compile Include="DataAccess\AutomaticTransactionDisablingProvider.cs" />
+    <Compile Include="DataAccess\Column.cs" />
+    <Compile Include="DataAccess\CommandWriting\Commands\InlineDelete.cs" />
+    <Compile Include="DataAccess\CommandWriting\Commands\InlineInsert.cs" />
+    <Compile Include="DataAccess\CommandWriting\Commands\InlineSelect.cs" />
+    <Compile Include="DataAccess\CommandWriting\Commands\InlineUpdate.cs" />
+    <Compile Include="DataAccess\CommandWriting\Commands\SprocExecution.cs" />
+    <Compile Include="DataAccess\CommandWriting\DbCommandParameter.cs" />
+    <Compile Include="DataAccess\CommandWriting\DbParameterValue.cs" />
+    <Compile Include="DataAccess\CommandWriting\InlineConditionAbstraction\Conditions\EqualityCondition.cs" />
+    <Compile Include="DataAccess\CommandWriting\InlineConditionAbstraction\Conditions\InCondition.cs" />
+    <Compile Include="DataAccess\CommandWriting\InlineConditionAbstraction\Conditions\InequalityCondition.cs" />
+    <Compile Include="DataAccess\CommandWriting\InlineConditionAbstraction\Conditions\LikeCondition.cs" />
+    <Compile Include="DataAccess\CommandWriting\InlineConditionAbstraction\InlineDbCommandCondition.cs" />
+    <Compile Include="DataAccess\CommandWriting\InlineConditionAbstraction\InlineDbCommandWithConditions.cs" />
+    <Compile Include="DataAccess\CommandWriting\InlineDbCommandColumnValue.cs" />
+    <Compile Include="DataAccess\CommandWriting\InlineDbModificationCommand.cs" />
+    <Compile Include="DataAccess\DataAccessMethods.cs" />
+    <Compile Include="DataAccess\DataAccessState.cs" />
+    <Compile Include="DataAccess\DbCommandTimeoutException.cs" />
+    <Compile Include="DataAccess\DbConcurrencyException.cs" />
+    <Compile Include="DataAccess\DBConnection.cs" />
+    <Compile Include="DataAccess\DbConnectionFailureException.cs" />
+    <Compile Include="DataAccess\DoNotCommitException.cs" />
+    <Compile Include="DataAccess\RetrievalCaching\ParameterlessQueryCache.cs" />
+    <Compile Include="DataAccess\RetrievalCaching\QueryRetrievalQueryCache.cs" />
+    <Compile Include="DataAccess\RetrievalCaching\TableRetrievalQueryCache.cs" />
+    <Compile Include="DataAccess\RetrievalCaching\VersionedRowDataCache.cs" />
+    <Compile Include="DataAccess\StandardModification\ModificationType.cs" />
+    <Compile Include="DataAccess\StandardModification\PostDeleteCall.cs" />
+    <Compile Include="DataAccess\Subsystems\CommandConditionStatics.cs" />
+    <Compile Include="DataAccess\Subsystems\CustomModificationStatics.cs" />
+    <Compile Include="DataAccess\Subsystems\ProcedureStatics.cs" />
+    <Compile Include="DataAccess\Subsystems\QueryRetrievalStatics.cs" />
+    <Compile Include="DataAccess\Subsystems\RowConstantStatics.cs" />
+    <Compile Include="DataAccess\Subsystems\SequenceStatics.cs" />
+    <Compile Include="DataAccess\Subsystems\StandardModification\StandardModificationStatics.cs" />
+    <Compile Include="DataAccess\Subsystems\TableConstantStatics.cs" />
+    <Compile Include="DataAccess\Subsystems\TableRetrievalStatics.cs" />
+    <Compile Include="DataAccess\SystemDataAccessProvider.cs" />
+    <Compile Include="DataAccess\TableColumns.cs" />
+    <Compile Include="DataAccess\TableCondition.cs" />
+    <Compile Include="DatabaseAbstraction\Database.cs" />
+    <Compile Include="DatabaseAbstraction\DatabaseOps.cs" />
+    <Compile Include="DatabaseAbstraction\Databases\MySql.cs" />
+    <Compile Include="DatabaseAbstraction\Databases\NoDatabase.cs" />
+    <Compile Include="DatabaseAbstraction\Databases\Oracle.cs" />
+    <Compile Include="DatabaseAbstraction\Databases\SqlServer.cs" />
+    <Compile Include="DatabaseAbstraction\ProcedureParameter.cs" />
+    <Compile Include="DatabaseAbstraction\ValueContainer.cs" />
+    <Compile Include="DatabaseSpecification\DatabaseInfo.cs" />
+    <Compile Include="DatabaseSpecification\Databases\MySqlInfo.cs" />
+    <Compile Include="DatabaseSpecification\Databases\OracleInfo.cs" />
+    <Compile Include="DatabaseSpecification\Databases\SqlServerInfo.cs" />
+    <Compile Include="DataModificationException.cs" />
+    <Compile Include="EwlStatics.cs" />
+    <Compile Include="IoMethods.cs" />
+    <Compile Include="ListSet.cs" />
+    <Compile Include="MultiMessageApplicationException.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringTools.cs" />
+    <Compile Include="StructuralEqualityComparer.cs" />
+    <Compile Include="XML Schemas\TypedDataLayerConfig.cs">
+      <DependentUpon>TypedDataLayerConfig.xsd</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+    <None Include="XML Schemas\GenerateSchemaClasses.bat" />
+    <None Include="XML Schemas\TypedDataLayerConfig.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
