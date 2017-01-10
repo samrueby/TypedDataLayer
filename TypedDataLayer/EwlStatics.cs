@@ -54,8 +54,8 @@ namespace TypedDataLayer {
 					p.StartInfo.RedirectStandardError = true;
 					var output = new StringWriter();
 					var errorOutput = new StringWriter();
-					p.OutputDataReceived += ( ( sender, e ) => output.WriteLine( e.Data ) );
-					p.ErrorDataReceived += ( ( sender, e ) => errorOutput.WriteLine( e.Data ) );
+					p.OutputDataReceived += ( sender, e ) => output.WriteLine( e.Data );
+					p.ErrorDataReceived += ( sender, e ) => errorOutput.WriteLine( e.Data );
 
 					p.Start();
 

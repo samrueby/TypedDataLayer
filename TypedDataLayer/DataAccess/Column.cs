@@ -49,8 +49,8 @@ namespace TypedDataLayer.DataAccess {
 				(int)schemaTableRow[ "ColumnSize" ],
 				(bool)schemaTableRow[ "AllowDBNull" ],
 				databaseInfo );
-			isIdentity = ( databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsIdentity" ] ) ||
-			             ( databaseInfo is MySqlInfo && (bool)schemaTableRow[ "IsAutoIncrement" ] );
+			isIdentity = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsIdentity" ] ||
+			             databaseInfo is MySqlInfo && (bool)schemaTableRow[ "IsAutoIncrement" ];
 			isRowVersion = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsRowVersion" ];
 			if( includeKeyInfo )
 				isKey = (bool)schemaTableRow[ "IsKey" ];

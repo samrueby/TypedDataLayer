@@ -94,7 +94,7 @@ namespace TypedDataLayer.DatabaseAbstraction {
 			var conversionExpression = outgoingValueConversionExpressionGetter( valueExpression );
 			var parameterValueExpression = valueExpression == "null"
 				                               ? valueExpression
-				                               : conversionExpression == valueExpression || ( dataType.IsValueType && ( nullValueExpression.Any() || !allowsNull ) )
+				                               : conversionExpression == valueExpression || dataType.IsValueType && ( nullValueExpression.Any() || !allowsNull )
 					                                 ? conversionExpression
 					                                 : "{0} != null ? {1} : null".FormatWith(
 						                                 valueExpression,
