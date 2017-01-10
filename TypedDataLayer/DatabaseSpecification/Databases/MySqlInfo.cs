@@ -12,16 +12,14 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 		private static DbProviderFactory factory => factoryField ?? ( factoryField = DbProviderFactories.GetFactory( "MySql.Data.MySqlClient" ) );
 
 		private readonly string secondaryDatabaseName;
-		private readonly string database;
-		private readonly bool supportsConnectionPooling;
 
 		/// <summary>
 		/// Creates a new MySQL information object. Specify the empty string for the secondary database name if this represents the primary database.
 		/// </summary>
 		public MySqlInfo( string secondaryDatabaseName, string database, bool supportsConnectionPooling ) {
 			this.secondaryDatabaseName = secondaryDatabaseName;
-			this.database = database;
-			this.supportsConnectionPooling = supportsConnectionPooling;
+			Database = database;
+			SupportsConnectionPooling = supportsConnectionPooling;
 		}
 
 		string DatabaseInfo.SecondaryDatabaseName => secondaryDatabaseName;
@@ -33,12 +31,12 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 		/// <summary>
 		/// Gets the database.
 		/// </summary>
-		public string Database => database;
+		public string Database { get; }
 
 		/// <summary>
 		/// Gets whether the database supports connection pooling.
 		/// </summary>
-		public bool SupportsConnectionPooling => supportsConnectionPooling;
+		public bool SupportsConnectionPooling { get; }
 
 		DbConnection DatabaseInfo.CreateConnection( string connectionString ) {
 			var connection = factory.CreateConnection();
@@ -50,7 +48,8 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 
 		DbParameter DatabaseInfo.CreateParameter() => factory.CreateParameter();
 
-		string DatabaseInfo.GetDbTypeString( object databaseSpecificType ) => Enum.GetName( factory.GetType().Assembly.GetType( "MySql.Data.MySqlClient.MySqlDbType" ), databaseSpecificType );
+		string DatabaseInfo.GetDbTypeString( object databaseSpecificType )
+			=> Enum.GetName( factory.GetType().Assembly.GetType( "MySql.Data.MySqlClient.MySqlDbType" ), databaseSpecificType );
 
 		void DatabaseInfo.SetParameterType( DbParameter parameter, string dbTypeString ) {
 			var mySqlDbTypeProperty = parameter.GetType().GetProperty( "MySqlDbType" );

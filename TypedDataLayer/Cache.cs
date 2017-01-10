@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace TypedDataLayer {
 	/// <summary>
 	/// A cache of values.
 	/// </summary>
+	[ UsedImplicitly( ImplicitUseTargetFlags.WithMembers ) ]
 	public class Cache<KeyType, ValType> {
 		private readonly IDictionary<KeyType, ValType> dictionary;
 

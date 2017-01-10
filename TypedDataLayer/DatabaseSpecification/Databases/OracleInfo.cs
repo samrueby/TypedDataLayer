@@ -12,11 +12,6 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 		private static DbProviderFactory factory => factoryField ?? ( factoryField = DbProviderFactories.GetFactory( "Oracle.DataAccess.Client" ) );
 
 		private readonly string secondaryDatabaseName;
-		private readonly string dataSource;
-		private readonly string userAndSchema;
-		private readonly string password;
-		private readonly bool supportsConnectionPooling;
-		private readonly bool supportsLinguisticIndexes;
 
 		/// <summary>
 		/// Creates a new Oracle database information object. Specify the empty string for the secondary database name if this represents the primary database.
@@ -24,11 +19,11 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 		public OracleInfo(
 			string secondaryDatabaseName, string dataSource, string userAndSchema, string password, bool supportsConnectionPooling, bool supportsLinguisticIndexes ) {
 			this.secondaryDatabaseName = secondaryDatabaseName;
-			this.dataSource = dataSource;
-			this.userAndSchema = userAndSchema;
-			this.password = password;
-			this.supportsConnectionPooling = supportsConnectionPooling;
-			this.supportsLinguisticIndexes = supportsLinguisticIndexes;
+			DataSource = dataSource;
+			UserAndSchema = userAndSchema;
+			Password = password;
+			SupportsConnectionPooling = supportsConnectionPooling;
+			SupportsLinguisticIndexes = supportsLinguisticIndexes;
 		}
 
 		string DatabaseInfo.SecondaryDatabaseName => secondaryDatabaseName;
@@ -42,27 +37,27 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 		/// <summary>
 		/// Gets the data source.
 		/// </summary>
-		public string DataSource => dataSource;
+		public string DataSource { get; }
 
 		/// <summary>
 		/// Gets the user/schema.
 		/// </summary>
-		public string UserAndSchema => userAndSchema;
+		public string UserAndSchema { get; }
 
 		/// <summary>
 		/// Gets the password.
 		/// </summary>
-		public string Password => password;
+		public string Password { get; }
 
 		/// <summary>
 		/// Gets whether the database supports connection pooling.
 		/// </summary>
-		public bool SupportsConnectionPooling => supportsConnectionPooling;
+		public bool SupportsConnectionPooling { get; }
 
 		/// <summary>
 		/// Gets whether the database supports linguistic indexes, which impacts whether or not it can enable case-insensitive comparisons.
 		/// </summary>
-		public bool SupportsLinguisticIndexes => supportsLinguisticIndexes;
+		public bool SupportsLinguisticIndexes { get; }
 
 		DbConnection DatabaseInfo.CreateConnection( string connectionString ) {
 			var connection = factory.CreateConnection();
