@@ -10,7 +10,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 	internal static class TableRetrievalStatics {
 		private const string oracleRowVersionDataType = "decimal";
 
-		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) => "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "TableRetrieval {";
+		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) => "namespace " + baseNamespace + ".TableRetrieval {";
 
 		internal static void Generate(
 			DBConnection cn, TextWriter writer, string namespaceDeclaration, Database database, IEnumerable<string> tableNames, XML_Schemas.Database configuration ) {
@@ -37,8 +37,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 						if( !columns.DataColumns.Any() )
 							return;
 
-						var modClass = database.SecondaryDatabaseName + "Modification." +
-						               StandardModificationStatics.GetClassName( cn, table, isRevisionHistoryTable, isRevisionHistoryTable );
+						var modClass = "Modification." + StandardModificationStatics.GetClassName( cn, table, isRevisionHistoryTable, isRevisionHistoryTable );
 						var revisionHistorySuffix = StandardModificationStatics.GetRevisionHistorySuffix( isRevisionHistoryTable );
 						writer.WriteLine( "public " + modClass + " ToModification" + revisionHistorySuffix + "() {" );
 						writer.WriteLine(
@@ -81,7 +80,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 					writer.WriteLine(
 						"return AppMemoryCache.GetCacheValue<{0}>( \"{1}\", () => new {0}( i => System.Tuple.Create( {2} ) ) ).RowsByPkAndVersion;".FormatWith(
 							"VersionedRowDataCache<System.Tuple<{0}>, System.Tuple<{1}>, BasicRow>".FormatWith( getPkTupleTypeArguments( columns ), keyTupleTypeArguments ),
-							database.SecondaryDatabaseName + table.TableNameToPascal( cn ) + "TableRetrievalRowsByPkAndVersion",
+							table.TableNameToPascal( cn ) + "TableRetrievalRowsByPkAndVersion",
 							StringTools.ConcatenateWithDelimiter( ", ", Enumerable.Range( 1, columns.KeyColumns.Count() ).Select( i => "i.Item{0}".FormatWith( i ) ).ToArray() ) ) );
 					writer.WriteLine( "}" );
 				}
@@ -97,7 +96,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 		}
 
 		internal static void WritePartialClass( DBConnection cn, string libraryBasePath, string namespaceDeclaration, Database database, string tableName ) {
-			var folderPath = EwlStatics.CombinePaths( libraryBasePath, "DataAccess", database.SecondaryDatabaseName + "TableRetrieval" );
+			var folderPath = EwlStatics.CombinePaths( libraryBasePath, "DataAccess", "TableRetrieval" );
 			var templateFilePath = EwlStatics.CombinePaths( folderPath, GetClassName( cn, tableName ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
 
@@ -120,7 +119,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 
 		private static void writeCacheClass(
 			DBConnection cn, TextWriter writer, Database database, string table, TableColumns tableColumns, bool isRevisionHistoryTable ) {
-			var cacheKey = database.SecondaryDatabaseName + table.TableNameToPascal( cn ) + "TableRetrieval";
+			var cacheKey = table.TableNameToPascal( cn ) + "TableRetrieval";
 			var pkTupleTypeArguments = getPkTupleTypeArguments( tableColumns );
 
 			writer.WriteLine( "private partial class Cache {" );
@@ -336,11 +335,14 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 				StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.Name ).ToArray() ) );
 		}
 
-		private static string getCommandConditionAddingStatement( string commandName ) => "foreach( var i in commandConditions ) {0}.AddCondition( i );".FormatWith( commandName );
+		private static string getCommandConditionAddingStatement( string commandName )
+			=> "foreach( var i in commandConditions ) {0}.AddCondition( i );".FormatWith( commandName );
 
-		private static string getPkAndVersionTupleTypeArguments( DBConnection cn, TableColumns tableColumns ) => "{0}, {1}".FormatWith(
-			getPkTupleTypeArguments( tableColumns ),
-			cn.DatabaseInfo is OracleInfo ? oracleRowVersionDataType : tableColumns.RowVersionColumn.DataTypeName );
+		private static string getPkAndVersionTupleTypeArguments( DBConnection cn, TableColumns tableColumns )
+			=>
+				"{0}, {1}".FormatWith(
+					getPkTupleTypeArguments( tableColumns ),
+					cn.DatabaseInfo is OracleInfo ? oracleRowVersionDataType : tableColumns.RowVersionColumn.DataTypeName );
 
 		private static string getPkTupleTypeArguments( TableColumns tableColumns ) {
 			return StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.DataTypeName ).ToArray() );

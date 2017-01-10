@@ -13,7 +13,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			if( configuration.rowConstantTables == null )
 				return;
 
-			writer.WriteLine( "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "RowConstants {" );
+			writer.WriteLine( "namespace " + baseNamespace + ".RowConstants {" );
 			foreach( var table in configuration.rowConstantTables ) {
 				Column valueColumn;
 				var orderIsSpecified = !table.orderByColumn.IsNullOrWhiteSpace();
@@ -60,8 +60,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 
 					// It's important that row constants actually *be* constants (instead of static readonly) so they can be used in switch statements.
 					writer.WriteLine(
-						"public const " + valueColumn.DataTypeName + " " + EwlStatics.GetCSharpIdentifier( names[ i ].CamelToEnglish().EnglishToPascal() ) + " = " + values[ i ] +
-						";" );
+						$"public const {valueColumn.DataTypeName} {EwlStatics.GetCSharpIdentifier( names[ i ].CamelToEnglish().EnglishToPascal() )} = {values[ i ]};" );
 				}
 
 				// one to one map

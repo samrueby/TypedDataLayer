@@ -4,7 +4,7 @@ using TypedDataLayer.DatabaseAbstraction;
 namespace TypedDataLayer.DataAccess.Subsystems {
 	internal static class SequenceStatics {
 		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, Database database ) {
-			writer.WriteLine( "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "Sequences {" );
+			writer.WriteLine( "namespace " + baseNamespace + ".Sequences {" );
 
 			var cmd = cn.DatabaseInfo.CreateCommand();
 			cmd.CommandText = "SELECT * FROM USER_SEQUENCES";

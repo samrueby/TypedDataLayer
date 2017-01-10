@@ -89,13 +89,8 @@ namespace TypedDataLayer {
 				"return " + EwlStatics.GetCSharpIdentifier( columns.First( c => c.UseToUniquelyIdentifyRow ).PascalCasedNameExceptForOracle ) + ".GetHashCode();" );
 			writer.WriteLine( "}" ); // Object override of GetHashCode
 
-			writer.WriteLine( @"	public static bool operator == ( Row row1, Row row2 ) {
-				return Equals( row1, row2 );
-			}
-
-			public static bool operator !=( Row row1, Row row2 ) {
-				return !Equals( row1, row2 );
-			}" );
+			writer.WriteLine( @"public static bool operator == ( Row row1, Row row2 ) => Equals( row1, row2 );
+			public static bool operator !=( Row row1, Row row2 ) => !Equals( row1, row2 );" );
 
 			writer.WriteLine( "public override bool Equals( object obj ) {" );
 			writer.WriteLine( "return Equals( obj as Row );" );
@@ -150,11 +145,11 @@ namespace TypedDataLayer {
 				configuration.revisionHistoryTables.Any( revisionHistoryTable => revisionHistoryTable.EqualsIgnoreCase( table ) );
 
 		internal static string GetTableConditionInterfaceName( DBConnection cn, Database database, string table )
-			=> database.SecondaryDatabaseName + "CommandConditions." + CommandConditionStatics.GetTableConditionInterfaceName( cn, table );
+			=> "CommandConditions." + CommandConditionStatics.GetTableConditionInterfaceName( cn, table );
 
 		internal static string GetEqualityConditionClassName( DBConnection cn, Database database, string tableName, Column column )
 			=>
-				database.SecondaryDatabaseName + "CommandConditions." + CommandConditionStatics.GetTableEqualityConditionsClassName( cn, tableName ) + "." +
+				"CommandConditions." + CommandConditionStatics.GetTableEqualityConditionsClassName( cn, tableName ) + "." +
 				CommandConditionStatics.GetConditionClassName( column );
 
 		internal static void WriteGetLatestRevisionsConditionMethod( TextWriter writer, string revisionIdColumn ) {
@@ -167,11 +162,6 @@ namespace TypedDataLayer {
 		internal static string TableNameToPascal( this string tableName, DBConnection cn )
 			=> cn.DatabaseInfo is MySqlInfo ? tableName.OracleToEnglish().EnglishToPascal() : tableName;
 
-		internal static string GetConnectionExpression( Database database )
-			=>
-				"DataAccessState.Current.{0}".FormatWith(
-					database.SecondaryDatabaseName.Any()
-						? "GetSecondaryDatabaseConnection( SecondaryDatabaseNames.{0} )".FormatWith( database.SecondaryDatabaseName )
-						: "PrimaryDatabaseConnection" );
+		internal static string GetConnectionExpression( Database database ) => "DataAccessState.Current.PrimaryDatabaseConnection";
 	}
 }

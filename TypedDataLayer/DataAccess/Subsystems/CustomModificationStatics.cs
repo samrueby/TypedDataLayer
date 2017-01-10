@@ -17,7 +17,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 				testQueries( cn, configuration.customModifications );
 
 				CodeGenerationStatics.AddSummaryDocComment( writer, "Contains custom modification operations." );
-				writer.WriteLine( "public static class " + database.SecondaryDatabaseName + "CustomModifications {" );
+				writer.WriteLine( "public static class CustomModifications {" );
 
 				foreach( var mod in configuration.customModifications )
 					writeMethod( writer, database, mod );

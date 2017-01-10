@@ -15,7 +15,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 				return;
 
 			info = cn.DatabaseInfo;
-			writer.WriteLine( "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "Retrieval {" );
+			writer.WriteLine( "namespace " + baseNamespace + ".Retrieval {" );
 
 			foreach( var query in configuration.queries ) {
 				List<Column> columns;
@@ -56,8 +56,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 		private static void writeCacheClass( TextWriter writer, Database database, Query query ) {
 			writer.WriteLine( "private partial class Cache {" );
 			writer.WriteLine(
-				"internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( \"" + database.SecondaryDatabaseName + query.name +
-				"QueryRetrieval\", () => new Cache() ); } }" );
+				"internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( \"" + query.name + "QueryRetrieval\", () => new Cache() ); } }" );
 			foreach( var i in query.postSelectFromClauses ) {
 				var type = getQueryCacheType( query, i );
 				writer.WriteLine( "private readonly " + type + " " + getQueryCacheName( query, i, true ) + " = new " + type + "();" );

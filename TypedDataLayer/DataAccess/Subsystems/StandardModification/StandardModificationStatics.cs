@@ -9,7 +9,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 		private static Database database;
 		private static TableColumns columns;
 
-		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) => "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "Modification {";
+		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) => "namespace " + baseNamespace + ".Modification {";
 
 		internal static void Generate(
 			DBConnection cn, TextWriter writer, string namespaceDeclaration, Database database, IEnumerable<string> tableNames, XML_Schemas.Database configuration ) {
@@ -30,7 +30,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 		internal static void WritePartialClass(
 			DBConnection cn, string libraryBasePath, string namespaceDeclaration, Database database, string tableName, bool isRevisionHistoryTable ) {
 			// We do not create templates for direct modification classes.
-			var folderPath = EwlStatics.CombinePaths( libraryBasePath, "DataAccess", database.SecondaryDatabaseName + "Modification" );
+			var folderPath = EwlStatics.CombinePaths( libraryBasePath, "DataAccess", "Modification" );
 			var templateFilePath = EwlStatics.CombinePaths(
 				folderPath,
 				GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryTable ) + DataAccessStatics.CSharpTemplateFileExtension );
@@ -219,13 +219,13 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getPostDeleteCallClassName( DBConnection cn, string tableName ) => "PostDeleteCall<IEnumerable<" + database.SecondaryDatabaseName + "TableRetrieval." + TableRetrievalStatics.GetClassName( cn, tableName ) + ".Row>>";
+		private static string getPostDeleteCallClassName( DBConnection cn, string tableName )
+			=> "PostDeleteCall<IEnumerable<TableRetrieval." + TableRetrievalStatics.GetClassName( cn, tableName ) + ".Row>>";
 
 		private static void writeFieldsAndPropertiesForColumn( Column column ) {
 			var columnIsReadOnly = !columns.DataColumns.Contains( column );
 
-			writer.WriteLine(
-				"private readonly DataValue<" + column.DataTypeName + "> " + getColumnFieldName( column ) + " = new DataValue<" + column.DataTypeName + ">();" );
+			writer.WriteLine( $"private readonly DataValue<{column.DataTypeName}> {getColumnFieldName( column )} = new DataValue<{column.DataTypeName}>();" );
 			CodeGenerationStatics.AddSummaryDocComment(
 				writer,
 				"Gets " + ( columnIsReadOnly ? "" : "or sets " ) + "the value for the " + column.Name +
@@ -337,13 +337,17 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getConditionParameterDeclarations( DBConnection cn, string tableName ) => "" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + " requiredCondition, params " +
-		                                                                                                DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "[] additionalConditions";
+		private static string getConditionParameterDeclarations( DBConnection cn, string tableName )
+			=>
+				"" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + " requiredCondition, params " +
+				DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "[] additionalConditions";
 
-		internal static string GetClassName( DBConnection cn, string table, bool isRevisionHistoryTable, bool isRevisionHistoryClass ) => EwlStatics.GetCSharpIdentifier(
-			isRevisionHistoryTable && !isRevisionHistoryClass
-				? "Direct" + table.TableNameToPascal( cn ) + "ModificationWithRevisionBypass"
-				: table.TableNameToPascal( cn ) + "Modification" );
+		internal static string GetClassName( DBConnection cn, string table, bool isRevisionHistoryTable, bool isRevisionHistoryClass )
+			=>
+				EwlStatics.GetCSharpIdentifier(
+					isRevisionHistoryTable && !isRevisionHistoryClass
+						? "Direct" + table.TableNameToPascal( cn ) + "ModificationWithRevisionBypass"
+						: table.TableNameToPascal( cn ) + "Modification" );
 
 		private static void writeSetAllDataMethod() {
 			// header
@@ -365,7 +369,8 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 				CodeGenerationStatics.AddParamDocComment( writer, column.CamelCasedName, getComment( column ) );
 		}
 
-		private static string getComment( Column column ) => column.AllowsNull && !column.NullValueExpression.Any() ? "Object allows null." : "Object does not allow null.";
+		private static string getComment( Column column )
+			=> column.AllowsNull && !column.NullValueExpression.Any() ? "Object allows null." : "Object does not allow null.";
 
 		private static void writeColumnParameterDeclarations( IEnumerable<Column> columns ) {
 			writer.Write(

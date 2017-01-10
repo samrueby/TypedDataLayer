@@ -7,7 +7,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 	internal static class ProcedureStatics {
 		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, Database database ) {
 			writer.WriteLine( "namespace " + baseNamespace + " {" );
-			writer.WriteLine( "public static class " + database.SecondaryDatabaseName + "Procedures {" );
+			writer.WriteLine( "public static class Procedures {" );
 			foreach( var procedure in database.GetProcedures() ) {
 				var parameters = database.GetProcedureParameters( procedure );
 

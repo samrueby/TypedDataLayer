@@ -6,117 +6,12 @@ using TypedDataLayer.DatabaseSpecification.Databases;
 
 namespace TypedDataLayer.DatabaseAbstraction.Databases {
 	public class MySql: Database {
-		//private const string binFolderPath = @"C:\Program Files\MySQL\MySQL Server 5.5\bin";
-
 		private readonly MySqlInfo info;
 
 		public MySql( MySqlInfo info ) {
 			this.info = info;
 		}
-
-		string Database.SecondaryDatabaseName => ( info as DatabaseInfo ).SecondaryDatabaseName;
-
-		//void Database.ExecuteSqlScriptInTransaction( string script ) {
-		//	using( var sw = new StringWriter() ) {
-		//		sw.WriteLine( "START TRANSACTION;" );
-		//		sw.Write( script );
-		//		sw.WriteLine( "COMMIT;" );
-		//		sw.WriteLine( "quit" );
-
-		//		executeMethodWithDbExceptionHandling(
-		//			delegate {
-		//				try {
-		//					EwlStatics.RunProgram(
-		//						EwlStatics.CombinePaths( binFolderPath, "mysql" ),
-		//						getHostAndAuthenticationArguments() + " " + info.Database + " --disable-reconnect --batch --disable-auto-rehash",
-		//						sw.ToString(),
-		//						true );
-		//				}
-		//				catch( Exception e ) {
-		//					throw DataAccessMethods.CreateDbConnectionException( info, "updating logic in", e );
-		//				}
-		//			} );
-		//	}
-		//}
-
-		//int Database.GetLineMarker() {
-		//	var value = 0;
-		//	ExecuteDbMethod(
-		//		delegate( DBConnection cn ) {
-		//			var command = cn.DatabaseInfo.CreateCommand();
-		//			command.CommandText = "SELECT ParameterValue FROM global_ints WHERE ParameterName = 'LineMarker'";
-		//			value = (int)cn.ExecuteScalarCommand( command );
-		//		} );
-		//	return value;
-		//}
-
-		//void Database.UpdateLineMarker( int value ) {
-		//	ExecuteDbMethod(
-		//		delegate( DBConnection cn ) {
-		//			var command = new InlineUpdate( "global_ints" );
-		//			command.AddColumnModification( new InlineDbCommandColumnValue( "ParameterValue", new DbParameterValue( value ) ) );
-		//			command.AddCondition( new EqualityCondition( new InlineDbCommandColumnValue( "ParameterName", new DbParameterValue( "LineMarker" ) ) ) );
-		//			command.Execute( cn );
-		//		} );
-		//}
-
-		//void Database.ExportToFile( string filePath ) {
-		//	executeMethodWithDbExceptionHandling(
-		//		delegate {
-		//			try {
-		//				// The --hex-blob option prevents certain BLOBs from causing errors during database re-creation.
-		//				EwlStatics.RunProgram(
-		//					EwlStatics.CombinePaths( binFolderPath, "mysqldump" ),
-		//					getHostAndAuthenticationArguments() + " --single-transaction --hex-blob --result-file=\"{0}\" ".FormatWith( filePath ) + info.Database,
-		//					"",
-		//					true );
-		//			}
-		//			catch( Exception e ) {
-		//				throw DataAccessMethods.CreateDbConnectionException( info, "exporting (to file)", e );
-		//			}
-		//		} );
-		//}
-
-		//void Database.DeleteAndReCreateFromFile( string filePath, bool keepDbInStandbyMode ) {
-		//	using( var sw = new StringWriter() ) {
-		//		sw.WriteLine( "DROP DATABASE IF EXISTS {0};".FormatWith( info.Database ) );
-		//		sw.WriteLine( "CREATE DATABASE {0};".FormatWith( info.Database ) );
-		//		sw.WriteLine( "use {0}".FormatWith( info.Database ) );
-		//		sw.Write( File.ReadAllText( filePath ) );
-		//		sw.WriteLine( "quit" );
-
-		//		executeMethodWithDbExceptionHandling(
-		//			delegate {
-		//				try {
-		//					EwlStatics.RunProgram(
-		//						EwlStatics.CombinePaths( binFolderPath, "mysql" ),
-		//						getHostAndAuthenticationArguments() + " --disable-reconnect --batch --disable-auto-rehash",
-		//						sw.ToString(),
-		//						true );
-		//				}
-		//				catch( Exception e ) {
-		//					if( e.Message.Contains( "ERROR" ) && e.Message.Contains( "at line" ) )
-		//						throw new ApplicationException( "Failed to create database from file. Please try the operation again after obtaining a new database file.", e );
-		//					throw DataAccessMethods.CreateDbConnectionException( info, "re-creating (from file)", e );
-		//				}
-		//			} );
-		//	}
-		//}
-
-		private string getHostAndAuthenticationArguments() => "--host=localhost --user=root --password=password";
-
-		//void Database.BackupTransactionLog( string folderPath ) {
-		//	throw new NotSupportedException();
-		//}
-
-		//void Database.RestoreNewTransactionLogs( string folderPath ) {
-		//	throw new NotSupportedException();
-		//}
-
-		//string Database.GetLogSummary( string folderPath ) {
-		//	throw new NotSupportedException();
-		//}
-
+		
 		List<string> Database.GetTables() {
 			var tables = new List<string>();
 			ExecuteDbMethod(
@@ -142,17 +37,11 @@ namespace TypedDataLayer.DatabaseAbstraction.Databases {
 			throw new NotSupportedException();
 		}
 
-		//void Database.PerformMaintenance() {}
-
-		//void Database.ShrinkAfterPostUpdateDataCommands() {}
-
-		public void ExecuteDbMethod( Action<DBConnection> method ) {
-			executeMethodWithDbExceptionHandling(
-				() => {
-					var connection = new DBConnection( new MySqlInfo( ( info as DatabaseInfo ).SecondaryDatabaseName, info.Database, false ) );
-					connection.ExecuteWithConnectionOpen( () => method( connection ) );
-				} );
-		}
+		public void ExecuteDbMethod( Action<DBConnection> method ) => executeMethodWithDbExceptionHandling(
+			() => {
+				var connection = new DBConnection( new MySqlInfo( ( info as DatabaseInfo ).SecondaryDatabaseName, info.Database, false ) );
+				connection.ExecuteWithConnectionOpen( () => method( connection ) );
+			} );
 
 		private void executeMethodWithDbExceptionHandling( Action method ) {
 			try {

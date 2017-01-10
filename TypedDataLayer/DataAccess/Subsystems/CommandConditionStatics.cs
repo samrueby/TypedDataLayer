@@ -5,7 +5,7 @@ using TypedDataLayer.DatabaseAbstraction;
 namespace TypedDataLayer.DataAccess.Subsystems {
 	internal static class CommandConditionStatics {
 		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, Database database, IEnumerable<string> tableNames ) {
-			writer.WriteLine( "namespace " + baseNamespace + "." + database.SecondaryDatabaseName + "CommandConditions {" );
+			writer.WriteLine( "namespace " + baseNamespace + ".CommandConditions {" );
 			foreach( var table in tableNames ) {
 				// Write the interface for all of the table's conditions.
 				writer.WriteLine( "public interface " + GetTableConditionInterfaceName( cn, table ) + ": TableCondition {}" );
@@ -38,7 +38,8 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			writer.WriteLine( "}" ); // class
 		}
 
-		internal static string GetTableEqualityConditionsClassName( DBConnection cn, string table ) => EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableEqualityConditions" );
+		internal static string GetTableEqualityConditionsClassName( DBConnection cn, string table )
+			=> EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableEqualityConditions" );
 
 		private static void writeInequalityConditionClasses( DBConnection cn, TextWriter writer, string table ) {
 			// NOTE: This kind of sucks. It seems like we could use generics to not have to write N of these methods into ISU.cs.
@@ -107,6 +108,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 
 		internal static string GetTableConditionInterfaceName( DBConnection cn, string tableName ) => tableName.TableNameToPascal( cn ) + "TableCondition";
 
-		internal static string GetConditionClassName( Column column ) => EwlStatics.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle == "Value" ? "_Value" : column.PascalCasedNameExceptForOracle );
+		internal static string GetConditionClassName( Column column )
+			=> EwlStatics.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle == "Value" ? "_Value" : column.PascalCasedNameExceptForOracle );
 	}
 }
