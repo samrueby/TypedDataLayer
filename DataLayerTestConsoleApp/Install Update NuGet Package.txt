@@ -1,0 +1,2 @@
+﻿Install-Package TypedDataLayer -Source "C:\Mecurial\TypedDataLayer\TypedDataLayer\" -ProjectName DataLayerTestConsoleApp
+Update-Package TypedDataLayer -Source "C:\Mecurial\TypedDataLayer\TypedDataLayer\" -ProjectName DataLayerTestConsoleApp

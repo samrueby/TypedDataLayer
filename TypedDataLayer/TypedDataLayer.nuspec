@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>Typed Data Layer EWL</tags>
+  </metadata>
+  <files>
+    <!--Files are considered immutable-->
+    <!--https://docs.nuget.org/ndocs/schema/nuspec#including-content-files-->
+    <file src="bin\$configuration$\$id$.pdb" target="lib\net461\" />
+    <file src="bin\$configuration$\*" target="CommandRunner\" />
+    <file src="XML Schemas\TypedDataLayerConfig.xsd" target="content\TypedDataLayerConfig.xsd" />
+    <file src="XML Schemas\Examples\TypedDataLayerConfig.xml" target="content\Examples\TypedDataLayerConfig.xml" />
+    <file src="Package Manager Console\Commands.ps1" target="tools\Init.ps1" />
+  </files>
+</package>
