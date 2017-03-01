@@ -24,6 +24,6 @@ namespace TypedDataLayer.Tools {
 			}
 		}
 
-		private static void log( string s ) => Console.WriteLine( s );
+		private static void log( string s ) => Console.WriteLine( DateTime.Now + ": " +s );
 	}
 }

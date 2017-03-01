@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Exceptions;
 
 namespace TypedDataLayer.DataAccess {
 	internal class TableColumns {
@@ -41,7 +42,7 @@ namespace TypedDataLayer.DataAccess {
 					var isAspNetApplicationServicesTable = table.StartsWith( "aspnet_" );
 
 					if( !( cn.DatabaseInfo is OracleInfo ) && col.DataTypeName == typeof( string ).ToString() && col.AllowsNull && !isAspNetApplicationServicesTable )
-						throw new ApplicationException( "String column " + col.Name + " allows null, which is not allowed." );
+						throw new UserCorrectableException( $"String column {col.Name} allows null, which is not allowed." );
 				}
 
 				// Identify key, identity, and non identity columns.
@@ -81,6 +82,9 @@ namespace TypedDataLayer.DataAccess {
 				}
 
 				dataColumns = AllColumns.Where( col => !col.IsIdentity && !col.IsRowVersion && col != primaryKeyAndRevisionIdColumn ).ToArray();
+			}
+			catch( UserCorrectableException e ) {
+				throw new UserCorrectableException( $"There was a problem getting columns for table {table}.", e );
 			}
 			catch( Exception e ) {
 				throw new ApplicationException( $"An exception occurred while getting columns for table {table}.", e );

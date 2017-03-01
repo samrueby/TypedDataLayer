@@ -126,6 +126,8 @@
     <Compile Include="Exceptions\DataModificationException.cs" />
     <Compile Include="Containers\DataValue.cs" />
     <Compile Include="Containers\InitializationAwareValue.cs" />
+    <Compile Include="Exceptions\UserCorrectableException.cs" />
+    <Compile Include="Operations\ExecuteDatabaseUpdatesScript.cs" />
     <Compile Include="Operations\GenerateDatabaseAccessLogic.cs" />
     <Compile Include="Tools\Utility.cs" />
     <Compile Include="Tools\IoMethods.cs" />

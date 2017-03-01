@@ -16,50 +16,23 @@ using Database = TypedDataLayer.DatabaseAbstraction.Database;
 
 namespace TypedDataLayer.Operations {
 	internal static class GenerateDatabaseAccessLogic {
-		public const string ConfigurationFileName = "TypedDataLayerConfig.xml";
-
-
-		public static bool Run( string solutionPath, Logger log ) {
-			var filePath = Directory.EnumerateFiles( solutionPath, ConfigurationFileName, SearchOption.AllDirectories ).First();
-			// NOTE SJR: We can find a config file in each project and run it for that project.
-			if( !File.Exists( filePath ) ) {
-				log.Info( "Unable to find configuration file." );
-				log.Info( $"Searched {solutionPath} for {ConfigurationFileName} recursively." );
-				return true;
-			}
-			var projectFolder = getFirstFolder( filePath, solutionPath );
+		public static void Run( string projectFolder, SystemDevelopmentConfiguration configuration, Logger log ) {
 			var outputFilePath = Path.Combine( projectFolder, "GeneratedCode", "TypedDataLayer.cs" );
 			log.Info( "Writing generated code to " + outputFilePath );
 			var outputDir = Path.GetDirectoryName( outputFilePath );
 			log.Debug( "Creating directory: " + outputDir );
 			Directory.CreateDirectory( outputDir );
 
-			var configuration = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( filePath );
-
 			var baseNamespace = configuration.LibraryNamespaceAndAssemblyName + ".DataAccess";
-			foreach( var database in new[] { configuration.databaseConfiguration } ) {
-				try {
-					using( var writer = new StreamWriter( File.OpenWrite( outputFilePath ) ) ) {
-						writeUsingStatements( writer );
 
-						generateDataAccessCodeForDatabase(
-							log,
-							DatabaseOps.CreateDatabase( getDatabaseInfo( "", database ), new List<string>() ),
-							projectFolder,
-							writer,
-							baseNamespace,
-							configuration );
-					}
-				}
-				catch( Exception e ) {
-					throw;
-					//throw ApplicationException(
-					//	"An exception occurred while generating data access logic for the " +
-					//	(database.SecondaryDatabaseName.Length == 0 ? "primary" : database.SecondaryDatabaseName + " secondary") + " database.",
-					//	e);
-				}
+			using( var writer = new StreamWriter( File.OpenWrite( outputFilePath ) ) ) {
+				writeUsingStatements( writer );
+
+				var databaseInfo = DatabaseOps.CreateDatabase( getDatabaseInfo( "", configuration.databaseConfiguration ), new List<string>() );
+
+				ExecuteDatabaseUpdatesScript.Run( projectFolder, databaseInfo, log );
+				generateDataAccessCodeForDatabase( log, databaseInfo, projectFolder, writer, baseNamespace, configuration );
 			}
-			return false;
 		}
 
 		private static void writeUsingStatements( StreamWriter writer ) {
@@ -76,15 +49,9 @@ namespace TypedDataLayer.Operations {
 			writer.WriteLine( "using System.Runtime.InteropServices;" );
 
 			// NOTE SJR: If I separate the program the generates the code and the dll that includes the classes for these types, this will have to change.
-			foreach( var @namespace in Assembly.GetExecutingAssembly().GetTypes().Select( t => t.Namespace ).Distinct().Where( n => !String.IsNullOrEmpty( n ) ) ) {
+			foreach( var @namespace in Assembly.GetExecutingAssembly().GetTypes().Select( t => t.Namespace ).Distinct().Where( n => !string.IsNullOrEmpty( n ) ) ) {
 				writer.WriteLine( "using " + @namespace + ";" );
 			}
-		}
-
-		private static string getFirstFolder( string filePath, string solutionPath ) {
-			var relative = filePath.Replace( solutionPath, "" );
-			var startIndex = relative.StartsWith( "\\" ) ? 1 : 0;
-			return relative.Substring( startIndex, relative.IndexOf( '\\', startIndex ) - startIndex );
 		}
 
 

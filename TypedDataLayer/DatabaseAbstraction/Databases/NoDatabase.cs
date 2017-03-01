@@ -4,6 +4,18 @@ using TypedDataLayer.DataAccess;
 
 namespace TypedDataLayer.DatabaseAbstraction.Databases {
 	internal class NoDatabase: Database {
+		public void ExecuteSqlScriptInTransaction( string script ) {
+			throw new NotSupportedException();
+		}
+
+		public int GetLineMarker() {
+			throw new NotSupportedException();
+		}
+
+		public void UpdateLineMarker( int value ) {
+			throw new NotSupportedException();
+		}
+
 		List<string> Database.GetTables() {
 			throw new NotSupportedException();
 		}

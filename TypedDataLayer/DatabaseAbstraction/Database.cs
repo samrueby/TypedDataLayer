@@ -4,6 +4,16 @@ using TypedDataLayer.DataAccess;
 
 namespace TypedDataLayer.DatabaseAbstraction {
 	public interface Database {
+
+		/// <summary>
+		/// The specified script is expected to either be the empty string or end with the line terminator string.
+		/// </summary>
+		void ExecuteSqlScriptInTransaction( string script );
+
+		// Line marker retrieval and modification
+		int GetLineMarker();
+		void UpdateLineMarker( int value );
+
 		// Other
 		List<string> GetTables();
 

@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using TypedDataLayer.DataAccess;
+using TypedDataLayer.DataAccess.CommandWriting;
+using TypedDataLayer.DataAccess.CommandWriting.Commands;
+using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DatabaseAbstraction.Databases {
 	[ UsedImplicitly ]
@@ -14,10 +18,47 @@ namespace TypedDataLayer.DatabaseAbstraction.Databases {
 			this.info = info;
 		}
 
+		void Database.ExecuteSqlScriptInTransaction( string script ) {
+			executeMethodWithDbExceptionHandling(
+				() => {
+					try {
+						Utility.RunProgram(
+							"sqlcmd",
+							$"{( info.Server != null ? $"-S {info.Server} " : "" )}-d {info.Database} -e -b",
+							$"BEGIN TRAN{Environment.NewLine}GO{Environment.NewLine}{script}COMMIT TRAN{Environment.NewLine}GO{Environment.NewLine}EXIT{Environment.NewLine}",
+							true );
+					}
+					catch( Exception e ) {
+						throw DataAccessMethods.CreateDbConnectionException( info, "updating logic in", e );
+					}
+				} );
+		}
+
+		int Database.GetLineMarker() {
+			var value = 0;
+			ExecuteDbMethod(
+				cn => {
+					var cmd = cn.DatabaseInfo.CreateCommand();
+					cmd.CommandText = "SELECT ParameterValue FROM GlobalInts WHERE ParameterName = 'LineMarker'";
+					value = (int)cn.ExecuteScalarCommand( cmd );
+				} );
+			return value;
+		}
+
+		void Database.UpdateLineMarker( int value ) {
+			ExecuteDbMethod(
+				cn => {
+					var command = new InlineUpdate( "GlobalInts" );
+					command.AddColumnModification( new InlineDbCommandColumnValue( "ParameterValue", new DbParameterValue( value ) ) );
+					command.AddCondition( new EqualityCondition( new InlineDbCommandColumnValue( "ParameterName", new DbParameterValue( "LineMarker" ) ) ) );
+					command.Execute( cn );
+				} );
+		}
+
 		List<string> Database.GetTables() {
 			var tables = new List<string>();
 			ExecuteDbMethod(
-				delegate( DBConnection cn ) {
+				cn => {
 					var command = cn.DatabaseInfo.CreateCommand();
 					command.CommandText = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE Table_Type = 'Base Table'";
 					cn.ExecuteReaderCommand(

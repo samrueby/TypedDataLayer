@@ -58,7 +58,7 @@ namespace TypedDataLayer.DataAccess {
 		/// connection.</param>
 		public DataAccessState( Action<DBConnection> databaseConnectionInitializer = null ) {
 			//C:\Mecurial\TypedDataLayer\DataLayerTestConsoleApp\bin\Debug\
-			var configPath = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, @"..\..", "Configuration", GenerateDatabaseAccessLogic.ConfigurationFileName );
+			var configPath = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, @"..\..", "Configuration", Program.ConfigurationFileName );
 			if( !File.Exists( configPath ) ) {
 				throw new ApplicationException( "Unable to find config file at " + configPath );
 			}
