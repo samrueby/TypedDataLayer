@@ -70,8 +70,7 @@ namespace TypedDataLayer {
 							generateDataAccessCodeForDatabase(
 								log,
 								DatabaseOps.CreateDatabase( getDatabaseInfo( "", database ), new List<string>() ),
-								"",
-								// Library path
+								projectFolder,
 								writer,
 								baseNamespace,
 								configuration );

@@ -68,10 +68,14 @@ namespace TypedDataLayer.DataAccess {
 		/// GlobalInitializationOps.InitStatics. Second, to create supplemental data-access state objects, which you may need if you want to communicate with a
 		/// database outside of the main transaction.
 		/// </summary>
-		/// <param name="databaseConnectionInitializer">A method that is called whenever a database connection is requested. Can be used to initialize the
+		/// <param name="configFilePath">Absolute path to config file.</param>
+		/// /// <param name="databaseConnectionInitializer">A method that is called whenever a database connection is requested. Can be used to initialize the
 		/// connection.</param>
-		public DataAccessState( DatabaseConfiguration database, Action<DBConnection> databaseConnectionInitializer = null ) {
-			this.database = database;
+		public DataAccessState( string configFilePath, Action<DBConnection> databaseConnectionInitializer = null ) {
+			if( !File.Exists( configFilePath ) ) {
+				throw new ApplicationException( "Unable to find config file at " + configFilePath );
+			}
+			database = Program.XmlDeserialize<SystemDevelopmentConfiguration>( configFilePath ).databaseConfiguration;
 			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
 		}
 
