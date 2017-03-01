@@ -8,7 +8,7 @@ namespace TypedDataLayer.Tools {
 	/// <summary>
 	/// Provides helpful string methods.
 	/// </summary>
-	public static class StringTools {
+	internal static class StringTools {
 		/// <summary>
 		/// Returns the given string with its first letter-or-digit character capitalized.
 		/// </summary>
