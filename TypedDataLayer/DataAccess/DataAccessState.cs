@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using TypedDataLayer.Collections;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Operations;
+using TypedDataLayer.Tools;
 using TypedDataLayer.XML_Schemas;
 
 namespace TypedDataLayer.DataAccess {
@@ -55,11 +58,11 @@ namespace TypedDataLayer.DataAccess {
 		/// connection.</param>
 		public DataAccessState( Action<DBConnection> databaseConnectionInitializer = null ) {
 			//C:\Mecurial\TypedDataLayer\DataLayerTestConsoleApp\bin\Debug\
-			var configPath = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, @"..\..", "Configuration", Program.ConfigurationFileName );
+			var configPath = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, @"..\..", "Configuration", GenerateDatabaseAccessLogic.ConfigurationFileName );
 			if( !File.Exists( configPath ) ) {
 				throw new ApplicationException( "Unable to find config file at " + configPath );
 			}
-			database = Program.XmlDeserialize<SystemDevelopmentConfiguration>( configPath ).databaseConfiguration;
+			database = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( configPath ).databaseConfiguration;
 			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
 		}
 
@@ -75,7 +78,7 @@ namespace TypedDataLayer.DataAccess {
 			if( !File.Exists( configFilePath ) ) {
 				throw new ApplicationException( "Unable to find config file at " + configFilePath );
 			}
-			database = Program.XmlDeserialize<SystemDevelopmentConfiguration>( configFilePath ).databaseConfiguration;
+			database = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( configFilePath ).databaseConfiguration;
 			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
 		}
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 	/// <summary>

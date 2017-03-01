@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseSpecification;
+using TypedDataLayer.Tools;
 using TypedDataLayer.XML_Schemas;
 using Database = TypedDataLayer.DatabaseAbstraction.Database;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DatabaseAbstraction.Databases {
 	public class MySql: Database {

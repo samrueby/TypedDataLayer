@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.Collections {
 	/// <summary>
 	/// A cache of values.
 	/// </summary>

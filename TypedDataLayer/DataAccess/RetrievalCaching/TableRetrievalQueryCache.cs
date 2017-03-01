@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using TypedDataLayer.Collections;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.RetrievalCaching {
 	/// <summary>

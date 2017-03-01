@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using TypedDataLayer.Tools;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.Exceptions {
 	/// <summary>
 	/// An application exception with multiple messages.
 	/// </summary>

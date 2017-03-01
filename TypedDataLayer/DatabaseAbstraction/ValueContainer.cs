@@ -2,6 +2,7 @@
 using System.Linq;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DatabaseAbstraction {
 	/// <summary>

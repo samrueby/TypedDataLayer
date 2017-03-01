@@ -1,4 +1,4 @@
-﻿namespace TypedDataLayer {
+﻿namespace TypedDataLayer.Exceptions {
 	/// <summary>
 	/// An exception that is thrown during data modification.
 	/// </summary>

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.Tools {
 	/// <summary>
 	/// A generic version of StructuralComparisons.StructuralEqualityComparer.
 	/// </summary>

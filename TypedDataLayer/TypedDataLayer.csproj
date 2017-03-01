@@ -65,10 +65,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cache.cs" />
+    <Compile Include="Collections\Cache.cs" />
     <Compile Include="CodeGeneration\CodeGenerationStatics.cs" />
     <Compile Include="CodeGeneration\TypeNames.cs" />
-    <Compile Include="DataAccessStatics.cs" />
+    <Compile Include="CodeGeneration\DataAccessStatics.cs" />
     <Compile Include="DataAccess\AutomaticTransactionDisablingProvider.cs" />
     <Compile Include="DataAccess\Column.cs" />
     <Compile Include="DataAccess\CommandWriting\Commands\InlineDelete.cs" />
@@ -123,18 +123,19 @@
     <Compile Include="DatabaseSpecification\Databases\MySqlInfo.cs" />
     <Compile Include="DatabaseSpecification\Databases\OracleInfo.cs" />
     <Compile Include="DatabaseSpecification\Databases\SqlServerInfo.cs" />
-    <Compile Include="DataModificationException.cs" />
-    <Compile Include="DataValue.cs" />
-    <Compile Include="InitializationAwareValue.cs" />
-    <Compile Include="Utility.cs" />
-    <Compile Include="IoMethods.cs" />
-    <Compile Include="ListSet.cs" />
-    <Compile Include="Logger.cs" />
-    <Compile Include="MultiMessageApplicationException.cs" />
+    <Compile Include="Exceptions\DataModificationException.cs" />
+    <Compile Include="Containers\DataValue.cs" />
+    <Compile Include="Containers\InitializationAwareValue.cs" />
+    <Compile Include="Operations\GenerateDatabaseAccessLogic.cs" />
+    <Compile Include="Tools\Utility.cs" />
+    <Compile Include="Tools\IoMethods.cs" />
+    <Compile Include="Collections\ListSet.cs" />
+    <Compile Include="Tools\Logger.cs" />
+    <Compile Include="Exceptions\MultiMessageApplicationException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StringTools.cs" />
-    <Compile Include="StructuralEqualityComparer.cs" />
+    <Compile Include="Tools\StringTools.cs" />
+    <Compile Include="Tools\StructuralEqualityComparer.cs" />
     <Compile Include="XML Schemas\TypedDataLayerConfig.cs">
       <DependentUpon>TypedDataLayerConfig.xsd</DependentUpon>
     </Compile>

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseAbstraction;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.Subsystems {
 	internal static class ProcedureStatics {

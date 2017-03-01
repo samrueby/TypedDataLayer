@@ -3,6 +3,7 @@ using System.IO;
 using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Tools;
 using TypedDataLayer.XML_Schemas;
 using Database = TypedDataLayer.DatabaseAbstraction.Database;
 

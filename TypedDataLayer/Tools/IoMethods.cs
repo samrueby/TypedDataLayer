@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.Tools {
 	/// <summary>
 	/// A collection of IO-related static methods.
 	/// </summary>

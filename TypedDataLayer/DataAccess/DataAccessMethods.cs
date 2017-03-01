@@ -5,6 +5,7 @@ using System.Threading;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess {
 	/// <summary>

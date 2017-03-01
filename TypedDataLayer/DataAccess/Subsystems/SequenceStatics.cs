@@ -1,4 +1,5 @@
 using System.IO;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseAbstraction;
 
 namespace TypedDataLayer.DataAccess.Subsystems {

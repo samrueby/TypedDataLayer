@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions {
 	/// <summary>

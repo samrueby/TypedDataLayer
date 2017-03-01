@@ -1,6 +1,7 @@
 ﻿using System;
+using TypedDataLayer.Tools;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.Containers {
 	/// <summary>
 	/// A value that knows whether it has been initialized and whether it has changed.
 	/// </summary>

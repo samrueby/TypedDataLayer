@@ -4,15 +4,16 @@ using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using TypedDataLayer.CodeGeneration;
+using TypedDataLayer.Collections;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DataAccess.CommandWriting;
 using TypedDataLayer.DataAccess.Subsystems;
 using TypedDataLayer.DatabaseAbstraction;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Tools;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.CodeGeneration {
 	internal static class DataAccessStatics {
 		internal const string CSharpTemplateFileExtension = ".ewlt.cs";
 

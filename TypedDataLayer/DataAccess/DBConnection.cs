@@ -9,6 +9,8 @@ using StackExchange.Profiling;
 using StackExchange.Profiling.Data;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Exceptions;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess {
 	/// <summary>

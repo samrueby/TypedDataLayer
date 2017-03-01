@@ -6,6 +6,7 @@ using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DataAccess.Subsystems.StandardModification;
 using TypedDataLayer.DatabaseAbstraction;
 using TypedDataLayer.DatabaseSpecification.Databases;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.Subsystems {
 	internal static class TableRetrievalStatics {

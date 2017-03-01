@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.Tools {
 	/// <summary>
 	/// A collection of miscellaneous statics that may be useful.
 	/// </summary>
@@ -108,6 +110,11 @@ namespace TypedDataLayer {
 			// Now that we've guaranteed conversionType is something Convert.ChangeType can handle (i.e. not a
 			// nullable type), pass the call on to Convert.ChangeType
 			return Convert.ChangeType( value, conversionType );
+		}
+
+		public static T XmlDeserialize<T>( string filePath ) {
+			using( var file = File.OpenRead( filePath ) )
+				return (T)new XmlSerializer( typeof( T ) ).Deserialize( file );
 		}
 	}
 }

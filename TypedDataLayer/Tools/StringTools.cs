@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.Tools {
 	/// <summary>
 	/// Provides helpful string methods.
 	/// </summary>

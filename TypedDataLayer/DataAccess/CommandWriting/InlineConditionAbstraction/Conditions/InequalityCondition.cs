@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using TypedDataLayer.DatabaseSpecification;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions {
 	/// <summary>

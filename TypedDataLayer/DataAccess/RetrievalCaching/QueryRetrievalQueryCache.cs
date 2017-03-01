@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using TypedDataLayer.Collections;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.RetrievalCaching {
 	/// <summary>

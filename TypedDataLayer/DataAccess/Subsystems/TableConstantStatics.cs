@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseAbstraction;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.Subsystems {
 	internal static class TableConstantStatics {

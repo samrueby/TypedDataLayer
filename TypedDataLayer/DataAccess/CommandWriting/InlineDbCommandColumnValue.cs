@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.CommandWriting {
 	/// <summary>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.Tools {
 	internal class Logger {
 		private readonly bool debug;
 

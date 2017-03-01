@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using StackExchange.Profiling;
 using StackExchange.Profiling.Data;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DatabaseSpecification.Databases {
 	/// <summary>
