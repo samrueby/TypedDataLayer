@@ -1,0 +1,113 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Text.RegularExpressions;
+
+namespace TypedDataLayer {
+	/// <summary>
+	/// A collection of miscellaneous statics that may be useful.
+	/// </summary>
+	public static class Utility {
+		/// <summary>
+		/// Recursively calls Path.Combine on the given paths.  Path is returned without a trailing slash.
+		/// </summary>
+		public static string CombinePaths( string one, string two, params string[] paths ) {
+			if( one == null || two == null )
+				throw new ArgumentException( "String cannot be null." );
+
+			var pathList = new List<string>( paths );
+			pathList.Insert( 0, two );
+			pathList.Insert( 0, one );
+
+			var combinedPath = "";
+
+			foreach( var path in pathList )
+				combinedPath += getTrimmedPath( path );
+
+			return combinedPath.TrimEnd( '\\' );
+		}
+
+		private static string getTrimmedPath( string path ) {
+			path = path.Trim( '\\' );
+			path = path.Trim();
+			if( path.Length > 0 )
+				return path + "\\";
+			return "";
+		}
+
+		/// <summary>
+		/// Gets a valid C# identifier from the specified string.
+		/// </summary>
+		public static string GetCSharpIdentifier( string s ) {
+			s = s.Replace( ' ', '_' ).Replace( '-', '_' );
+
+			// Remove invalid characters.
+			s = Regex.Replace( s, @"[^\p{L}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}]", "" );
+
+			// Prepend underscore if start character is invalid.
+			if( Regex.IsMatch( s, @"^[^\p{L}\p{Nl}_]" ) )
+				s = "_" + s;
+
+			return "@" + s;
+		}
+
+		/// <summary>
+		/// Returns true if the specified objects are equal according to the default equality comparer.
+		/// </summary>
+		public static bool AreEqual<T>( T x, T y ) => EqualityComparer<T>.Default.Equals( x, y );
+
+		/// <summary>
+		/// Returns an integer indicating whether the first specified object precedes (negative value), follows (positive value), or occurs in the same position in
+		/// the sort order (zero) as the second specified object, according to the default sort-order comparer. If you are comparing strings, Microsoft recommends
+		/// that you use a StringComparer instead of the default comparer.
+		/// </summary>
+		public static int Compare<T>( T x, T y, IComparer<T> comparer = null ) => ( comparer ?? Comparer<T>.Default ).Compare( x, y );
+
+		/// <summary>
+		/// Returns an Object with the specified Type and whose value is equivalent to the specified object.
+		/// </summary>
+		/// <param name="value">An Object that implements the IConvertible interface.</param>
+		/// <param name="conversionType">The Type to which value is to be converted.</param>
+		/// <returns>An object whose Type is conversionType (or conversionType's underlying type if conversionType
+		/// is Nullable&lt;&gt;) and whose value is equivalent to value. -or- a null reference, if value is a null
+		/// reference and conversionType is not a value type.</returns>
+		/// <remarks>
+		/// This method exists as a workaround to System.Convert.ChangeType(Object, Type) which does not handle
+		/// nullables as of version 2.0 (2.0.50727.42) of the .NET Framework. The idea is that this method will
+		/// be deleted once Convert.ChangeType is updated in a future version of the .NET Framework to handle
+		/// nullable types, so we want this to behave as closely to Convert.ChangeType as possible.
+		/// This method was written by Peter Johnson at:
+		/// http://aspalliance.com/author.aspx?uId=1026.
+		/// </remarks>
+		public static object ChangeType( object value, Type conversionType ) {
+			// This if block was taken from Convert.ChangeType as is, and is needed here since we're
+			// checking properties on conversionType below.
+			if( conversionType == null )
+				throw new ArgumentNullException( nameof( conversionType ) );
+
+			// If it's not a nullable type, just pass through the parameters to Convert.ChangeType
+
+			if( conversionType.IsGenericType && conversionType.GetGenericTypeDefinition().Equals( typeof( Nullable<> ) ) ) {
+				// It's a nullable type, so instead of calling Convert.ChangeType directly which would throw a
+				// InvalidCastException (per http://weblogs.asp.net/pjohnson/archive/2006/02/07/437631.aspx),
+				// determine what the underlying type is
+				// If it's null, it won't convert to the underlying type, but that's fine since nulls don't really
+				// have a type--so just return null
+				// We only do this check if we're converting to a nullable type, since doing it outside
+				// would diverge from Convert.ChangeType's behavior, which throws an InvalidCastException if
+				// value is null and conversionType is a value type.
+				if( value == null )
+					return null;
+
+				// It's a nullable type, and not null, so that means it can be converted to its underlying type,
+				// so overwrite the passed-in conversion type with this underlying type
+				var nullableConverter = new NullableConverter( conversionType );
+				conversionType = nullableConverter.UnderlyingType;
+			} // end if
+
+			// Now that we've guaranteed conversionType is something Convert.ChangeType can handle (i.e. not a
+			// nullable type), pass the call on to Convert.ChangeType
+			return Convert.ChangeType( value, conversionType );
+		}
+	}
+}

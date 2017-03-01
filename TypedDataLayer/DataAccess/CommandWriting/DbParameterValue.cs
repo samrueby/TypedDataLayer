@@ -30,7 +30,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 
 		public override bool Equals( object obj ) => Equals( obj as DbParameterValue );
 
-		public bool Equals( DbParameterValue other ) => other != null && EwlStatics.AreEqual( value, other.value ) && dbTypeString == other.dbTypeString;
+		public bool Equals( DbParameterValue other ) => other != null && Utility.AreEqual( value, other.value ) && dbTypeString == other.dbTypeString;
 
 		public override int GetHashCode() => value != null ? value.GetHashCode() : -1;
 
@@ -44,8 +44,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 		public int CompareTo( DbParameterValue other ) {
 			if( other == null )
 				return 1;
-			var valueResult = EwlStatics.Compare( value, other.value );
-			return valueResult != 0 ? valueResult : EwlStatics.Compare( dbTypeString, other.dbTypeString, comparer: StringComparer.InvariantCulture );
+			var valueResult = Utility.Compare( value, other.value );
+			return valueResult != 0 ? valueResult : Utility.Compare( dbTypeString, other.dbTypeString, comparer: StringComparer.InvariantCulture );
 		}
 	}
 }

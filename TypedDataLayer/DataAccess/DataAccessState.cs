@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using TypedDataLayer.DatabaseSpecification;
@@ -8,13 +9,14 @@ using TypedDataLayer.XML_Schemas;
 
 namespace TypedDataLayer.DataAccess {
 	public class DataAccessState {
+		/// <summary>
+		/// NOTE SJR: FIgure out what the point of this is and maybe allow it to not be null sometimes.
+		/// </summary>
 		private static Func<DataAccessState> mainStateGetter;
-		private static ThreadLocal<Stack<DataAccessState>> mainStateOverrideStack;
 
-		internal static void Init( Func<DataAccessState> mainDataAccessStateGetter ) {
-			mainStateGetter = mainDataAccessStateGetter;
-			mainStateOverrideStack = new ThreadLocal<Stack<DataAccessState>>( () => new Stack<DataAccessState>() );
-		}
+		private static readonly ThreadLocal<Stack<DataAccessState>> mainStateOverrideStack =
+			new ThreadLocal<Stack<DataAccessState>>( () => new Stack<DataAccessState>() );
+
 
 		/// <summary>
 		/// Gets the current data-access state. In EWF web applications, this will throw an exception when called from the worker threads used by parallel
@@ -51,6 +53,23 @@ namespace TypedDataLayer.DataAccess {
 		/// </summary>
 		/// <param name="databaseConnectionInitializer">A method that is called whenever a database connection is requested. Can be used to initialize the
 		/// connection.</param>
+		public DataAccessState( Action<DBConnection> databaseConnectionInitializer = null ) {
+			//C:\Mecurial\TypedDataLayer\DataLayerTestConsoleApp\bin\Debug\
+			var configPath = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, @"..\..", "Configuration", Program.ConfigurationFileName );
+			if( !File.Exists( configPath ) ) {
+				throw new ApplicationException( "Unable to find config file at " + configPath );
+			}
+			database = Program.XmlDeserialize<SystemDevelopmentConfiguration>( configPath ).databaseConfiguration;
+			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
+		}
+
+		/// <summary>
+		/// This should only be used for two purposes. First, to create objects that will be returned by the mainDataAccessStateGetter argument of
+		/// GlobalInitializationOps.InitStatics. Second, to create supplemental data-access state objects, which you may need if you want to communicate with a
+		/// database outside of the main transaction.
+		/// </summary>
+		/// <param name="databaseConnectionInitializer">A method that is called whenever a database connection is requested. Can be used to initialize the
+		/// connection.</param>
 		public DataAccessState( DatabaseConfiguration database, Action<DBConnection> databaseConnectionInitializer = null ) {
 			this.database = database;
 			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
@@ -59,16 +78,17 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Gets the connection to the primary database.
 		/// </summary>
-		public DBConnection PrimaryDatabaseConnection => initConnection( primaryConnection ?? ( primaryConnection = new DBConnection( database != null ? getDatabaseInfo( "", database ) : null ) ) );
+		public DBConnection PrimaryDatabaseConnection
+			=> initConnection( primaryConnection ?? ( primaryConnection = new DBConnection( database != null ? getDatabaseInfo( "", database ) : null ) ) );
 
 		private DatabaseInfo getDatabaseInfo( string secondaryDatabaseName, DatabaseConfiguration database ) {
 			if( database is SqlServerDatabase ) {
-				var sqlServerDatabase = database as SqlServerDatabase;
+				var sqlServerDatabase = (SqlServerDatabase)database;
 				return new SqlServerInfo(
 					secondaryDatabaseName,
 					sqlServerDatabase.server,
-					sqlServerDatabase.SqlServerAuthenticationLogin != null ? sqlServerDatabase.SqlServerAuthenticationLogin.LoginName : null,
-					sqlServerDatabase.SqlServerAuthenticationLogin != null ? sqlServerDatabase.SqlServerAuthenticationLogin.Password : null,
+					sqlServerDatabase.SqlServerAuthenticationLogin?.LoginName,
+					sqlServerDatabase.SqlServerAuthenticationLogin?.Password,
 					sqlServerDatabase.database,
 					true,
 					sqlServerDatabase.FullTextCatalog );

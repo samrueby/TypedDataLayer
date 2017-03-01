@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.XML_Schemas;

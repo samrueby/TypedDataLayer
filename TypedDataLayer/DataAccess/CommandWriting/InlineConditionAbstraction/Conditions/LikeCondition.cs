@@ -89,11 +89,11 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			if( otherLikeCondition == null )
 				return DataAccessMethods.CompareCommandConditionTypes( this, other );
 
-			var behaviorResult = EwlStatics.Compare( behavior, otherLikeCondition.behavior );
+			var behaviorResult = Utility.Compare( behavior, otherLikeCondition.behavior );
 			if( behaviorResult != 0 )
 				return behaviorResult;
-			var columnNameResult = EwlStatics.Compare( columnName, otherLikeCondition.columnName, comparer: StringComparer.InvariantCulture );
-			return columnNameResult != 0 ? columnNameResult : EwlStatics.Compare( searchTerm, otherLikeCondition.searchTerm, comparer: StringComparer.InvariantCulture );
+			var columnNameResult = Utility.Compare( columnName, otherLikeCondition.columnName, comparer: StringComparer.InvariantCulture );
+			return columnNameResult != 0 ? columnNameResult : Utility.Compare( searchTerm, otherLikeCondition.searchTerm, comparer: StringComparer.InvariantCulture );
 		}
 	}
 }

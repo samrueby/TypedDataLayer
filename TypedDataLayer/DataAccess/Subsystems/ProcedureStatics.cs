@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.IO;
 using System.Linq;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseAbstraction;
 
 namespace TypedDataLayer.DataAccess.Subsystems {
@@ -50,7 +51,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 						"{0}Local = {1};".FormatWith(
 							parameter.Name,
 							parameter.GetIncomingValueConversionExpression(
-								"EwlStatics.ChangeType( {0}.ToString(), typeof( {1} ) )".FormatWith( adoDotNetParameterValueExpression, parameter.UnconvertedDataTypeName ) ) ) );
+								"Utility.ChangeType( {0}.ToString(), typeof( {1} ) )".FormatWith( adoDotNetParameterValueExpression, parameter.UnconvertedDataTypeName ) ) ) );
 					//writer.WriteLine( "{0}Local = {1};".FormatWith( parameter.Name, parameter.GetIncomingValueConversionExpression( adoDotNetParameterValueExpression ) ) );
 				}
 				writer.WriteLine( "} );" );

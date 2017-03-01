@@ -63,7 +63,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 
 		public bool Equals( InlineDbCommandCondition other ) {
 			var otherInequalityCondition = other as InequalityCondition;
-			return otherInequalityCondition != null && op == otherInequalityCondition.op && EwlStatics.AreEqual( columnValue, otherInequalityCondition.columnValue );
+			return otherInequalityCondition != null && op == otherInequalityCondition.op && Utility.AreEqual( columnValue, otherInequalityCondition.columnValue );
 		}
 
 		public override int GetHashCode() => new { op, columnValue }.GetHashCode();
@@ -82,8 +82,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			if( otherInequalityCondition == null )
 				return DataAccessMethods.CompareCommandConditionTypes( this, other );
 
-			var opResult = EwlStatics.Compare( op, otherInequalityCondition.op );
-			return opResult != 0 ? opResult : EwlStatics.Compare( columnValue, otherInequalityCondition.columnValue );
+			var opResult = Utility.Compare( op, otherInequalityCondition.op );
+			return opResult != 0 ? opResult : Utility.Compare( columnValue, otherInequalityCondition.columnValue );
 		}
 	}
 }

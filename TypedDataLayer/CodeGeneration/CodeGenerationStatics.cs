@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace TypedDataLayer {
+namespace TypedDataLayer.CodeGeneration {
 	internal static class CodeGenerationStatics {
 		internal static void AddSummaryDocComment( TextWriter writer, string text ) {
 			if( text.Length == 0 )
@@ -18,5 +18,6 @@ namespace TypedDataLayer {
 		}
 
 		internal static void AddGeneratedCodeUseOnlyComment( TextWriter writer ) => AddSummaryDocComment( writer, "Auto-generated code use only." );
+
 	}
 }

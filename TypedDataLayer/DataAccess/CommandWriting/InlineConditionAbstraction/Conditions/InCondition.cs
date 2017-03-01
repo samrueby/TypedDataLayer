@@ -45,8 +45,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			if( otherInCondition == null )
 				return DataAccessMethods.CompareCommandConditionTypes( this, other );
 
-			var columnNameResult = EwlStatics.Compare( columnName, otherInCondition.columnName, comparer: StringComparer.InvariantCulture );
-			return columnNameResult != 0 ? columnNameResult : EwlStatics.Compare( subQuery, otherInCondition.subQuery, comparer: StringComparer.InvariantCulture );
+			var columnNameResult = Utility.Compare( columnName, otherInCondition.columnName, comparer: StringComparer.InvariantCulture );
+			return columnNameResult != 0 ? columnNameResult : Utility.Compare( subQuery, otherInCondition.subQuery, comparer: StringComparer.InvariantCulture );
 		}
 	}
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DataAccess.CommandWriting.Commands;
 using TypedDataLayer.DatabaseAbstraction;
 
@@ -60,7 +61,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 
 					// It's important that row constants actually *be* constants (instead of static readonly) so they can be used in switch statements.
 					writer.WriteLine(
-						$"public const {valueColumn.DataTypeName} {EwlStatics.GetCSharpIdentifier( names[ i ].CamelToEnglish().EnglishToPascal() )} = {values[ i ]};" );
+						$"public const {valueColumn.DataTypeName} {Utility.GetCSharpIdentifier( names[ i ].CamelToEnglish().EnglishToPascal() )} = {values[ i ]};" );
 				}
 
 				// one to one map

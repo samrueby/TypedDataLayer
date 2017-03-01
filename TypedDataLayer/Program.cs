@@ -18,7 +18,7 @@ using Database = TypedDataLayer.DatabaseAbstraction.Database;
 
 namespace TypedDataLayer {
 	class Program {
-		private const string configurationFileName = "TypedDataLayerConfig.xml";
+		public const string ConfigurationFileName = "TypedDataLayerConfig.xml";
 
 		static void Main( string[] args ) {
 			// NOTE SJR: What are we using FullTextCatalog for?
@@ -45,11 +45,11 @@ namespace TypedDataLayer {
 			log.Info( "Running " + command );
 
 			try {
-				var filePath = Directory.EnumerateFiles( solutionPath, configurationFileName, SearchOption.AllDirectories ).First();
+				var filePath = Directory.EnumerateFiles( solutionPath, ConfigurationFileName, SearchOption.AllDirectories ).First();
 				// NOTE SJR: We can find a config file in each project and run it for that project.
 				if( !File.Exists( filePath ) ) {
 					log.Info( "Unable to find configuration file." );
-					log.Info( $"Searched {solutionPath} for {configurationFileName} recursively." );
+					log.Info( $"Searched {solutionPath} for {ConfigurationFileName} recursively." );
 					return;
 				}
 				var projectFolder = getFirstFolder( filePath, solutionPath );
@@ -59,14 +59,14 @@ namespace TypedDataLayer {
 				log.Debug( "Creating directory: " + outputDir );
 				Directory.CreateDirectory( outputDir );
 
-				SystemDevelopmentConfiguration configuration;
-				using( var file = File.OpenRead( filePath ) )
-					configuration = (SystemDevelopmentConfiguration)new XmlSerializer( typeof( SystemDevelopmentConfiguration ) ).Deserialize( file );
+				var configuration = XmlDeserialize<SystemDevelopmentConfiguration>( filePath );
 
 				var baseNamespace = configuration.LibraryNamespaceAndAssemblyName + ".DataAccess";
 				foreach( var database in new[] { configuration.databaseConfiguration } ) {
 					try {
 						using( var writer = new StreamWriter( File.OpenWrite( outputFilePath ) ) ) {
+							writeUsingStatements( writer );
+
 							generateDataAccessCodeForDatabase(
 								log,
 								DatabaseOps.CreateDatabase( getDatabaseInfo( "", database ), new List<string>() ),
@@ -93,6 +93,30 @@ namespace TypedDataLayer {
 			}
 			finally {
 				log.Info( "Done." );
+			}
+		}
+
+		public static T XmlDeserialize<T>( string filePath ) {
+			using( var file = File.OpenRead( filePath ) )
+				return (T)new XmlSerializer( typeof( T ) ).Deserialize( file );
+		}
+
+		private static void writeUsingStatements( StreamWriter writer ) {
+			writer.WriteLine( "using System;" );
+			writer.WriteLine( "using System.Globalization;" );
+			writer.WriteLine( "using System.Reflection;" );
+			writer.WriteLine( "using System.Runtime.InteropServices;" );
+			writer.WriteLine( "using System.Collections.Generic;" );
+			writer.WriteLine( "using System.Data;" );
+			writer.WriteLine( "using System.Data.Common;" );
+			writer.WriteLine( "using System.Diagnostics;" );
+			writer.WriteLine( "using System.Linq;" );
+			writer.WriteLine( "using System.Reflection;" );
+			writer.WriteLine( "using System.Runtime.InteropServices;" );
+
+			// NOTE SJR: If I separate the program the generates the code and the dll that includes the classes for these types, this will have to change.
+			foreach( var @namespace in Assembly.GetExecutingAssembly().GetTypes().Select( t => t.Namespace ).Distinct().Where( n => !string.IsNullOrEmpty( n ) ) ) {
+				writer.WriteLine( "using " + @namespace + ";" );
 			}
 		}
 

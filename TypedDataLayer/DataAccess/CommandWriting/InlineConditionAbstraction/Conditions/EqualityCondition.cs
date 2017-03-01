@@ -35,7 +35,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 
 		public bool Equals( InlineDbCommandCondition other ) {
 			var otherEqualityCondition = other as EqualityCondition;
-			return otherEqualityCondition != null && EwlStatics.AreEqual( columnValue, otherEqualityCondition.columnValue );
+			return otherEqualityCondition != null && Utility.AreEqual( columnValue, otherEqualityCondition.columnValue );
 		}
 
 		public override int GetHashCode() => columnValue.GetHashCode();
@@ -54,7 +54,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			if( otherEqualityCondition == null )
 				return DataAccessMethods.CompareCommandConditionTypes( this, other );
 
-			return EwlStatics.Compare( columnValue, otherEqualityCondition.columnValue );
+			return Utility.Compare( columnValue, otherEqualityCondition.columnValue );
 		}
 	}
 }

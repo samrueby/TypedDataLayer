@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseAbstraction;
 
 namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
@@ -30,14 +31,14 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 		internal static void WritePartialClass(
 			DBConnection cn, string libraryBasePath, string namespaceDeclaration, Database database, string tableName, bool isRevisionHistoryTable ) {
 			// We do not create templates for direct modification classes.
-			var folderPath = EwlStatics.CombinePaths( libraryBasePath, "DataAccess", "Modification" );
-			var templateFilePath = EwlStatics.CombinePaths(
+			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "Modification" );
+			var templateFilePath = Utility.CombinePaths(
 				folderPath,
 				GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryTable ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
 
 			// If a real file exists, don't create a template.
-			if( File.Exists( EwlStatics.CombinePaths( folderPath, GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryTable ) + ".cs" ) ) )
+			if( File.Exists( Utility.CombinePaths( folderPath, GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryTable ) + ".cs" ) ) )
 				return;
 
 			using( var templateWriter = IoMethods.GetTextWriterForWrite( templateFilePath ) ) {
@@ -225,12 +226,13 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 		private static void writeFieldsAndPropertiesForColumn( Column column ) {
 			var columnIsReadOnly = !columns.DataColumns.Contains( column );
 
-			writer.WriteLine( $"private readonly DataValue<{column.DataTypeName}> {getColumnFieldName( column )} = new DataValue<{column.DataTypeName}>();" );
+			writer.WriteLine(
+				$"private readonly {TypeNames.DataValue}<{column.DataTypeName}> {getColumnFieldName( column )} = new {TypeNames.DataValue}<{column.DataTypeName}>();" );
 			CodeGenerationStatics.AddSummaryDocComment(
 				writer,
 				"Gets " + ( columnIsReadOnly ? "" : "or sets " ) + "the value for the " + column.Name +
 				" column. Throws an exception if the value has not been initialized. " + getComment( column ) );
-			var propertyDeclarationBeginning = "public " + column.DataTypeName + " " + EwlStatics.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) +
+			var propertyDeclarationBeginning = "public " + column.DataTypeName + " " + Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) +
 			                                   " { get { return " + getColumnFieldName( column ) + ".Value; } ";
 			if( columnIsReadOnly ) {
 				writer.WriteLine( propertyDeclarationBeginning + "}" );
@@ -242,7 +244,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 					writer,
 					"Indicates whether or not the value for the " + column.Name + " has been set since object creation or the last call to Execute, whichever was latest." );
 				writer.WriteLine(
-					"public bool " + EwlStatics.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle + "HasChanged" ) + " { get { return " + getColumnFieldName( column ) +
+					"public bool " + Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle + "HasChanged" ) + " { get { return " + getColumnFieldName( column ) +
 					".Changed; } }" );
 			}
 		}
@@ -316,7 +318,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			foreach( var column in columns.KeyColumns ) {
 				writer.WriteLine(
 					"mod.conditions.Add( new " + DataAccessStatics.GetEqualityConditionClassName( cn, database, tableName, column ) + "( " +
-					EwlStatics.GetCSharpIdentifier( column.CamelCasedName ) + " ) );" );
+					Utility.GetCSharpIdentifier( column.CamelCasedName ) + " ) );" );
 			}
 
 			writeColumnValueAssignmentsFromParameters( columns.AllColumnsExceptRowVersion, "mod" );
@@ -344,7 +346,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 
 		internal static string GetClassName( DBConnection cn, string table, bool isRevisionHistoryTable, bool isRevisionHistoryClass )
 			=>
-				EwlStatics.GetCSharpIdentifier(
+				Utility.GetCSharpIdentifier(
 					isRevisionHistoryTable && !isRevisionHistoryClass
 						? "Direct" + table.TableNameToPascal( cn ) + "ModificationWithRevisionBypass"
 						: table.TableNameToPascal( cn ) + "Modification" );
@@ -374,12 +376,12 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 
 		private static void writeColumnParameterDeclarations( IEnumerable<Column> columns ) {
 			writer.Write(
-				StringTools.ConcatenateWithDelimiter( ", ", columns.Select( i => i.DataTypeName + " " + EwlStatics.GetCSharpIdentifier( i.CamelCasedName ) ).ToArray() ) );
+				StringTools.ConcatenateWithDelimiter( ", ", columns.Select( i => i.DataTypeName + " " + Utility.GetCSharpIdentifier( i.CamelCasedName ) ).ToArray() ) );
 		}
 
 		private static void writeColumnValueAssignmentsFromParameters( IEnumerable<Column> columns, string modObjectName ) {
 			foreach( var column in columns )
-				writer.WriteLine( modObjectName + "." + getColumnFieldName( column ) + ".Value = " + EwlStatics.GetCSharpIdentifier( column.CamelCasedName ) + ";" );
+				writer.WriteLine( modObjectName + "." + getColumnFieldName( column ) + ".Value = " + Utility.GetCSharpIdentifier( column.CamelCasedName ) + ";" );
 		}
 
 		private static void writeExecuteMethod( string tableName ) {
@@ -445,7 +447,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 					DataAccessStatics.GetConnectionExpression( database ) + ".GetUserTransactionId() );" );
 			}
 
-			writer.WriteLine( "var insert = new InlineInsert( \"" + tableName + "\" );" );
+			writer.WriteLine( $@"var insert = new InlineInsert( ""{tableName}"" );" );
 			writer.WriteLine( "addColumnModifications( insert );" );
 			if( identityColumn != null )
 				// One reason the ChangeType call is necessary: SQL Server identities always come back as decimal, and you can't cast a boxed decimal to an int.
@@ -453,9 +455,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 					"{0}.Value = {1};".FormatWith(
 						getColumnFieldName( identityColumn ),
 						identityColumn.GetIncomingValueConversionExpression(
-							"EwlStatics.ChangeType( insert.Execute( {0} ), typeof( {1} ) )".FormatWith(
-								DataAccessStatics.GetConnectionExpression( database ),
-								identityColumn.UnconvertedDataTypeName ) ) ) );
+							$"{nameof( Utility )}.{nameof( Utility.ChangeType )}( insert.Execute( {DataAccessStatics.GetConnectionExpression( database )} ), typeof( {identityColumn.UnconvertedDataTypeName} ) )" ) ) );
 			else
 				writer.WriteLine( "insert.Execute( " + DataAccessStatics.GetConnectionExpression( database ) + " );" );
 
@@ -465,7 +465,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			foreach( var column in keyColumns ) {
 				writer.WriteLine(
 					"conditions.Add( new " + DataAccessStatics.GetEqualityConditionClassName( cn, database, tableName, column ) + "( " +
-					EwlStatics.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) + " ) );" );
+					Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) + " ) );" );
 			}
 
 			writer.WriteLine( "}" ); // if insert
@@ -499,7 +499,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "private void addColumnModifications( InlineDbModificationCommand cmd ) {" );
 			foreach( var column in nonIdentityColumns ) {
 				writer.WriteLine( "if( " + getColumnFieldName( column ) + ".Changed )" );
-				var columnValueExpression = column.GetCommandColumnValueExpression( EwlStatics.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) );
+				var columnValueExpression = column.GetCommandColumnValueExpression( Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) );
 				writer.WriteLine( "cmd.AddColumnModification( " + columnValueExpression + " );" );
 			}
 			writer.WriteLine( "}" );
@@ -512,7 +512,7 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "var revisionHistorySetup = RevisionHistoryStatics.SystemProvider;" );
 
 			writer.WriteLine(
-				"var command = new InlineSelect( \"" + columns.PrimaryKeyAndRevisionIdColumn.Name + "\".ToSingleElementArray(), \"FROM " + tableName + "\", false );" );
+				$@"var command = new InlineSelect( ""new [] {{{columns.PrimaryKeyAndRevisionIdColumn.Name}""}}, ""FROM {tableName}"", false );" );
 			writer.WriteLine( "conditions.ForEach( condition => command.AddCondition( condition.CommandCondition ) );" );
 			writer.WriteLine( "command.AddCondition( getLatestRevisionsCondition() );" );
 			writer.WriteLine( "var latestRevisionIds = new List<int>();" );
@@ -582,6 +582,6 @@ namespace TypedDataLayer.DataAccess.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getColumnFieldName( Column column ) => EwlStatics.GetCSharpIdentifier( column.CamelCasedName + "ColumnValue" );
+		private static string getColumnFieldName( Column column ) => Utility.GetCSharpIdentifier( column.CamelCasedName + "ColumnValue" );
 	}
 }

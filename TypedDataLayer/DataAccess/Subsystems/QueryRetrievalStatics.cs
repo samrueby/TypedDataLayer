@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.XML_Schemas;
 using Database = TypedDataLayer.DatabaseAbstraction.Database;

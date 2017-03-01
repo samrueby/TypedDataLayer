@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseAbstraction;
 
 namespace TypedDataLayer.DataAccess.Subsystems {
@@ -8,14 +9,14 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			writer.WriteLine( "namespace " + baseNamespace + ".TableConstants {" );
 			foreach( var table in tableNames ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "This object represents the constants of the " + table + " table." );
-				writer.WriteLine( "public class " + EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "Table" ) + " {" );
+				writer.WriteLine( "public class " + Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "Table" ) + " {" );
 
 				CodeGenerationStatics.AddSummaryDocComment( writer, "The name of this table." );
 				writer.WriteLine( "public const string Name = \"" + table + "\";" );
 
 				foreach( var column in new TableColumns( cn, table, false ).AllColumnsExceptRowVersion ) {
 					CodeGenerationStatics.AddSummaryDocComment( writer, "Contains schema information about this column." );
-					writer.WriteLine( "public class " + EwlStatics.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle + "Column" ) + " {" );
+					writer.WriteLine( "public class " + Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle + "Column" ) + " {" );
 
 					CodeGenerationStatics.AddSummaryDocComment( writer, "The name of this column." );
 					writer.WriteLine( "public const string Name = \"" + column.Name + "\";" );

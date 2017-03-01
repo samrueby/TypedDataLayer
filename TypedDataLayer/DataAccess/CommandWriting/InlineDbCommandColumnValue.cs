@@ -23,7 +23,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 
 		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandColumnValue );
 
-		public bool Equals( InlineDbCommandColumnValue other ) => other != null && columnName == other.columnName && EwlStatics.AreEqual( value, other.value );
+		public bool Equals( InlineDbCommandColumnValue other ) => other != null && columnName == other.columnName && Utility.AreEqual( value, other.value );
 
 		public override int GetHashCode() => new { columnName, value }.GetHashCode();
 
@@ -37,8 +37,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 		public int CompareTo( InlineDbCommandColumnValue other ) {
 			if( other == null )
 				return 1;
-			var nameResult = EwlStatics.Compare( columnName, other.columnName, comparer: StringComparer.InvariantCulture );
-			return nameResult != 0 ? nameResult : EwlStatics.Compare( value, other.value );
+			var nameResult = Utility.Compare( columnName, other.columnName, comparer: StringComparer.InvariantCulture );
+			return nameResult != 0 ? nameResult : Utility.Compare( value, other.value );
 		}
 	}
 }

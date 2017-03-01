@@ -32,6 +32,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-TypedDataLayer|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="JetBrains.Annotations, Version=10.2.1.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
       <HintPath>..\packages\JetBrains.Annotations.10.2.1\lib\net\JetBrains.Annotations.dll</HintPath>
@@ -56,7 +66,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cache.cs" />
-    <Compile Include="CodeGenerationStatics.cs" />
+    <Compile Include="CodeGeneration\CodeGenerationStatics.cs" />
+    <Compile Include="CodeGeneration\TypeNames.cs" />
     <Compile Include="DataAccessStatics.cs" />
     <Compile Include="DataAccess\AutomaticTransactionDisablingProvider.cs" />
     <Compile Include="DataAccess\Column.cs" />
@@ -113,7 +124,9 @@
     <Compile Include="DatabaseSpecification\Databases\OracleInfo.cs" />
     <Compile Include="DatabaseSpecification\Databases\SqlServerInfo.cs" />
     <Compile Include="DataModificationException.cs" />
-    <Compile Include="EwlStatics.cs" />
+    <Compile Include="DataValue.cs" />
+    <Compile Include="InitializationAwareValue.cs" />
+    <Compile Include="Utility.cs" />
     <Compile Include="IoMethods.cs" />
     <Compile Include="ListSet.cs" />
     <Compile Include="Logger.cs" />

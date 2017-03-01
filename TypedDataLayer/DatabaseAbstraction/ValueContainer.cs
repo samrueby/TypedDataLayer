@@ -67,7 +67,25 @@ namespace TypedDataLayer.DatabaseAbstraction {
 		/// <summary>
 		/// Gets the name of the data type for this container, or the nullable data type if the container allows null.
 		/// </summary>
-		public string DataTypeName => allowsNull ? NullableDataTypeName : dataType.ToString();
+		public string DataTypeName => allowsNull ? NullableDataTypeName : PrimitiveNameToFriendlyName( dataType );
+
+		public static string PrimitiveNameToFriendlyName( Type t ) {
+			var str = t.ToString();
+			switch( str ) {
+				case "System.Int32":
+					return "int";
+				case "System.String":
+					return "string";
+				case "System.Decimal":
+					return "decimal";
+				case "System.Double":
+					return "double";
+				case "System.DateTime":
+					return "DateTime";
+				default:
+					return str;
+			}
+		}
 
 		/// <summary>
 		/// Gets the name of the nullable data type for this container, regardless of whether the container allows null. The nullable data type is equivalent to the

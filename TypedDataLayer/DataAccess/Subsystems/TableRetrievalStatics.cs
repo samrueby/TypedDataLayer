@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DataAccess.Subsystems.StandardModification;
 using TypedDataLayer.DatabaseAbstraction;
 using TypedDataLayer.DatabaseSpecification.Databases;
@@ -31,7 +32,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 							return;
 						writer.WriteLine(
 							"public UserTransaction Transaction { get { return RevisionHistoryStatics.UserTransactionsById[ RevisionHistoryStatics.RevisionsById[ System.Convert.ToInt32( " +
-							EwlStatics.GetCSharpIdentifier( columns.PrimaryKeyAndRevisionIdColumn.PascalCasedNameExceptForOracle ) + " ) ].UserTransactionId ]; } }" );
+							Utility.GetCSharpIdentifier( columns.PrimaryKeyAndRevisionIdColumn.PascalCasedNameExceptForOracle ) + " ) ].UserTransactionId ]; } }" );
 					},
 					localWriter => {
 						if( !columns.DataColumns.Any() )
@@ -44,7 +45,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 							"return " + modClass + ".CreateForSingleRowUpdate" + revisionHistorySuffix + "( " +
 							StringTools.ConcatenateWithDelimiter(
 								", ",
-								columns.AllColumnsExceptRowVersion.Select( i => EwlStatics.GetCSharpIdentifier( i.PascalCasedNameExceptForOracle ) ).ToArray() ) + " );" );
+								columns.AllColumnsExceptRowVersion.Select( i => Utility.GetCSharpIdentifier( i.PascalCasedNameExceptForOracle ) ).ToArray() ) + " );" );
 						writer.WriteLine( "}" );
 					} );
 				writeCacheClass( cn, writer, database, table, columns, isRevisionHistoryTable );
@@ -96,12 +97,12 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 		}
 
 		internal static void WritePartialClass( DBConnection cn, string libraryBasePath, string namespaceDeclaration, Database database, string tableName ) {
-			var folderPath = EwlStatics.CombinePaths( libraryBasePath, "DataAccess", "TableRetrieval" );
-			var templateFilePath = EwlStatics.CombinePaths( folderPath, GetClassName( cn, tableName ) + DataAccessStatics.CSharpTemplateFileExtension );
+			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "TableRetrieval" );
+			var templateFilePath = Utility.CombinePaths( folderPath, GetClassName( cn, tableName ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
 
 			// If a real file exists, don't create a template.
-			if( File.Exists( EwlStatics.CombinePaths( folderPath, GetClassName( cn, tableName ) + ".cs" ) ) )
+			if( File.Exists( Utility.CombinePaths( folderPath, GetClassName( cn, tableName ) + ".cs" ) ) )
 				return;
 
 			using( var writer = IoMethods.GetTextWriterForWrite( templateFilePath ) ) {
@@ -115,7 +116,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			}
 		}
 
-		internal static string GetClassName( DBConnection cn, string table ) => EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableRetrieval" );
+		internal static string GetClassName( DBConnection cn, string table ) => Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableRetrieval" );
 
 		private static void writeCacheClass(
 			DBConnection cn, TextWriter writer, Database database, string table, TableColumns tableColumns, bool isRevisionHistoryTable ) {
@@ -177,12 +178,13 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			writer.WriteLine(
 				"if( cache." + ( excludePreviousRevisions ? "LatestRevision" : "" ) + "RowsByPk.TryGetValue( System.Tuple.Create( " +
 				StringTools.ConcatenateWithDelimiter( ", ", pkConditionVariableNames.Select( i => i + ".Value" ).ToArray() ) + " ), out row ) )" );
-			writer.WriteLine( "return row.ToSingleElementArray();" );
+			writer.WriteLine( "return new [] {row};" );
 			writer.WriteLine( "}" );
 
 			var commandConditionsExpression = "conditions.Select( i => i.CommandCondition )";
+
 			if( excludePreviousRevisions )
-				commandConditionsExpression += ".Concat( getLatestRevisionsCondition().ToSingleElementArray() )";
+				commandConditionsExpression += ".Concat( new [] {getLatestRevisionsCondition()} )";
 			writer.WriteLine( "return cache.Queries.GetResultSet( " + commandConditionsExpression + ", commandConditions => {" );
 			writeResultSetCreatorBody( cn, writer, database, table, tableColumns, tableUsesRowVersionedCaching, excludePreviousRevisions, "!isPkQuery" );
 			writer.WriteLine( "} );" );
@@ -196,14 +198,12 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 			var pkIsId = tableColumns.KeyColumns.Count() == 1 && tableColumns.KeyColumns.Single().Name.ToLower().EndsWith( "id" );
 			var methodName = pkIsId ? "GetRowMatchingId" : "GetRowMatchingPk";
 			var pkParameters = pkIsId
-				                   ? "{0} id".FormatWith( tableColumns.KeyColumns.Single().DataTypeName )
-				                   : StringTools.ConcatenateWithDelimiter(
-					                   ", ",
-					                   tableColumns.KeyColumns.Select( i => "{0} {1}".FormatWith( i.DataTypeName, i.CamelCasedName ) ).ToArray() );
-			writer.WriteLine( "public static Row " + methodName + "( " + pkParameters + ", bool returnNullIfNoMatch = false ) {" );
+				                   ? tableColumns.KeyColumns.Single().DataTypeName + " id"
+				                   : StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => $"{i.DataTypeName} {i.CamelCasedName}" ) );
+			writer.WriteLine( $"public static Row {methodName}( {pkParameters}, bool returnNullIfNoMatch = false ) {{" );
 			if( isSmallTable ) {
 				writer.WriteLine( "var cache = Cache.Current;" );
-				var commandConditionsExpression = isRevisionHistoryTable ? "getLatestRevisionsCondition().ToSingleElementArray()" : "new InlineDbCommandCondition[ 0 ]";
+				var commandConditionsExpression = isRevisionHistoryTable ? "new [] {getLatestRevisionsCondition()}" : "new InlineDbCommandCondition[ 0 ]";
 				writer.WriteLine( "cache.Queries.GetResultSet( " + commandConditionsExpression + ", commandConditions => {" );
 				writeResultSetCreatorBody( cn, writer, database, table, tableColumns, tableUsesRowVersionedCaching, isRevisionHistoryTable, "true" );
 				writer.WriteLine( "} );" );
@@ -317,7 +317,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 
 			// Add all results to RowsByPk.
 			writer.WriteLine( "foreach( var i in results ) {" );
-			var pkTupleCreationArgs = tableColumns.KeyColumns.Select( i => "i." + EwlStatics.GetCSharpIdentifier( i.PascalCasedNameExceptForOracle ) );
+			var pkTupleCreationArgs = tableColumns.KeyColumns.Select( i => "i." + Utility.GetCSharpIdentifier( i.PascalCasedNameExceptForOracle ) );
 			var pkTuple = "System.Tuple.Create( " + StringTools.ConcatenateWithDelimiter( ", ", pkTupleCreationArgs.ToArray() ) + " )";
 			writer.WriteLine( "cache.RowsByPk[ " + pkTuple + " ] = i;" );
 			if( excludesPreviousRevisions )
@@ -351,7 +351,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 		private static void writeToIdDictionaryMethod( TextWriter writer, TableColumns tableColumns ) {
 			writer.WriteLine( "public static Dictionary<" + tableColumns.KeyColumns.Single().DataTypeName + ", Row> ToIdDictionary( this IEnumerable<Row> rows ) {" );
 			writer.WriteLine(
-				"return rows.ToDictionary( i => i." + EwlStatics.GetCSharpIdentifier( tableColumns.KeyColumns.Single().PascalCasedNameExceptForOracle ) + " );" );
+				"return rows.ToDictionary( i => i." + Utility.GetCSharpIdentifier( tableColumns.KeyColumns.Single().PascalCasedNameExceptForOracle ) + " );" );
 			writer.WriteLine( "}" );
 		}
 	}

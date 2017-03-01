@@ -135,6 +135,6 @@ namespace TypedDataLayer.DataAccess {
 
 		internal static string GetDbName( DatabaseInfo databaseInfo ) => databaseInfo.SecondaryDatabaseName.Length == 0 ? "primary" : databaseInfo.SecondaryDatabaseName + " secondary";
 
-		internal static int CompareCommandConditionTypes( InlineDbCommandCondition x, InlineDbCommandCondition y ) => EwlStatics.Compare( x.GetType().Name, y.GetType().Name, comparer: StringComparer.InvariantCulture );
+		internal static int CompareCommandConditionTypes( InlineDbCommandCondition x, InlineDbCommandCondition y ) => Utility.Compare( x.GetType().Name, y.GetType().Name, comparer: StringComparer.InvariantCulture );
 	}
 }

@@ -101,8 +101,16 @@ namespace TypedDataLayer {
 		/// Whitespace is trimmed from the given strings before concatenation.
 		/// Null strings are treated as empty strings.
 		/// </summary>
-		public static string ConcatenateWithDelimiter( string delimiter, params string[] strings ) {
-			var tokens = strings.Select( i => ( i ?? "" ).Trim() ).Where( i => i.Length > 0 ).ToList();
+		internal static string ConcatenateWithDelimiter( string delimiter, params string[] strings ) => ConcatenateWithDelimiter(delimiter, (IEnumerable<string>)strings);
+
+		/// <summary>
+		/// Creates a single string consisting of each string in the given list, delimited by the given delimiter.  Empty strings
+		/// are handled intelligently in that you will not get two delimiters in a row, or a delimiter at the end of the string.
+		/// Whitespace is trimmed from the given strings before concatenation.
+		/// Null strings are treated as empty strings.
+		/// </summary>
+		internal static string ConcatenateWithDelimiter( string delimiter, IEnumerable<string> strings ) {
+			var tokens = strings.Select( i => ( i ?? "" ).Trim() ).Where( i => i.Length > 0 );
 			if( !tokens.Any() )
 				return "";
 			var result = new StringBuilder( tokens.First() );

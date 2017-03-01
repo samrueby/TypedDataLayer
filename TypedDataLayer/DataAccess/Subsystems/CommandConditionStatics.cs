@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using TypedDataLayer.CodeGeneration;
 using TypedDataLayer.DatabaseAbstraction;
 
 namespace TypedDataLayer.DataAccess.Subsystems {
@@ -39,11 +40,11 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 		}
 
 		internal static string GetTableEqualityConditionsClassName( DBConnection cn, string table )
-			=> EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableEqualityConditions" );
+			=> Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableEqualityConditions" );
 
 		private static void writeInequalityConditionClasses( DBConnection cn, TextWriter writer, string table ) {
 			// NOTE: This kind of sucks. It seems like we could use generics to not have to write N of these methods into ISU.cs.
-			writer.WriteLine( "public static class " + EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableInequalityConditions" ) + " {" );
+			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableInequalityConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
 				writer.WriteLine( "public class " + GetConditionClassName( column ) + ": " + GetTableConditionInterfaceName( cn, table ) + " {" );
@@ -66,7 +67,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 		}
 
 		private static void writeInConditionClasses( DBConnection cn, TextWriter writer, string table ) {
-			writer.WriteLine( "public static class " + EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableInConditions" ) + " {" );
+			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableInConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
 				writer.WriteLine( "public class " + GetConditionClassName( column ) + ": " + GetTableConditionInterfaceName( cn, table ) + " {" );
@@ -85,7 +86,7 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 		}
 
 		private static void writeLikeConditionClasses( DBConnection cn, TextWriter writer, string table ) {
-			writer.WriteLine( "public static class " + EwlStatics.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableLikeConditions" ) + " {" );
+			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableLikeConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
 				writer.WriteLine( "public class " + GetConditionClassName( column ) + ": " + GetTableConditionInterfaceName( cn, table ) + " {" );
@@ -109,6 +110,6 @@ namespace TypedDataLayer.DataAccess.Subsystems {
 		internal static string GetTableConditionInterfaceName( DBConnection cn, string tableName ) => tableName.TableNameToPascal( cn ) + "TableCondition";
 
 		internal static string GetConditionClassName( Column column )
-			=> EwlStatics.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle == "Value" ? "_Value" : column.PascalCasedNameExceptForOracle );
+			=> Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle == "Value" ? "_Value" : column.PascalCasedNameExceptForOracle );
 	}
 }
