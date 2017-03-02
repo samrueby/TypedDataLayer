@@ -1,17 +1,17 @@
 using System;
 using System.IO;
-using CommandRunner.XML_Schemas;
+using CommandRunner.DatabaseAbstraction;
+using TypedDataLayer;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.Tools;
-using Database = CommandRunner.DatabaseAbstraction.Database;
 
 namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class CustomModificationStatics {
 		private static DatabaseInfo info;
 
-		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, Database database, CommandRunner.XML_Schemas.Database configuration ) {
+		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, Database configuration ) {
 			info = cn.DatabaseInfo;
 			if( configuration.customModifications != null ) {
 				writer.WriteLine( "namespace " + baseNamespace + " {" );
@@ -50,7 +50,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			}
 		}
 
-		private static void writeMethod( TextWriter writer, Database database, CustomModification mod ) {
+		private static void writeMethod( TextWriter writer, IDatabase database, CustomModification mod ) {
 			writer.WriteLine(
 				"public static void " + mod.name + "( " +
 				DataAccessStatics.GetMethodParamsFromCommandText( info, StringTools.ConcatenateWithDelimiter( "; ", mod.commands ) ) + " ) {" );

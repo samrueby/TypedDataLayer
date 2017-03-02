@@ -18,7 +18,7 @@
     <file src="readme.txt" target="" />
     <file src="bin\$configuration$\$id$.pdb" target="lib\net451\" />
     <file src="..\CommandRunner\bin\$configuration$\*" target="CommandRunner\" />
-    <file src="XML Schemas\TypedDataLayerConfig.xsd" target="TypedDataLayerConfig.xsd" />
+    <file src="XML Schemas\TypedDataLayerConfig.xsd" target="content\TypedDataLayerConfig.xsd" />
     <file src="XML Schemas\Examples\TypedDataLayerConfig.xml" target="content\Examples\TypedDataLayerConfig.xml" />
     <file src="..\CommandRunner\Package Manager Console\Commands.ps1" target="tools\Init.ps1" />
   </files>

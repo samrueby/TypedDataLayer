@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TypedDataLayer.DataAccess;
 
 namespace CommandRunner.DatabaseAbstraction.Databases {
-	internal class NoDatabase: Database {
+	internal class NoDatabase: IDatabase {
 		public void ExecuteSqlScriptInTransaction( string script ) {
 			throw new NotSupportedException();
 		}
@@ -16,19 +16,19 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			throw new NotSupportedException();
 		}
 
-		List<string> Database.GetTables() {
+		List<string> IDatabase.GetTables() {
 			throw new NotSupportedException();
 		}
 
-		List<string> Database.GetProcedures() {
+		List<string> IDatabase.GetProcedures() {
 			throw new NotSupportedException();
 		}
 
-		List<ProcedureParameter> Database.GetProcedureParameters( string procedure ) {
+		List<ProcedureParameter> IDatabase.GetProcedureParameters( string procedure ) {
 			throw new NotSupportedException();
 		}
 
-		void Database.ExecuteDbMethod( Action<DBConnection> method ) {
+		void IDatabase.ExecuteDbMethod( Action<DBConnection> method ) {
 			throw new NotSupportedException();
 		}
 	}

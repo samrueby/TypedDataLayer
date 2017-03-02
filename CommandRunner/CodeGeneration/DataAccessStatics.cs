@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using CommandRunner.CodeGeneration.Subsystems;
 using CommandRunner.Collections;
 using CommandRunner.DatabaseAbstraction;
-using CommandRunner.Tools;
+using TypedDataLayer;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DataAccess.CommandWriting;
 using TypedDataLayer.DatabaseSpecification;
@@ -133,7 +133,7 @@ namespace CommandRunner.CodeGeneration {
 		internal static string GetMethodParamsFromCommandText( DatabaseInfo info, string commandText )
 			=> StringTools.ConcatenateWithDelimiter( ", ", GetNamedParamList( info, commandText ).Select( i => "object " + i ).ToArray() );
 
-		internal static void WriteAddParamBlockFromCommandText( TextWriter writer, string commandVariable, DatabaseInfo info, string commandText, Database database ) {
+		internal static void WriteAddParamBlockFromCommandText( TextWriter writer, string commandVariable, DatabaseInfo info, string commandText, IDatabase database ) {
 			foreach( var param in GetNamedParamList( info, commandText ) ) {
 				writer.WriteLine(
 					commandVariable + ".Parameters.Add( new DbCommandParameter( \"" + param + "\", new DbParameterValue( " + param + " ) ).GetAdoDotNetParameter( " +
@@ -141,15 +141,15 @@ namespace CommandRunner.CodeGeneration {
 			}
 		}
 
-		internal static bool IsRevisionHistoryTable( string table, XML_Schemas.Database configuration )
+		internal static bool IsRevisionHistoryTable( string table, Database configuration )
 			=>
 				configuration.revisionHistoryTables != null &&
 				configuration.revisionHistoryTables.Any( revisionHistoryTable => revisionHistoryTable.EqualsIgnoreCase( table ) );
 
-		internal static string GetTableConditionInterfaceName( DBConnection cn, Database database, string table )
+		internal static string GetTableConditionInterfaceName( DBConnection cn, IDatabase database, string table )
 			=> "CommandConditions." + CommandConditionStatics.GetTableConditionInterfaceName( cn, table );
 
-		internal static string GetEqualityConditionClassName( DBConnection cn, Database database, string tableName, Column column )
+		internal static string GetEqualityConditionClassName( DBConnection cn, IDatabase database, string tableName, Column column )
 			=>
 				"CommandConditions." + CommandConditionStatics.GetTableEqualityConditionsClassName( cn, tableName ) + "." +
 				CommandConditionStatics.GetConditionClassName( column );

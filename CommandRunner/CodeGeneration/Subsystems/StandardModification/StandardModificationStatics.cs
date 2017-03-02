@@ -9,13 +9,13 @@ using TypedDataLayer.Tools;
 namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 	internal static class StandardModificationStatics {
 		private static TextWriter writer;
-		private static Database database;
+		private static IDatabase database;
 		private static TableColumns columns;
 
-		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) => "namespace " + baseNamespace + ".Modification {";
+		public static string GetNamespaceDeclaration( string baseNamespace, IDatabase database ) => "namespace " + baseNamespace + ".Modification {";
 
 		internal static void Generate(
-			DBConnection cn, TextWriter writer, string namespaceDeclaration, Database database, IEnumerable<string> tableNames, XML_Schemas.Database configuration ) {
+			DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<string> tableNames, TypedDataLayer.Database configuration ) {
 			StandardModificationStatics.writer = writer;
 			StandardModificationStatics.database = database;
 
@@ -31,7 +31,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 		}
 
 		internal static void WritePartialClass(
-			DBConnection cn, string libraryBasePath, string namespaceDeclaration, Database database, string tableName, bool isRevisionHistoryTable ) {
+			DBConnection cn, string libraryBasePath, string namespaceDeclaration, IDatabase database, string tableName, bool isRevisionHistoryTable ) {
 			// We do not create templates for direct modification classes.
 			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "Modification" );
 			var templateFilePath = Utility.CombinePaths(

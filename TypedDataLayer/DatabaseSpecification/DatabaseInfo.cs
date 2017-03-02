@@ -6,9 +6,9 @@ namespace TypedDataLayer.DatabaseSpecification {
 	/// </summary>
 	public interface DatabaseInfo {
 		/// <summary>
-		/// If this is a secondary database, gets the name. Returns the empty string if this is the primary database.
+		/// The connection string to connect to this database.
 		/// </summary>
-		string SecondaryDatabaseName { get; }
+		string ConnectionString { get; }
 
 		/// <summary>
 		/// Returns the prefix used for parameters in SQL queries (@, :, etc.).
@@ -28,7 +28,7 @@ namespace TypedDataLayer.DatabaseSpecification {
 		/// <summary>
 		/// Creates an ADO.NET database connection to the database.
 		/// </summary>
-		DbConnection CreateConnection( string connectionString );
+		DbConnection CreateConnection();
 
 		/// <summary>
 		/// Creates an ADO.NET command for the database.

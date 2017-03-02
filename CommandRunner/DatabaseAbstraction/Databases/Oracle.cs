@@ -1,27 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.OracleClient;
 using System.IO;
-using CommandRunner.Tools;
 using JetBrains.Annotations;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DataAccess.CommandWriting;
 using TypedDataLayer.DataAccess.CommandWriting.Commands;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions;
-using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.Tools;
 
 namespace CommandRunner.DatabaseAbstraction.Databases {
 	[ UsedImplicitly ]
-	public class Oracle: Database {
+	public class Oracle: IDatabase {
 		private readonly OracleInfo info;
+		private readonly OracleConnectionStringBuilder connectionString;
 
 		internal Oracle( OracleInfo info ) {
 			this.info = info;
+			connectionString = new OracleConnectionStringBuilder( info.ConnectionString );
 		}
 
-		void Database.ExecuteSqlScriptInTransaction( string script ) {
+		void IDatabase.ExecuteSqlScriptInTransaction( string script ) {
 			using( var sw = new StringWriter() ) {
 				// Carriage returns seem to be significant here.
 				sw.WriteLine( "WHENEVER SQLERROR EXIT SQL.SQLCODE;" );
@@ -41,7 +42,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			}
 		}
 
-		int Database.GetLineMarker() {
+		int IDatabase.GetLineMarker() {
 			var value = 0;
 			ExecuteDbMethod(
 				cn => {
@@ -52,7 +53,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return value;
 		}
 
-		void Database.UpdateLineMarker( int value ) {
+		void IDatabase.UpdateLineMarker( int value ) {
 			ExecuteDbMethod(
 				cn => {
 					var command = new InlineUpdate( "global_numbers" );
@@ -62,7 +63,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 				} );
 		}
 
-		List<string> Database.GetTables() {
+		List<string> IDatabase.GetTables() {
 			var tables = new List<string>();
 			ExecuteDbMethod(
 				cn => {
@@ -78,17 +79,17 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return tables;
 		}
 
-		List<string> Database.GetProcedures() {
+		List<string> IDatabase.GetProcedures() {
 			var procedures = new List<string>();
 			ExecuteDbMethod(
 				cn => {
-					foreach( DataRow row in cn.GetSchema( "Procedures", info.UserAndSchema ).Rows )
+					foreach( DataRow row in cn.GetSchema( "Procedures", connectionString.UserID ).Rows )
 						procedures.Add( (string)row[ "OBJECT_NAME" ] );
 				} );
 			return procedures;
 		}
 
-		List<ProcedureParameter> Database.GetProcedureParameters( string procedure ) {
+		List<ProcedureParameter> IDatabase.GetProcedureParameters( string procedure ) {
 			var parameters = new List<ProcedureParameter>();
 			ExecuteDbMethod(
 				cn => {
@@ -112,34 +113,25 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 		}
 
 		private ParameterDirection getParameterDirection( string direction ) {
-			if( direction == "IN" )
-				return ParameterDirection.Input;
-			if( direction == "OUT" )
-				return ParameterDirection.Output;
-			if( direction == "IN/OUT" )
-				return ParameterDirection.InputOutput;
+			switch( direction ) {
+				case "IN":
+					return ParameterDirection.Input;
+				case "OUT":
+					return ParameterDirection.Output;
+				case "IN/OUT":
+					return ParameterDirection.InputOutput;
+			}
 			throw new ApplicationException( "Unknown parameter direction string." );
 		}
 
-		private string getLogonString() {
-			return info.UserAndSchema + "/" + info.Password + "@" + info.DataSource;
-		}
+		private string getLogonString() => connectionString.UserID + "/" + connectionString.Password + "@" + connectionString.DataSource;
 
 		public void ExecuteDbMethod( Action<DBConnection> method ) => executeDbMethodWithSpecifiedDatabaseInfo( info, method );
 
 		private void executeDbMethodWithSpecifiedDatabaseInfo( OracleInfo info, Action<DBConnection> method ) {
 			executeMethodWithDbExceptionHandling(
 				() => {
-					// Before we disabled pooling, we couldn't repeatedly perform Update Data operations since users with open connections can't be dropped.
-					var connection =
-						new DBConnection(
-							new OracleInfo(
-								( info as DatabaseInfo ).SecondaryDatabaseName,
-								info.DataSource,
-								info.UserAndSchema,
-								info.Password,
-								false,
-								info.SupportsLinguisticIndexes ) );
+					var connection = new DBConnection( new OracleInfo( info.ConnectionString, info.SupportsLinguisticIndexes ) );
 
 					connection.ExecuteWithConnectionOpen( () => method( connection ) );
 				} );

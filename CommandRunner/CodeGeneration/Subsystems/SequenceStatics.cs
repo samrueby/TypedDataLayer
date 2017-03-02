@@ -4,7 +4,7 @@ using TypedDataLayer.DataAccess;
 
 namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class SequenceStatics {
-		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, Database database ) {
+		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database ) {
 			writer.WriteLine( "namespace " + baseNamespace + ".Sequences {" );
 
 			var cmd = cn.DatabaseInfo.CreateCommand();

@@ -7,15 +7,12 @@ using System.Threading;
 using CommandRunner.Exceptions;
 using CommandRunner.Operations;
 using CommandRunner.Tools;
-using CommandRunner.XML_Schemas;
 using TypedDataLayer;
 using TypedDataLayer.Tools;
 
 namespace CommandRunner {
 	class Program {
 		static void Main( string[] args ) {
-			// NOTE SJR: What are we using FullTextCatalog for?
-			// NOTE SJR: Use a connection string instead of <Server> element w/ credentials?
 			var log = new Logger( args.Any( a => a == "-debug" ) );
 
 			if( args.Any( a => a == "-attachDebugger" ) ) {

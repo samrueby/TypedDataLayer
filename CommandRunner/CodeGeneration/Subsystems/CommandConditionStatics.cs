@@ -6,7 +6,7 @@ using TypedDataLayer.Tools;
 
 namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class CommandConditionStatics {
-		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, Database database, IEnumerable<string> tableNames ) {
+		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, IEnumerable<string> tableNames ) {
 			writer.WriteLine( "namespace " + baseNamespace + ".CommandConditions {" );
 			foreach( var table in tableNames ) {
 				// Write the interface for all of the table's conditions.

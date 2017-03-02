@@ -75,7 +75,8 @@ namespace TypedDataLayer.DataAccess {
 							"Failed to connect to SQL Server because of a connection timeout. SQL Server may be in the process of doing something else that is preventing the connection for some reason. Please try again.";
 
 					if( errorNumber.Value == 4060 )
-						customMessage = "The " + sqlServerInfo.Database + " database does not exist. You may need to execute an Update Data operation.";
+						customMessage = "The " + new SqlConnectionStringBuilder( sqlServerInfo.ConnectionString ).InitialCatalog +
+						                " database does not exist. You may need to execute an Update Data operation.";
 
 					// We also handle this error at the command level.
 					if( errorNumber.Value == 233 )
@@ -117,7 +118,7 @@ namespace TypedDataLayer.DataAccess {
 					// There are many causes of this error and it is difficult to be more specific in the message.
 					customMessage = "Failed to connect to Oracle because of a connection timeout. Check the Oracle configuration on the machine and in this system.";
 				if( new[] { "ORA-01017", "ORA-1017" }.Any( i => innerException.Message.Contains( i ) ) )
-					customMessage = "Failed to connect to Oracle as " + oracleInfo.UserAndSchema + ". You may need to execute an Update Data operation.";
+					customMessage = "Failed to connect to Oracle. You may need to execute an Update Data operation.";
 				if( new[] { "ORA-03114", "ORA-12571" }.Any( i => innerException.Message.Contains( i ) ) )
 					customMessage =
 						"Failed to connect to Oracle or connection to Oracle was lost. This should not happen often and may be caused by a bug in the data access components or the database.";
@@ -134,8 +135,9 @@ namespace TypedDataLayer.DataAccess {
 
 		internal static Exception CreateStandbyServerModificationException() => new ApplicationException( "You cannot make changes to standby versions of a system." );
 
-		internal static string GetDbName( DatabaseInfo databaseInfo ) => databaseInfo.SecondaryDatabaseName.Length == 0 ? "primary" : databaseInfo.SecondaryDatabaseName + " secondary";
+		internal static string GetDbName( DatabaseInfo databaseInfo ) => "primary";
 
-		internal static int CompareCommandConditionTypes( InlineDbCommandCondition x, InlineDbCommandCondition y ) => Utility.Compare( x.GetType().Name, y.GetType().Name, comparer: StringComparer.InvariantCulture );
+		internal static int CompareCommandConditionTypes( InlineDbCommandCondition x, InlineDbCommandCondition y )
+			=> Utility.Compare( x.GetType().Name, y.GetType().Name, comparer: StringComparer.InvariantCulture );
 	}
 }

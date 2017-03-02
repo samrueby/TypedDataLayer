@@ -7,7 +7,7 @@ using TypedDataLayer.Tools;
 
 namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class ProcedureStatics {
-		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, Database database ) {
+		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database ) {
 			writer.WriteLine( "namespace " + baseNamespace + " {" );
 			writer.WriteLine( "public static class Procedures {" );
 			foreach( var procedure in database.GetProcedures() ) {

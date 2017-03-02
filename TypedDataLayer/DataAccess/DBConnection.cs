@@ -16,6 +16,7 @@ namespace TypedDataLayer.DataAccess {
 	/// <summary>
 	/// Provides a connection to a database.  Capable of nested transactions.
 	/// </summary>
+	// ReSharper disable once InconsistentNaming - We don't want to clash with DbConnection.
 	public class DBConnection {
 		private const string saveName = "child";
 
@@ -36,42 +37,10 @@ namespace TypedDataLayer.DataAccess {
 		/// Creates a database connection based on the specified database information object.
 		/// </summary>
 		internal DBConnection( DatabaseInfo databaseInfo ) {
+			// Allowing connection pooling might cause problems.
+			// Before we disabled pooling, we couldn't repeatedly perform Update Data operations since users with open connections can't be dropped.
 			this.databaseInfo = databaseInfo;
-
-			// Build the connection string.
-			string connectionString;
-			if( databaseInfo is SqlServerInfo ) {
-				var sqlServerInfo = databaseInfo as SqlServerInfo;
-				connectionString = "Data Source=" + ( sqlServerInfo.Server ?? "(local)" );
-				if( sqlServerInfo.LoginName != null ) {
-					connectionString += "; User ID=" + sqlServerInfo.LoginName;
-					connectionString += "; Password='{0}'".FormatWith( sqlServerInfo.Password );
-				}
-				else {
-					connectionString += "; Integrated Security=SSPI";
-				}
-				connectionString += "; Initial Catalog=" + sqlServerInfo.Database;
-				if( !sqlServerInfo.SupportsConnectionPooling )
-					connectionString += "; Pooling=false";
-			}
-			else if( databaseInfo is MySqlInfo ) {
-				var mySqlInfo = databaseInfo as MySqlInfo;
-				connectionString = "Host=localhost; User Id=root; Password=password; Initial Catalog=" + mySqlInfo.Database;
-				if( !mySqlInfo.SupportsConnectionPooling )
-					connectionString += "; Pooling=false";
-			}
-			else if( databaseInfo is OracleInfo ) {
-				var oracleInfo = databaseInfo as OracleInfo;
-				connectionString = "Data Source=" + oracleInfo.DataSource + "; User Id=" + oracleInfo.UserAndSchema + "; Password=" + oracleInfo.Password +
-				                   ( oracleInfo.UserAndSchema == "sys" ? "; DBA Privilege=SYSDBA" : "" );
-				if( !oracleInfo.SupportsConnectionPooling )
-					connectionString = StringTools.ConcatenateWithDelimiter( "; ", connectionString, "Pooling=false" );
-			}
-			else {
-				throw new ApplicationException( "Invalid database information object type." );
-			}
-
-			cn = new ProfiledDbConnection( databaseInfo.CreateConnection( connectionString ), MiniProfiler.Current );
+			cn = new ProfiledDbConnection( databaseInfo.CreateConnection(), MiniProfiler.Current );
 		}
 
 		/// <summary>
@@ -119,7 +88,7 @@ namespace TypedDataLayer.DataAccess {
 
 				if( databaseInfo is OracleInfo ) {
 					// Make Oracle case-insensitive, like SQL Server.
-					if( ( databaseInfo as OracleInfo ).SupportsLinguisticIndexes ) {
+					if( ( (OracleInfo)databaseInfo ).SupportsLinguisticIndexes ) {
 						executeText( "ALTER SESSION SET NLS_COMP = LINGUISTIC" );
 						executeText( "ALTER SESSION SET NLS_SORT = BINARY_CI" );
 					}
@@ -340,7 +309,8 @@ namespace TypedDataLayer.DataAccess {
 			innerTx = null;
 		}
 
-		private Exception createConnectionException( string action, Exception innerException ) => DataAccessMethods.CreateDbConnectionException( databaseInfo, action, innerException );
+		private Exception createConnectionException( string action, Exception innerException )
+			=> DataAccessMethods.CreateDbConnectionException( databaseInfo, action, innerException );
 
 		/// <summary>
 		/// Execute a command and return number of rows affected.
@@ -385,12 +355,14 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Executes the specified command with SchemaOnly behavior to get a data reader and then executes the specified method with the reader.
 		/// </summary>
-		public void ExecuteReaderCommandWithSchemaOnlyBehavior( DbCommand cmd, Action<DbDataReader> readerMethod ) => executeReaderCommand( cmd, CommandBehavior.SchemaOnly, readerMethod );
+		public void ExecuteReaderCommandWithSchemaOnlyBehavior( DbCommand cmd, Action<DbDataReader> readerMethod )
+			=> executeReaderCommand( cmd, CommandBehavior.SchemaOnly, readerMethod );
 
 		/// <summary>
 		/// Executes the specified command with SchemaOnly and KeyInfo behavior to get a data reader and then executes the specified method with the reader.
 		/// </summary>
-		public void ExecuteReaderCommandWithKeyInfoBehavior( DbCommand cmd, Action<DbDataReader> readerMethod ) => executeReaderCommand( cmd, CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo, readerMethod );
+		public void ExecuteReaderCommandWithKeyInfoBehavior( DbCommand cmd, Action<DbDataReader> readerMethod )
+			=> executeReaderCommand( cmd, CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo, readerMethod );
 
 		private void executeReaderCommand( DbCommand command, CommandBehavior behavior, Action<DbDataReader> readerMethod ) {
 			try {

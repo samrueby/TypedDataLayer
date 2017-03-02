@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using CommandRunner.XML_Schemas;
+using JetBrains.Annotations;
 using TypedDataLayer.Collections;
 using TypedDataLayer.DatabaseSpecification;
-using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess {
 	public class DataAccessState {
 		/// <summary>
-		/// NOTE SJR: FIgure out what the point of this is and maybe allow it to not be null sometimes.
+		/// NOTE SJR: Figure out what the point of this is and maybe allow it to not be null sometimes.
 		/// </summary>
 		private static Func<DataAccessState> mainStateGetter;
 
@@ -41,7 +40,6 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		private DBConnection primaryConnection;
-		private readonly Dictionary<string, DBConnection> secondaryConnectionsByName = new Dictionary<string, DBConnection>();
 		private readonly Action<DBConnection> connectionInitializer;
 
 		private bool cacheEnabled;
@@ -84,51 +82,11 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Gets the connection to the primary database.
 		/// </summary>
+		[ UsedImplicitly ]
 		public DBConnection PrimaryDatabaseConnection
-			=> initConnection( primaryConnection ?? ( primaryConnection = new DBConnection( database != null ? getDatabaseInfo( "", database ) : null ) ) );
+			=>
+				initConnection( primaryConnection ?? ( primaryConnection = new DBConnection( database != null ? DatabaseFactory.CreateDatabaseInfo( database ) : null ) ) );
 
-		private DatabaseInfo getDatabaseInfo( string secondaryDatabaseName, DatabaseConfiguration database ) {
-			if( database is SqlServerDatabase ) {
-				var sqlServerDatabase = (SqlServerDatabase)database;
-				return new SqlServerInfo(
-					secondaryDatabaseName,
-					sqlServerDatabase.server,
-					sqlServerDatabase.SqlServerAuthenticationLogin?.LoginName,
-					sqlServerDatabase.SqlServerAuthenticationLogin?.Password,
-					sqlServerDatabase.database,
-					true,
-					sqlServerDatabase.FullTextCatalog );
-			}
-			if( database is MySqlDatabase ) {
-				var mySqlDatabase = database as MySqlDatabase;
-				return new MySqlInfo( secondaryDatabaseName, mySqlDatabase.database, true );
-			}
-			if( database is OracleDatabase ) {
-				var oracleDatabase = database as OracleDatabase;
-				return new OracleInfo(
-					secondaryDatabaseName,
-					oracleDatabase.tnsName,
-					oracleDatabase.userAndSchema,
-					oracleDatabase.password,
-					!oracleDatabase.SupportsConnectionPoolingSpecified || oracleDatabase.SupportsConnectionPooling,
-					!oracleDatabase.SupportsLinguisticIndexesSpecified || oracleDatabase.SupportsLinguisticIndexes );
-			}
-			throw new ApplicationException( "Unknown database type." );
-		}
-
-		///// <summary>
-		///// Gets the connection to the specified secondary database.
-		///// </summary>
-		//public DBConnection GetSecondaryDatabaseConnection( string databaseName ) {
-		//	DBConnection connection;
-		//	secondaryConnectionsByName.TryGetValue( databaseName, out connection );
-		//	if( connection == null ) {
-		//		secondaryConnectionsByName.Add(
-		//			databaseName,
-		//			connection = new DBConnection( ConfigurationStatics.InstallationConfiguration.GetSecondaryDatabaseInfo( databaseName ) ) );
-		//	}
-		//	return initConnection( connection );
-		//}
 
 		private DBConnection initConnection( DBConnection connection ) {
 			connectionInitializer( connection );

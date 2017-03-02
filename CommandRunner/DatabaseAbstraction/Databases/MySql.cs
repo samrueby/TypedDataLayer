@@ -1,26 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using CommandRunner.Tools;
+using MySql.Data.MySqlClient;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DataAccess.CommandWriting;
 using TypedDataLayer.DataAccess.CommandWriting.Commands;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions;
-using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.Tools;
 
 namespace CommandRunner.DatabaseAbstraction.Databases {
-	public class MySql: Database {
+	public class MySql: IDatabase {
 		private const string binFolderPath = @"C:\Program Files\MySQL\MySQL Server 5.5\bin";
 
 		private readonly MySqlInfo info;
+		private readonly MySqlConnectionStringBuilder connectionString;
 
 		public MySql( MySqlInfo info ) {
 			this.info = info;
+			connectionString = new MySqlConnectionStringBuilder( info.ConnectionString );
 		}
 
-		void Database.ExecuteSqlScriptInTransaction( string script ) {
+		void IDatabase.ExecuteSqlScriptInTransaction( string script ) {
 			using( var sw = new StringWriter() ) {
 				sw.WriteLine( "START TRANSACTION;" );
 				sw.Write( script );
@@ -32,7 +33,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 						try {
 							Utility.RunProgram(
 								Utility.CombinePaths( binFolderPath, "mysql" ),
-								$"--host=localhost --user=root --password=password {info.Database} --disable-reconnect --batch --disable-auto-rehash",
+								$"--host=localhost --user=root --password=password {connectionString.Database} --disable-reconnect --batch --disable-auto-rehash",
 								sw.ToString(),
 								true );
 						}
@@ -43,7 +44,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			}
 		}
 
-		int Database.GetLineMarker() {
+		int IDatabase.GetLineMarker() {
 			var value = 0;
 			ExecuteDbMethod(
 				cn => {
@@ -54,7 +55,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return value;
 		}
 
-		void Database.UpdateLineMarker( int value ) {
+		void IDatabase.UpdateLineMarker( int value ) {
 			ExecuteDbMethod(
 				cn => {
 					var command = new InlineUpdate( "global_ints" );
@@ -64,13 +65,12 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 				} );
 		}
 
-		List<string> Database.GetTables() {
+		List<string> IDatabase.GetTables() {
 			var tables = new List<string>();
 			ExecuteDbMethod(
 				delegate( DBConnection cn ) {
 					var command = cn.DatabaseInfo.CreateCommand();
-					command.CommandText = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{0}' AND TABLE_TYPE = 'BASE TABLE'".FormatWith(
-						info.Database );
+					command.CommandText = $"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{connectionString.Database}' AND TABLE_TYPE = 'BASE TABLE'";
 					cn.ExecuteReaderCommand(
 						command,
 						reader => {
@@ -81,17 +81,17 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return tables;
 		}
 
-		List<string> Database.GetProcedures() {
+		List<string> IDatabase.GetProcedures() {
 			throw new NotSupportedException();
 		}
 
-		List<ProcedureParameter> Database.GetProcedureParameters( string procedure ) {
+		List<ProcedureParameter> IDatabase.GetProcedureParameters( string procedure ) {
 			throw new NotSupportedException();
 		}
 
 		public void ExecuteDbMethod( Action<DBConnection> method ) => executeMethodWithDbExceptionHandling(
 			() => {
-				var connection = new DBConnection( new MySqlInfo( ( info as DatabaseInfo ).SecondaryDatabaseName, info.Database, false ) );
+				var connection = new DBConnection( new MySqlInfo( info.ConnectionString ) );
 				connection.ExecuteWithConnectionOpen( () => method( connection ) );
 			} );
 

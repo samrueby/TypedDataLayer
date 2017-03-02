@@ -2,6 +2,7 @@ using System;
 using System.Data.Common;
 using StackExchange.Profiling;
 using StackExchange.Profiling.Data;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DatabaseSpecification.Databases {
 	/// <summary>
@@ -11,22 +12,17 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 		private static DbProviderFactory factoryField;
 		private static DbProviderFactory factory => factoryField ?? ( factoryField = DbProviderFactories.GetFactory( "Oracle.DataAccess.Client" ) );
 
-		private readonly string secondaryDatabaseName;
 
 		/// <summary>
-		/// Creates a new Oracle database information object. Specify the empty string for the secondary database name if this represents the primary database.
+		/// Creates a new Oracle database information object.
 		/// </summary>
-		public OracleInfo(
-			string secondaryDatabaseName, string dataSource, string userAndSchema, string password, bool supportsConnectionPooling, bool supportsLinguisticIndexes ) {
-			this.secondaryDatabaseName = secondaryDatabaseName;
-			DataSource = dataSource;
-			UserAndSchema = userAndSchema;
-			Password = password;
-			SupportsConnectionPooling = supportsConnectionPooling;
+		public OracleInfo( string connectionString, bool supportsLinguisticIndexes ) {
+			if( connectionString.IsNullOrWhiteSpace() )
+				throw new ApplicationException( "Connection string was not found in configuration." );
+
+			ConnectionString = connectionString;
 			SupportsLinguisticIndexes = supportsLinguisticIndexes;
 		}
-
-		string DatabaseInfo.SecondaryDatabaseName => secondaryDatabaseName;
 
 		string DatabaseInfo.ParameterPrefix => ":";
 
@@ -34,34 +30,17 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 
 		string DatabaseInfo.QueryCacheHint => "/*+ RESULT_CACHE */";
 
-		/// <summary>
-		/// Gets the data source.
-		/// </summary>
-		public string DataSource { get; }
+		public string ConnectionString { get; }
 
-		/// <summary>
-		/// Gets the user/schema.
-		/// </summary>
-		public string UserAndSchema { get; }
-
-		/// <summary>
-		/// Gets the password.
-		/// </summary>
-		public string Password { get; }
-
-		/// <summary>
-		/// Gets whether the database supports connection pooling.
-		/// </summary>
-		public bool SupportsConnectionPooling { get; }
 
 		/// <summary>
 		/// Gets whether the database supports linguistic indexes, which impacts whether or not it can enable case-insensitive comparisons.
 		/// </summary>
 		public bool SupportsLinguisticIndexes { get; }
 
-		DbConnection DatabaseInfo.CreateConnection( string connectionString ) {
+		DbConnection DatabaseInfo.CreateConnection() {
 			var connection = factory.CreateConnection();
-			connection.ConnectionString = connectionString;
+			connection.ConnectionString = ConnectionString;
 			return connection;
 		}
 
@@ -84,7 +63,8 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 
 		DbParameter DatabaseInfo.CreateParameter() => factory.CreateParameter();
 
-		string DatabaseInfo.GetDbTypeString( object databaseSpecificType ) => Enum.GetName( factory.GetType().Assembly.GetType( "Oracle.DataAccess.Client.OracleDbType" ), databaseSpecificType );
+		string DatabaseInfo.GetDbTypeString( object databaseSpecificType )
+			=> Enum.GetName( factory.GetType().Assembly.GetType( "Oracle.DataAccess.Client.OracleDbType" ), databaseSpecificType );
 
 		void DatabaseInfo.SetParameterType( DbParameter parameter, string dbTypeString ) {
 			var oracleDbTypeProperty = parameter.GetType().GetProperty( "OracleDbType" );

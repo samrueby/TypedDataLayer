@@ -10,7 +10,7 @@ namespace CommandRunner.Operations {
 	internal static class ExecuteDatabaseUpdatesScript {
 		private const string databaseUpdatesFilesName = "Database Updates.sql";
 
-		public static void Run( string projectFolder, Database databaseInfo, Logger log ) {
+		public static void Run( string projectFolder, IDatabase databaseInfo, Logger log ) {
 			var dbUpdatesPath = Path.Combine( projectFolder, databaseUpdatesFilesName );
 
 			var lineNumber = getNumberOfLinesInDatabaseScript( dbUpdatesPath );

@@ -51,7 +51,6 @@
     <Compile Include="Collections\Cache.cs" />
     <Compile Include="Containers\DataValue.cs" />
     <Compile Include="Containers\InitializationAwareValue.cs" />
-    <Compile Include="DataAccess\AutomaticTransactionDisablingProvider.cs" />
     <Compile Include="DataAccess\CommandWriting\Commands\InlineDelete.cs" />
     <Compile Include="DataAccess\CommandWriting\Commands\InlineInsert.cs" />
     <Compile Include="DataAccess\CommandWriting\Commands\InlineSelect.cs" />
@@ -81,6 +80,7 @@
     <Compile Include="DataAccess\StandardModification\PostDeleteCall.cs" />
     <Compile Include="DataAccess\SystemDataAccessProvider.cs" />
     <Compile Include="DataAccess\TableCondition.cs" />
+    <Compile Include="DatabaseSpecification\DatabaseFactory.cs" />
     <Compile Include="DatabaseSpecification\DatabaseInfo.cs" />
     <Compile Include="DatabaseSpecification\Databases\MySqlInfo.cs" />
     <Compile Include="DatabaseSpecification\Databases\OracleInfo.cs" />
@@ -101,9 +101,6 @@
     <None Include="BuildNugetPackage.ps1" />
     <None Include="packages.config" />
     <None Include="TypedDataLayer.nuspec">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="TypedDataLayerConfig.xsd">
       <SubType>Designer</SubType>
     </None>
     <None Include="XML Schemas\GenerateSchemaClasses.bat" />

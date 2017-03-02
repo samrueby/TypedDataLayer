@@ -1,31 +1,33 @@
 using System;
 using System.Collections.Generic;
-using CommandRunner.Tools;
+using System.Data.SqlClient;
 using JetBrains.Annotations;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DataAccess.CommandWriting;
 using TypedDataLayer.DataAccess.CommandWriting.Commands;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions;
-using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.Tools;
 
 namespace CommandRunner.DatabaseAbstraction.Databases {
 	[ UsedImplicitly ]
-	public class SqlServer: Database {
+	public class SqlServer: IDatabase {
 		private readonly SqlServerInfo info;
 
 		public SqlServer( SqlServerInfo info ) {
 			this.info = info;
 		}
 
-		void Database.ExecuteSqlScriptInTransaction( string script ) {
+		void IDatabase.ExecuteSqlScriptInTransaction( string script ) {
 			executeMethodWithDbExceptionHandling(
 				() => {
 					try {
+						var cn = new SqlConnectionStringBuilder( info.ConnectionString );
+						// -b "On error batch abort"
+						// -e "echo input"
 						Utility.RunProgram(
 							"sqlcmd",
-							$"{( info.Server != null ? $"-S {info.Server} " : "" )}-d {info.Database} -e -b",
+							$"-S {cn.DataSource} -d {cn.InitialCatalog} {( cn.Encrypt ? "-N" : "" )} -e -b",
 							$"BEGIN TRAN{Environment.NewLine}GO{Environment.NewLine}{script}COMMIT TRAN{Environment.NewLine}GO{Environment.NewLine}EXIT{Environment.NewLine}",
 							true );
 					}
@@ -35,7 +37,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 				} );
 		}
 
-		int Database.GetLineMarker() {
+		int IDatabase.GetLineMarker() {
 			var value = 0;
 			ExecuteDbMethod(
 				cn => {
@@ -46,7 +48,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return value;
 		}
 
-		void Database.UpdateLineMarker( int value ) {
+		void IDatabase.UpdateLineMarker( int value ) {
 			ExecuteDbMethod(
 				cn => {
 					var command = new InlineUpdate( "GlobalInts" );
@@ -56,7 +58,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 				} );
 		}
 
-		List<string> Database.GetTables() {
+		List<string> IDatabase.GetTables() {
 			var tables = new List<string>();
 			ExecuteDbMethod(
 				cn => {
@@ -72,11 +74,11 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return tables;
 		}
 
-		List<string> Database.GetProcedures() {
+		List<string> IDatabase.GetProcedures() {
 			throw new NotSupportedException();
 		}
 
-		List<ProcedureParameter> Database.GetProcedureParameters( string procedure ) {
+		List<ProcedureParameter> IDatabase.GetProcedureParameters( string procedure ) {
 			throw new NotSupportedException();
 		}
 
@@ -86,16 +88,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 
 		private void executeDbMethodWithSpecifiedDatabaseInfo( SqlServerInfo info, Action<DBConnection> method ) => executeMethodWithDbExceptionHandling(
 			() => {
-				var connection =
-					new DBConnection(
-						new SqlServerInfo(
-							( info as DatabaseInfo ).SecondaryDatabaseName,
-							info.Server,
-							info.LoginName,
-							info.Password,
-							info.Database,
-							false,
-							info.FullTextCatalog ) );
+				var connection = new DBConnection( new SqlServerInfo( info.ConnectionString ) );
 				connection.ExecuteWithConnectionOpen( () => method( connection ) );
 			} );
 

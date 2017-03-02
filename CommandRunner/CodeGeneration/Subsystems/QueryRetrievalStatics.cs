@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CommandRunner.XML_Schemas;
+using CommandRunner.DatabaseAbstraction;
+using TypedDataLayer;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.Tools;
-using Database = CommandRunner.DatabaseAbstraction.Database;
 
 namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class QueryRetrievalStatics {
 		private static DatabaseInfo info;
 
-		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, Database database, CommandRunner.XML_Schemas.Database configuration ) {
+		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, Database configuration ) {
 			if( configuration.queries == null )
 				return;
 
@@ -55,7 +55,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			return Column.GetColumnsInQueryResults( cn, query.selectFromClause, false );
 		}
 
-		private static void writeCacheClass( TextWriter writer, Database database, Query query ) {
+		private static void writeCacheClass( TextWriter writer, IDatabase database, Query query ) {
 			writer.WriteLine( "private partial class Cache {" );
 			writer.WriteLine(
 				"internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( \"" + query.name + "QueryRetrieval\", () => new Cache() ); } }" );
@@ -77,7 +77,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 					? "QueryRetrievalQueryCache<Row>"
 					: "ParameterlessQueryCache<Row>";
 
-		private static void writeQueryMethod( TextWriter writer, Database database, Query query, QueryPostSelectFromClause postSelectFromClause ) {
+		private static void writeQueryMethod( TextWriter writer, IDatabase database, Query query, QueryPostSelectFromClause postSelectFromClause ) {
 			// header
 			CodeGenerationStatics.AddSummaryDocComment( writer, "Queries the database and returns the full results collection immediately." );
 			writer.WriteLine(

@@ -13,10 +13,10 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class TableRetrievalStatics {
 		private const string oracleRowVersionDataType = "decimal";
 
-		public static string GetNamespaceDeclaration( string baseNamespace, Database database ) => "namespace " + baseNamespace + ".TableRetrieval {";
+		public static string GetNamespaceDeclaration( string baseNamespace, IDatabase database ) => "namespace " + baseNamespace + ".TableRetrieval {";
 
 		internal static void Generate(
-			DBConnection cn, TextWriter writer, string namespaceDeclaration, Database database, IEnumerable<string> tableNames, XML_Schemas.Database configuration ) {
+			DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<string> tableNames, TypedDataLayer.Database configuration ) {
 			writer.WriteLine( namespaceDeclaration );
 			foreach( var table in tableNames ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "Contains logic that retrieves rows from the " + table + " table." );
@@ -98,7 +98,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "}" ); // namespace
 		}
 
-		internal static void WritePartialClass( DBConnection cn, string libraryBasePath, string namespaceDeclaration, Database database, string tableName ) {
+		internal static void WritePartialClass( DBConnection cn, string libraryBasePath, string namespaceDeclaration, IDatabase database, string tableName ) {
 			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "TableRetrieval" );
 			var templateFilePath = Utility.CombinePaths( folderPath, GetClassName( cn, tableName ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
@@ -121,7 +121,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		internal static string GetClassName( DBConnection cn, string table ) => Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableRetrieval" );
 
 		private static void writeCacheClass(
-			DBConnection cn, TextWriter writer, Database database, string table, TableColumns tableColumns, bool isRevisionHistoryTable ) {
+			DBConnection cn, TextWriter writer, IDatabase database, string table, TableColumns tableColumns, bool isRevisionHistoryTable ) {
 			var cacheKey = table.TableNameToPascal( cn ) + "TableRetrieval";
 			var pkTupleTypeArguments = getPkTupleTypeArguments( tableColumns );
 
@@ -150,7 +150,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		}
 
 		private static void writeGetRowsMethod(
-			DBConnection cn, TextWriter writer, Database database, string table, TableColumns tableColumns, bool isSmallTable, bool tableUsesRowVersionedCaching,
+			DBConnection cn, TextWriter writer, IDatabase database, string table, TableColumns tableColumns, bool isSmallTable, bool tableUsesRowVersionedCaching,
 			bool isRevisionHistoryTable, bool excludePreviousRevisions ) {
 			// header
 			var methodName = "GetRows" + ( isSmallTable ? "MatchingConditions" : "" ) +
@@ -195,7 +195,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		}
 
 		private static void writeGetRowMatchingPkMethod(
-			DBConnection cn, TextWriter writer, Database database, string table, TableColumns tableColumns, bool isSmallTable, bool tableUsesRowVersionedCaching,
+			DBConnection cn, TextWriter writer, IDatabase database, string table, TableColumns tableColumns, bool isSmallTable, bool tableUsesRowVersionedCaching,
 			bool isRevisionHistoryTable ) {
 			var pkIsId = tableColumns.KeyColumns.Count() == 1 && tableColumns.KeyColumns.Single().Name.ToLower().EndsWith( "id" );
 			var methodName = pkIsId ? "GetRowMatchingId" : "GetRowMatchingPk";
@@ -234,7 +234,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		}
 
 		private static void writeResultSetCreatorBody(
-			DBConnection cn, TextWriter writer, Database database, string table, TableColumns tableColumns, bool tableUsesRowVersionedCaching,
+			DBConnection cn, TextWriter writer, IDatabase database, string table, TableColumns tableColumns, bool tableUsesRowVersionedCaching,
 			bool excludesPreviousRevisions, string cacheQueryInDbExpression ) {
 			if( tableUsesRowVersionedCaching ) {
 				writer.WriteLine( "var results = new List<Row>();" );
@@ -279,8 +279,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				}
 				writer.WriteLine( "var singleRowResults = new List<BasicRow>();" );
 				writer.WriteLine(
-					"singleRowCommand.Execute( " + DataAccessStatics.GetConnectionExpression() +
-					", r => { while( r.Read() ) singleRowResults.Add( new BasicRow( r ) ); } );" );
+					"singleRowCommand.Execute( " + DataAccessStatics.GetConnectionExpression() + ", r => { while( r.Read() ) singleRowResults.Add( new BasicRow( r ) ); } );" );
 				writer.WriteLine( "return singleRowResults.Single();" );
 				writer.WriteLine( "} ) ) );" );
 				writer.WriteLine( "}" );
@@ -313,8 +312,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( getCommandConditionAddingStatement( "command" ) );
 				writer.WriteLine( "var results = new List<Row>();" );
 				writer.WriteLine(
-					"command.Execute( " + DataAccessStatics.GetConnectionExpression() +
-					", r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
+					"command.Execute( " + DataAccessStatics.GetConnectionExpression() + ", r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
 			}
 
 			// Add all results to RowsByPk.

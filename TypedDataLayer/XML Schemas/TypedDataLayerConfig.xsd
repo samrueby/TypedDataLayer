@@ -13,25 +13,16 @@
     <complexContent>
       <extension base="rs:DatabaseConfiguration">
         <sequence>
-          <element name="server" type="string" minOccurs="0" />
-          <element name="SqlServerAuthenticationLogin" type="rs:SqlServerAuthenticationLogin" minOccurs="0" />
-          <element name="database" type="string" minOccurs="0" />
-          <element name="FullTextCatalog" type="string" minOccurs="0" />
+            <element name="ConnectionString" type="string" minOccurs="0" />
         </sequence>
       </extension>
     </complexContent>
-  </complexType>
-  <complexType name="SqlServerAuthenticationLogin">
-    <sequence>
-      <element name="LoginName" type="string" />
-      <element name="Password" type="string" />
-    </sequence>
   </complexType>
   <complexType name="MySqlDatabase">
     <complexContent>
       <extension base="rs:DatabaseConfiguration">
         <sequence>
-          <element name="database" type="string" minOccurs="0" />
+          <element name="ConnectionString" type="string" minOccurs="0" />
         </sequence>
       </extension>
     </complexContent>
@@ -40,10 +31,7 @@
     <complexContent>
       <extension base="rs:DatabaseConfiguration">
         <sequence>
-          <element name="tnsName" type="string" />
-          <element name="userAndSchema" type="string" />
-          <element name="password" type="string" />
-          <element name="SupportsConnectionPooling" type="boolean" minOccurs="0" />
+          <element name="ConnectionString" type="string" minOccurs="0" />
           <element name="SupportsLinguisticIndexes" type="boolean" minOccurs="0" />
         </sequence>
       </extension>

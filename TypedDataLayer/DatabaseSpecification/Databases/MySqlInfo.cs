@@ -2,6 +2,7 @@
 using System.Data.Common;
 using StackExchange.Profiling;
 using StackExchange.Profiling.Data;
+using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DatabaseSpecification.Databases {
 	/// <summary>
@@ -11,36 +12,27 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 		private static DbProviderFactory factoryField;
 		private static DbProviderFactory factory => factoryField ?? ( factoryField = DbProviderFactories.GetFactory( "MySql.Data.MySqlClient" ) );
 
-		private readonly string secondaryDatabaseName;
 
 		/// <summary>
-		/// Creates a new MySQL information object. Specify the empty string for the secondary database name if this represents the primary database.
+		/// Creates a new MySQL information object.
 		/// </summary>
-		public MySqlInfo( string secondaryDatabaseName, string database, bool supportsConnectionPooling ) {
-			this.secondaryDatabaseName = secondaryDatabaseName;
-			Database = database;
-			SupportsConnectionPooling = supportsConnectionPooling;
+		public MySqlInfo( string connectionString ) {
+			if( connectionString.IsNullOrWhiteSpace() )
+				throw new ApplicationException( "Connection string was not found in configuration." );
+			ConnectionString = connectionString;
 		}
 
-		string DatabaseInfo.SecondaryDatabaseName => secondaryDatabaseName;
 
 		string DatabaseInfo.ParameterPrefix => "@";
 		string DatabaseInfo.LastAutoIncrementValueExpression => "LAST_INSERT_ID()";
 		string DatabaseInfo.QueryCacheHint => "SQL_CACHE";
 
-		/// <summary>
-		/// Gets the database.
-		/// </summary>
-		public string Database { get; }
 
-		/// <summary>
-		/// Gets whether the database supports connection pooling.
-		/// </summary>
-		public bool SupportsConnectionPooling { get; }
+		public string ConnectionString { get; }
 
-		DbConnection DatabaseInfo.CreateConnection( string connectionString ) {
+		DbConnection DatabaseInfo.CreateConnection() {
 			var connection = factory.CreateConnection();
-			connection.ConnectionString = connectionString;
+			connection.ConnectionString = ConnectionString;
 			return connection;
 		}
 
