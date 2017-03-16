@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"  ?>
+<systemDevelopmentConfiguration xmlns="http://samrueby.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                   xmlns:rs="http://samrueby.com" xsi:schemaLocation="http://samrueby.com ..\TypedDataLayerConfig.xsd">
+  
+  <!--
+  This file is an example configuration file using the latest schema.
+  Create a Configuration folder and place this file in it.
+  Use this file create or update your config file.
+  -->
+<LibraryNamespaceAndAssemblyName>ExampleNamespace</LibraryNamespaceAndAssemblyName>
+  <databaseConfiguration xsi:type="SqlServerDatabase">
+    <ConnectionString>data source=(local);Trusted_Connection=True;initial catalog=TestingTypedDataLayer</ConnectionString>
+  </databaseConfiguration>
+  <database>
+  </database>
+</systemDevelopmentConfiguration>
