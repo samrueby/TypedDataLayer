@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TypedDataLayer.Tools;
+using System.Text;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 	/// <summary>
@@ -29,30 +29,34 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// </summary>
 		public object Execute( DBConnection cn ) {
 			var cmd = cn.DatabaseInfo.CreateCommand();
-			cmd.CommandText = "INSERT INTO " + table;
+			var sb = new StringBuilder( "INSERT INTO " );
+			sb.Append( table );
 			if( columnModifications.Count == 0 ) {
-				cmd.CommandText += " DEFAULT VALUES";
+				sb.Append( " DEFAULT VALUES" );
 			}
 			else {
-				cmd.CommandText += "( ";
+				sb.Append( "( " );
 				foreach( var columnMod in columnModifications )
-					cmd.CommandText += columnMod.ColumnName + ", ";
-				cmd.CommandText = cmd.CommandText.Substring( 0, cmd.CommandText.Length - 2 );
-				cmd.CommandText += " ) VALUES( ";
+					sb.Append( columnMod.ColumnName );
+				sb.Append( ", " );
+				sb.Remove( sb.Length - 2, 2 );
+				sb.Append( " ) VALUES( " );
 				foreach( var columnMod in columnModifications ) {
 					var parameter = columnMod.GetParameter();
-					cmd.CommandText += parameter.GetNameForCommandText( cn.DatabaseInfo ) + ", ";
+					sb.Append( parameter.GetNameForCommandText( cn.DatabaseInfo ) );
+					sb.Append( ", )" );
 					cmd.Parameters.Add( parameter.GetAdoDotNetParameter( cn.DatabaseInfo ) );
 				}
-				cmd.CommandText = cmd.CommandText.Substring( 0, cmd.CommandText.Length - 2 );
-				cmd.CommandText += " )";
+				sb.Remove( sb.Length - 2, 2 );
+				sb.Append( " )" );
 			}
+			cmd.CommandText = sb.ToString();
 			cn.ExecuteNonQueryCommand( cmd );
 
 			if( !cn.DatabaseInfo.LastAutoIncrementValueExpression.Any() )
 				return null;
 			var autoIncrementRetriever = cn.DatabaseInfo.CreateCommand();
-			autoIncrementRetriever.CommandText = "SELECT {0}".FormatWith( cn.DatabaseInfo.LastAutoIncrementValueExpression );
+			autoIncrementRetriever.CommandText = "SELECT " + cn.DatabaseInfo.LastAutoIncrementValueExpression;
 			var autoIncrementValue = cn.ExecuteScalarCommand( autoIncrementRetriever );
 			return autoIncrementValue != DBNull.Value ? autoIncrementValue : null;
 		}
