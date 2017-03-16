@@ -31,22 +31,27 @@ namespace CommandRunner {
 
 			log.Debug( "Solution path: " + solutionPath );
 			log.Debug( "Command: " + command );
-
 			log.Info( "Running " + command );
 
 			try {
-				var filePath = Directory.EnumerateFiles( solutionPath, FileNames.ConfigurationFileName, SearchOption.AllDirectories ).First();
-				// NOTE SJR: We can find a config file in each project and run it for that project.
-				if( !File.Exists( filePath ) ) {
-					log.Info( "Unable to find configuration file." );
-					log.Info( $"Searched {solutionPath} for {FileNames.ConfigurationFileName} recursively." );
-					return;
+				var configurationFiles = Utility.FindConfigFiles( solutionPath );
+				if( configurationFiles.Any() ) {
+					foreach( var config in configurationFiles ) {
+						log.Debug( "Found config file: " + config );
+						var projectFolder = getFirstFolder( config, solutionPath );
+						log.Debug( "Project folder: " + projectFolder );
+
+						log.Debug( "Deserializing config." );
+						var configuration = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( config );
+
+						log.Debug( "Generating database access logic." );
+						GenerateDatabaseAccessLogic.Run( projectFolder, configuration, log );
+					}
 				}
-				var projectFolder = getFirstFolder( filePath, solutionPath );
-
-				var configuration = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( filePath );
-
-				GenerateDatabaseAccessLogic.Run( projectFolder, configuration, log );
+				else {
+					log.Info( "Unable to find any configuration files." );
+					log.Info( $"Searched {solutionPath} for {FileNames.ConfigurationFileName} recursively." );
+				}
 			}
 			catch( UserCorrectableException e ) {
 				log.Info();
