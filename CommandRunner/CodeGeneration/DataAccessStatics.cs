@@ -61,7 +61,7 @@ namespace CommandRunner.CodeGeneration {
 
 			writer.WriteLine( "internal BasicRow( DbDataReader reader ) {" );
 			foreach( var column in columns.Where( i => !i.IsRowVersion ) )
-				writer.WriteLine( "{0} = {1};".FormatWith( getMemberVariableName( column ), column.GetDataReaderValueExpression( "reader" ) ) );
+				writer.WriteLine( $"{getMemberVariableName( column )} = {column.GetDataReaderValueExpression( "reader" )};" );
 			writer.WriteLine( "}" );
 
 			foreach( var column in columns.Where( i => !i.IsRowVersion ) ) {
@@ -75,7 +75,7 @@ namespace CommandRunner.CodeGeneration {
 			// Row
 
 			CodeGenerationStatics.AddSummaryDocComment( writer, "Holds data for a row of this result." );
-			writer.WriteLine( "public partial class Row: System.IEquatable<Row> {" );
+			writer.WriteLine( "public partial class Row: IEquatable<Row> {" );
 			writer.WriteLine( "private readonly BasicRow __basicRow;" );
 
 			writer.WriteLine( "internal Row( BasicRow basicRow ) {" );

@@ -92,12 +92,15 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "return Cache.Current." + getQueryCacheName( query, postSelectFromClause, false ) + ".GetResultSet( " + getResultSetFirstArg + "() => {" );
 
 			writer.WriteLine( "var cmd = " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo.CreateCommand();" );
-			writer.WriteLine( "cmd.CommandText = selectFromClause + @\"" + postSelectFromClause.Value + "\";" );
+			writer.WriteLine( "cmd.CommandText = selectFromClause" );
+			if( !postSelectFromClause.Value.IsWhitespace() ) {
+				writer.Write( "+ @\"" + postSelectFromClause.Value + "\"" );
+			}
+			writer.Write( ";" );
 			DataAccessStatics.WriteAddParamBlockFromCommandText( writer, "cmd", info, query.selectFromClause + " " + postSelectFromClause.Value, database );
 			writer.WriteLine( "var results = new List<Row>();" );
 			writer.WriteLine(
-				DataAccessStatics.GetConnectionExpression() +
-				".ExecuteReaderCommand( cmd, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
+				DataAccessStatics.GetConnectionExpression() + ".ExecuteReaderCommand( cmd, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
 
 			// Update single-row caches.
 			writer.WriteLine( "foreach( var i in results )" );

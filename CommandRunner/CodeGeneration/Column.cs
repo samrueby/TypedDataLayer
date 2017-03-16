@@ -51,8 +51,7 @@ namespace TypedDataLayer.DataAccess {
 				(int)schemaTableRow[ "ColumnSize" ],
 				(bool)schemaTableRow[ "AllowDBNull" ],
 				databaseInfo );
-			isIdentity = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsIdentity" ] ||
-			             databaseInfo is MySqlInfo && (bool)schemaTableRow[ "IsAutoIncrement" ];
+			isIdentity = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsIdentity" ] || databaseInfo is MySqlInfo && (bool)schemaTableRow[ "IsAutoIncrement" ];
 			isRowVersion = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsRowVersion" ];
 			if( includeKeyInfo )
 				isKey = (bool)schemaTableRow[ "IsKey" ];
@@ -94,31 +93,13 @@ namespace TypedDataLayer.DataAccess {
 		// columns return true for this and provide a useful exception.
 		internal bool UseToUniquelyIdentifyRow => !valueContainer.DataType.IsArray && !isRowVersion;
 
-		internal string GetCommandColumnValueExpression( string valueExpression ) => "new InlineDbCommandColumnValue( \"{0}\", {1} )".FormatWith( valueContainer.Name, valueContainer.GetParameterValueExpression( valueExpression ) );
+		internal string GetCommandColumnValueExpression( string valueExpression )
+			=> "new InlineDbCommandColumnValue( \"{0}\", {1} )".FormatWith( valueContainer.Name, valueContainer.GetParameterValueExpression( valueExpression ) );
 
 		internal string GetDataReaderValueExpression( string readerName, int? ordinalOverride = null ) {
-			var getValueExpression = valueContainer.GetIncomingValueConversionExpression( "{0}.GetValue( {1} )".FormatWith( readerName, ordinalOverride ?? ordinal ) );
-			return valueContainer.AllowsNull
-				       ? "{0}.IsDBNull( {1} ) ? {2} : {3}".FormatWith(
-					       readerName,
-					       ordinalOverride ?? ordinal,
-					       valueContainer.NullValueExpression.Any() ? valueContainer.NullValueExpression : "({0})null".FormatWith( valueContainer.NullableDataTypeName ),
-					       getValueExpression )
-				       : getValueExpression;
+			var getValueExpression = valueContainer.GetIncomingValueConversionExpression( $"{readerName}.GetValue( {ordinalOverride ?? ordinal} )" );
+			var o = valueContainer.NullValueExpression.Any() ? valueContainer.NullValueExpression : $"({valueContainer.NullableDataTypeName})null";
+			return valueContainer.AllowsNull ? $"{readerName}.IsDBNull( {ordinalOverride ?? ordinal} ) ? {o} : {getValueExpression}" : getValueExpression;
 		}
-
-		//internal ModificationField GetModificationField() {
-		//	var type = valueContainer.DataTypeName != valueContainer.DataType.ToString()
-		//		           ? typeof( Nullable<> ).MakeGenericType( valueContainer.DataType )
-		//		           : valueContainer.DataType;
-		//	return new ModificationField(
-		//		type,
-		//		valueContainer.DataTypeName,
-		//		valueContainer.NullableDataTypeName,
-		//		"",
-		//		valueContainer.Name,
-		//		valueContainer.PascalCasedName,
-		//		valueContainer.Size );
-		//}
 	}
 }

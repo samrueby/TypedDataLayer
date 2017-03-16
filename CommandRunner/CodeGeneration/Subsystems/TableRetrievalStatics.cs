@@ -79,12 +79,12 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				if( tableUsesRowVersionedCaching ) {
 					var keyTupleTypeArguments = getPkAndVersionTupleTypeArguments( cn, columns );
 
-					writer.WriteLine( "private static " + "Cache<System.Tuple<" + keyTupleTypeArguments + ">, BasicRow>" + " getRowsByPkAndVersion() {" );
+					writer.WriteLine( $"private static Cache<{TypeNames.Tuple}<{keyTupleTypeArguments}>, BasicRow> getRowsByPkAndVersion() {{" );
+					var first = $"VersionedRowDataCache<{TypeNames.Tuple}<{getPkTupleTypeArguments( columns )}>, {TypeNames.Tuple}<{keyTupleTypeArguments}>, BasicRow>";
+					var second = table.TableNameToPascal( cn ) + "TableRetrievalRowsByPkAndVersion";
+					var third = StringTools.ConcatenateWithDelimiter( ", ", Enumerable.Range( 1, columns.KeyColumns.Count() ).Select( i => "i.Item{0}".FormatWith( i ) ) );
 					writer.WriteLine(
-						"return AppMemoryCache.GetCacheValue<{0}>( \"{1}\", () => new {0}( i => System.Tuple.Create( {2} ) ) ).RowsByPkAndVersion;".FormatWith(
-							"VersionedRowDataCache<System.Tuple<{0}>, System.Tuple<{1}>, BasicRow>".FormatWith( getPkTupleTypeArguments( columns ), keyTupleTypeArguments ),
-							table.TableNameToPascal( cn ) + "TableRetrievalRowsByPkAndVersion",
-							StringTools.ConcatenateWithDelimiter( ", ", Enumerable.Range( 1, columns.KeyColumns.Count() ).Select( i => "i.Item{0}".FormatWith( i ) ).ToArray() ) ) );
+						$@"return AppMemoryCache.GetCacheValue<{first}>( ""{second}"", () => new {first}( i => {TypeNames.Tuple}.Create( {third} ) ) ).RowsByPkAndVersion;" );
 					writer.WriteLine( "}" );
 				}
 
@@ -129,15 +129,16 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( \"" + cacheKey + "\", () => new Cache() ); } }" );
 			writer.WriteLine( "private readonly TableRetrievalQueryCache<Row> queries = new TableRetrievalQueryCache<Row>();" );
 			writer.WriteLine(
-				"private readonly Dictionary<System.Tuple<{0}>, Row> rowsByPk = new Dictionary<System.Tuple<{0}>, Row>();".FormatWith( pkTupleTypeArguments ) );
+				$"private readonly Dictionary<{TypeNames.Tuple}<{pkTupleTypeArguments}>, Row> rowsByPk = new Dictionary<{TypeNames.Tuple}<{pkTupleTypeArguments}>, Row>();" );
 			if( isRevisionHistoryTable )
 				writer.WriteLine(
-					"private readonly Dictionary<System.Tuple<{0}>, Row> latestRevisionRowsByPk = new Dictionary<System.Tuple<{0}>, Row>();".FormatWith( pkTupleTypeArguments ) );
+					$"private readonly Dictionary<{TypeNames.Tuple}<{pkTupleTypeArguments}>, Row> latestRevisionRowsByPk = new Dictionary<{TypeNames.Tuple}<{pkTupleTypeArguments}>, Row>();" );
 			writer.WriteLine( "private Cache() {}" );
-			writer.WriteLine( "internal TableRetrievalQueryCache<Row> Queries { get { return queries; } }" );
-			writer.WriteLine( "internal Dictionary<System.Tuple<" + pkTupleTypeArguments + ">, Row> RowsByPk { get { return rowsByPk; } }" );
+			writer.WriteLine( "internal TableRetrievalQueryCache<Row> Queries => queries; " );
+			writer.WriteLine( $"internal Dictionary<{TypeNames.Tuple}<" + pkTupleTypeArguments + ">, Row> RowsByPk => rowsByPk;" );
 			if( isRevisionHistoryTable )
-				writer.WriteLine( "internal Dictionary<System.Tuple<" + pkTupleTypeArguments + ">, Row> LatestRevisionRowsByPk { get { return latestRevisionRowsByPk; } }" );
+				writer.WriteLine(
+					$"internal Dictionary<{TypeNames.Tuple}<" + pkTupleTypeArguments + ">, Row> LatestRevisionRowsByPk { get { return latestRevisionRowsByPk; } }" );
 			writer.WriteLine( "}" );
 		}
 
@@ -178,7 +179,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "if( isPkQuery ) {" );
 			writer.WriteLine( "Row row;" );
 			writer.WriteLine(
-				"if( cache." + ( excludePreviousRevisions ? "LatestRevision" : "" ) + "RowsByPk.TryGetValue( System.Tuple.Create( " +
+				"if( cache." + ( excludePreviousRevisions ? "LatestRevision" : "" ) + $"RowsByPk.TryGetValue( {TypeNames.Tuple}.Create( " +
 				StringTools.ConcatenateWithDelimiter( ", ", pkConditionVariableNames.Select( i => i + ".Value" ).ToArray() ) + " ), out row ) )" );
 			writer.WriteLine( "return new [] {row};" );
 			writer.WriteLine( "}" );
@@ -215,9 +216,9 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 					                               ? "id"
 					                               : StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.CamelCasedName ).ToArray() );
 				writer.WriteLine( "if( !returnNullIfNoMatch )" );
-				writer.WriteLine( "return {0}[ System.Tuple.Create( {1} ) ];".FormatWith( rowsByPkExpression, pkTupleCreationArguments ) );
+				writer.WriteLine( $"return {rowsByPkExpression}[ {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ) ];" );
 				writer.WriteLine( "Row row;" );
-				writer.WriteLine( "return {0}.TryGetValue( System.Tuple.Create( {1} ), out row ) ? row : null;".FormatWith( rowsByPkExpression, pkTupleCreationArguments ) );
+				writer.WriteLine( $"return {rowsByPkExpression}.TryGetValue( {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ), out row ) ? row : null;" );
 			}
 			else {
 				writer.WriteLine(
@@ -251,16 +252,16 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 								cn.DatabaseInfo is OracleInfo ? "ORA_ROWSCN" : tableColumns.RowVersionColumn.Name ),
 							cacheQueryInDbExpression ) ) );
 				writer.WriteLine( getCommandConditionAddingStatement( "keyCommand" ) );
-				writer.WriteLine( "var keys = new List<System.Tuple<{0}>>();".FormatWith( getPkAndVersionTupleTypeArguments( cn, tableColumns ) ) );
+				writer.WriteLine( $"var keys = new List<{TypeNames.Tuple}<{getPkAndVersionTupleTypeArguments( cn, tableColumns )}>>();" );
+				var concatenateWithDelimiter = StringTools.ConcatenateWithDelimiter(
+					", ",
+					tableColumns.KeyColumns.Select( ( c, i ) => c.GetDataReaderValueExpression( "r", ordinalOverride: i ) ) );
+				var o = cn.DatabaseInfo is OracleInfo
+					        ? "({0})r.GetValue( {1} )".FormatWith( oracleRowVersionDataType, tableColumns.KeyColumns.Count() )
+					        : tableColumns.RowVersionColumn.GetDataReaderValueExpression( "r", ordinalOverride: tableColumns.KeyColumns.Count() );
 				writer.WriteLine(
 					"keyCommand.Execute( " + DataAccessStatics.GetConnectionExpression() + ", r => { while( r.Read() ) keys.Add( " +
-					"System.Tuple.Create( {0}, {1} )".FormatWith(
-						StringTools.ConcatenateWithDelimiter(
-							", ",
-							tableColumns.KeyColumns.Select( ( c, i ) => c.GetDataReaderValueExpression( "r", ordinalOverride: i ) ).ToArray() ),
-						cn.DatabaseInfo is OracleInfo
-							? "({0})r.GetValue( {1} )".FormatWith( oracleRowVersionDataType, tableColumns.KeyColumns.Count() )
-							: tableColumns.RowVersionColumn.GetDataReaderValueExpression( "r", ordinalOverride: tableColumns.KeyColumns.Count() ) ) + " ); } );" );
+					$"{TypeNames.Tuple}.Create( {concatenateWithDelimiter}, {o} )" + " ); } );" );
 
 				writer.WriteLine( "var rowsByPkAndVersion = getRowsByPkAndVersion();" );
 				writer.WriteLine( "var cachedKeyCount = keys.Where( i => rowsByPkAndVersion.ContainsKey( i ) ).Count();" );

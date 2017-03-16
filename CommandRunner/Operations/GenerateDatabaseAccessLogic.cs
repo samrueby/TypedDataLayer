@@ -25,7 +25,7 @@ namespace CommandRunner.Operations {
 
 			var baseNamespace = configuration.LibraryNamespaceAndAssemblyName + ".DataAccess";
 
-			using( var writer = new StreamWriter( File.Open( outputFilePath, FileMode.Truncate ) ) ) {
+			using( var writer = new StreamWriter( outputFilePath ) ) {
 				writeUsingStatements( writer );
 
 				var databaseInfo = DatabaseOps.CreateDatabase( DatabaseFactory.CreateDatabaseInfo( configuration.databaseConfiguration ) );
@@ -45,8 +45,6 @@ namespace CommandRunner.Operations {
 			writer.WriteLine( "using System.Data.Common;" );
 			writer.WriteLine( "using System.Diagnostics;" );
 			writer.WriteLine( "using System.Linq;" );
-			writer.WriteLine( "using System.Reflection;" );
-			writer.WriteLine( "using System.Runtime.InteropServices;" );
 
 			// Include every namespace in our TypedDataLayer assembly.
 			foreach( var @namespace in

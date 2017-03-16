@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -212,7 +213,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "try {" );
 			writer.WriteLine( "return delete.Execute( " + DataAccessStatics.GetConnectionExpression() + " );" );
 			writer.WriteLine( "}" ); // try
-			writer.WriteLine( "catch( System.Exception e ) {" );
+			writer.WriteLine( "catch(" + nameof( Exception ) + " e) {" );
 			writer.WriteLine( "rethrowAsDataModificationExceptionIfNecessary( e );" );
 			writer.WriteLine( "throw;" );
 			writer.WriteLine( "}" ); // catch
@@ -489,7 +490,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer.WriteLine( "} );" ); // cn.ExecuteInTransaction
 			writer.WriteLine( "}" ); // try
 
-			writer.WriteLine( "catch( System.Exception e ) {" );
+			writer.WriteLine( "catch(" + nameof( Exception ) + " " + "e) {" );
 			writer.WriteLine( "rethrowAsDataModificationExceptionIfNecessary( e );" );
 			writer.WriteLine( "throw;" );
 			writer.WriteLine( "}" ); // catch
@@ -513,8 +514,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 			writer.WriteLine( "var revisionHistorySetup = RevisionHistoryStatics.SystemProvider;" );
 
-			writer.WriteLine(
-				$@"var command = new InlineSelect( ""new [] {{{columns.PrimaryKeyAndRevisionIdColumn.Name}""}}, ""FROM {tableName}"", false );" );
+			writer.WriteLine( $@"var command = new InlineSelect( ""new [] {{{columns.PrimaryKeyAndRevisionIdColumn.Name}""}}, ""FROM {tableName}"", false );" );
 			writer.WriteLine( "conditions.ForEach( condition => command.AddCondition( condition.CommandCondition ) );" );
 			writer.WriteLine( "command.AddCondition( getLatestRevisionsCondition() );" );
 			writer.WriteLine( "var latestRevisionIds = new List<int>();" );
@@ -547,8 +547,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				if( column == columns.PrimaryKeyAndRevisionIdColumn ) {
 					writer.WriteLine( "var revisionIdParameter = new DbCommandParameter( \"copiedRevisionId\", new DbParameterValue( copiedRevisionId ) );" );
 					writer.WriteLine(
-						"copyCommand.CommandText += revisionIdParameter.GetNameForCommandText( " + DataAccessStatics.GetConnectionExpression() +
-						".DatabaseInfo ) + \", \";" );
+						"copyCommand.CommandText += revisionIdParameter.GetNameForCommandText( " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo ) + \", \";" );
 					writer.WriteLine(
 						"copyCommand.Parameters.Add( revisionIdParameter.GetAdoDotNetParameter( " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo ) );" );
 				}
@@ -560,8 +559,8 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "copyCommand.CommandText += \" FROM " + tableName + " WHERE \";" );
 			writer.WriteLine(
 				"( new EqualityCondition( new InlineDbCommandColumnValue( \"" + columns.PrimaryKeyAndRevisionIdColumn.Name +
-				"\", new DbParameterValue( latestRevisionId ) ) ) as InlineDbCommandCondition ).AddToCommand( copyCommand, " +
-				DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo, \"latestRevisionId\" );" );
+				"\", new DbParameterValue( latestRevisionId ) ) ) as InlineDbCommandCondition ).AddToCommand( copyCommand, " + DataAccessStatics.GetConnectionExpression() +
+				".DatabaseInfo, \"latestRevisionId\" );" );
 			writer.WriteLine( DataAccessStatics.GetConnectionExpression() + ".ExecuteNonQueryCommand( copyCommand );" );
 
 			writer.WriteLine( "}" ); // foreach
