@@ -53,15 +53,9 @@ namespace TypedDataLayer.DataAccess {
 		/// </summary>
 		/// <param name="databaseConnectionInitializer">A method that is called whenever a database connection is requested. Can be used to initialize the
 		/// connection.</param>
-		public DataAccessState( Action<DBConnection> databaseConnectionInitializer = null ) {
-			//C:\Mecurial\TypedDataLayer\DataLayerTestConsoleApp\bin\Debug\
-			var configPath = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, @"..\..", "Configuration", FileNames.ConfigurationFileName );
-			if( !File.Exists( configPath ) ) {
-				throw new ApplicationException( "Unable to find config file at " + configPath );
-			}
-			database = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( configPath ).databaseConfiguration;
-			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
-		}
+		public DataAccessState( Action<DBConnection> databaseConnectionInitializer = null )
+			// NOTE SJR: Have them set the config to copy-local true
+			: this( Utility.FindConfigFiles( AppDomain.CurrentDomain.BaseDirectory ).First(), databaseConnectionInitializer ) { }
 
 		/// <summary>
 		/// This should only be used for two purposes. First, to create objects that will be returned by the mainDataAccessStateGetter argument of
