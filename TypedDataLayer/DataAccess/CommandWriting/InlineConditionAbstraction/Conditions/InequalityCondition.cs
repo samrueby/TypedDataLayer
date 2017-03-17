@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Text;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.Tools;
 
@@ -10,7 +11,6 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 	public class InequalityCondition: InlineDbCommandCondition {
 		/// <summary>
 		/// The operator to compare with. For equals, use EqualityCondition instead.
-		/// This enum is accessible to developers of systems.
 		/// </summary>
 		public enum Operator {
 			/// <summary>
@@ -46,7 +46,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			this.columnValue = columnValue;
 		}
 
-		void InlineDbCommandCondition.AddToCommand( IDbCommand command, DatabaseInfo databaseInfo, string parameterName ) {
+		void InlineDbCommandCondition.AddToCommand( IDbCommand command, StringBuilder commandText, DatabaseInfo databaseInfo, string parameterName ) {
 			var parameter = columnValue.GetParameter( name: parameterName );
 			var operatorString = "<=";
 			if( op == Operator.GreaterThan )
@@ -56,7 +56,12 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			if( op == Operator.LessThan )
 				operatorString = "<";
 
-			command.CommandText += columnValue.ColumnName + " " + operatorString + " " + parameter.GetNameForCommandText( databaseInfo );
+			commandText.Append( columnValue.ColumnName );
+			commandText.Append( " " );
+			commandText.Append( operatorString );
+			commandText.Append( " " );
+			commandText.Append( parameter.GetNameForCommandText( databaseInfo ) );
+
 			command.Parameters.Add( parameter.GetAdoDotNetParameter( databaseInfo ) );
 		}
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.Tools;
@@ -41,7 +42,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			this.searchTerm = searchTerm;
 		}
 
-		void InlineDbCommandCondition.AddToCommand( IDbCommand command, DatabaseInfo databaseInfo, string parameterName ) {
+		void InlineDbCommandCondition.AddToCommand( IDbCommand command, StringBuilder commandText, DatabaseInfo databaseInfo, string parameterName ) {
 			var tokens = new List<string>();
 			if( behavior == Behavior.SingleTerm )
 				tokens.Add( searchTerm.Trim() );
@@ -51,19 +52,19 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 			// NOTE: We may have to do some casing stuff for Oracle because existing queries seem to do UPPER on everything.
 			var concatCharacter = databaseInfo is SqlServerInfo ? "+" : "||";
 			var parameterNumber = 0;
-			var newCommandText = "";
 			// NOTE: Is it important to tell the user they've been capped? How would we do that?
-			foreach( var token in tokens.Take( 20 /*Google allows many more tokens than this.*/ ) ) {
-				var parameter = new DbCommandParameter(
-					parameterName + "L" + parameterNumber++,
-					new DbParameterValue( token.Truncate( 128 /*This is Google's cap on word length.*/ ) ) );
-				newCommandText = StringTools.ConcatenateWithDelimiter(
-					" AND ",
-					newCommandText,
-					( columnName + " LIKE '%' {0} " + parameter.GetNameForCommandText( databaseInfo ) + " {0} '%'" ).FormatWith( concatCharacter ) );
-				command.Parameters.Add( parameter.GetAdoDotNetParameter( databaseInfo ) );
-			}
-			command.CommandText += newCommandText;
+
+			StringTools.ConcatenateWithDelimiter(
+				commandText,
+				" AND ",
+				tokens.Take( 20 /*Google allows many more tokens than this.*/ ).Select(
+					t => {
+						var parameter = new DbCommandParameter(
+							parameterName + "L" + parameterNumber++,
+							new DbParameterValue( t.Truncate( 128 /*This is Google's cap on word length.*/ ) ) );
+						command.Parameters.Add( parameter.GetAdoDotNetParameter( databaseInfo ) );
+						return $@"{columnName} LIKE '%' {concatCharacter} {parameter.GetNameForCommandText( databaseInfo )} {concatCharacter} '%'";
+					} ) );
 		}
 
 		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandCondition );

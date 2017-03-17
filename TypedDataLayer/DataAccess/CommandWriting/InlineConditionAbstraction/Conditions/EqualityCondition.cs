@@ -1,11 +1,12 @@
 using System;
 using System.Data;
+using System.Text;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions {
 	/// <summary>
-	/// EWL use only.
+	/// Use at your own risk.
 	/// </summary>
 	public class EqualityCondition: InlineDbCommandCondition {
 		private readonly InlineDbCommandColumnValue columnValue;
@@ -14,20 +15,23 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 		// to initialize mod object data.
 
 		/// <summary>
-		/// EWL use only.
+		/// Use at your own risk.
 		/// </summary>
 		public EqualityCondition( InlineDbCommandColumnValue columnValue ) {
 			this.columnValue = columnValue;
 		}
 
-		void InlineDbCommandCondition.AddToCommand( IDbCommand command, DatabaseInfo databaseInfo, string parameterName ) {
+		void InlineDbCommandCondition.AddToCommand( IDbCommand command, StringBuilder commandText, DatabaseInfo databaseInfo, string parameterName ) {
 			var parameter = columnValue.GetParameter( name: parameterName );
 
 			if( parameter.ValueIsNull ) {
-				command.CommandText += columnValue.ColumnName + " IS NULL";
+				commandText.Append( columnValue.ColumnName );
+				commandText.Append( " IS NULL" );
 			}
 			else {
-				command.CommandText += columnValue.ColumnName + " = " + parameter.GetNameForCommandText( databaseInfo );
+				commandText.Append( columnValue.ColumnName );
+				commandText.Append( " = " );
+				commandText.Append( parameter.GetNameForCommandText( databaseInfo ) );
 				command.Parameters.Add( parameter.GetAdoDotNetParameter( databaseInfo ) );
 			}
 		}

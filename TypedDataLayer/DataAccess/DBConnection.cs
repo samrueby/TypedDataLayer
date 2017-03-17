@@ -29,6 +29,7 @@ namespace TypedDataLayer.DataAccess {
 		private DbTransaction innerTx;
 		private List<Func<string>> commitTimeValidationMethods;
 		private int? userTransactionId;
+		private readonly int? timeout;
 
 		// This is true only if SQL returned an error indicating rollback outside a transaction at the database level (error 3903).
 		private bool transactionDead;
@@ -36,10 +37,13 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Creates a database connection based on the specified database information object.
 		/// </summary>
-		internal DBConnection( DatabaseInfo databaseInfo ) {
+		internal DBConnection( DatabaseInfo databaseInfo/*, int? timeout */) {
 			// Allowing connection pooling might cause problems.
 			// Before we disabled pooling, we couldn't repeatedly perform Update Data operations since users with open connections can't be dropped.
 			this.databaseInfo = databaseInfo;
+			
+			// NOTE SJR: We're going to have to generate code to retrieve this value.
+			this.timeout = timeout;
 			cn = new ProfiledDbConnection( databaseInfo.CreateConnection(), MiniProfiler.Current );
 		}
 
@@ -254,9 +258,11 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		private void executeText( string commandText ) {
-			var command = databaseInfo.CreateCommand();
-			command.CommandText = commandText;
-			ExecuteNonQueryCommand( command );
+			var cmd = databaseInfo.CreateCommand();
+			cmd.CommandText = commandText;
+			if( timeout.HasValue )
+				cmd.CommandTimeout = timeout.Value;
+			ExecuteNonQueryCommand( cmd );
 		}
 
 		/// <summary>

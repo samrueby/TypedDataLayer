@@ -9,13 +9,15 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 	/// </summary>
 	public class InlineInsert: InlineDbModificationCommand {
 		private readonly string table;
+		private readonly int? timeout;
 		private readonly List<InlineDbCommandColumnValue> columnModifications = new List<InlineDbCommandColumnValue>();
 
 		/// <summary>
 		/// Create a command to insert a row in the given table.
 		/// </summary>
-		public InlineInsert( string table ) {
+		public InlineInsert( string table, int? timeout ) {
 			this.table = table;
+			this.timeout = timeout;
 		}
 
 		/// <summary>
@@ -51,12 +53,17 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 				sb.Append( " )" );
 			}
 			cmd.CommandText = sb.ToString();
+			if( timeout.HasValue )
+				cmd.CommandTimeout = timeout.Value;
 			cn.ExecuteNonQueryCommand( cmd );
 
 			if( !cn.DatabaseInfo.LastAutoIncrementValueExpression.Any() )
 				return null;
+
 			var autoIncrementRetriever = cn.DatabaseInfo.CreateCommand();
 			autoIncrementRetriever.CommandText = "SELECT " + cn.DatabaseInfo.LastAutoIncrementValueExpression;
+			if( timeout.HasValue )
+				autoIncrementRetriever.CommandTimeout = timeout.Value;
 			var autoIncrementValue = cn.ExecuteScalarCommand( autoIncrementRetriever );
 			return autoIncrementValue != DBNull.Value ? autoIncrementValue : null;
 		}

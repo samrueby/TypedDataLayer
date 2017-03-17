@@ -92,6 +92,7 @@
     <Compile Include="Tools\StringTools.cs" />
     <Compile Include="Tools\StructuralEqualityComparer.cs" />
     <Compile Include="Tools\Utility.cs" />
+    <Compile Include="XML Schemas\Partials\Database.cs" />
     <Compile Include="XML Schemas\TypedDataLayerConfig.cs">
       <DependentUpon>TypedDataLayerConfig.xsd</DependentUpon>
     </Compile>

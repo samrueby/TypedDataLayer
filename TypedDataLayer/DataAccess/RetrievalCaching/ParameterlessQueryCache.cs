@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace TypedDataLayer.DataAccess.RetrievalCaching {
 	/// <summary>
-	/// EWL use only.
+	/// Use at your own risk.
 	/// </summary>
 	public class ParameterlessQueryCache<RowType> {
 		private IEnumerable<RowType> resultSet;

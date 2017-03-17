@@ -5,7 +5,7 @@ using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.RetrievalCaching {
 	/// <summary>
-	/// EWL use only.
+	/// Use at your own risk.
 	/// </summary>
 	public class QueryRetrievalQueryCache<RowType> {
 		private readonly Cache<object[], IEnumerable<RowType>> cache;

@@ -101,7 +101,8 @@ namespace TypedDataLayer.Tools {
 		/// Whitespace is trimmed from the given strings before concatenation.
 		/// Null strings are treated as empty strings.
 		/// </summary>
-		internal static string ConcatenateWithDelimiter( string delimiter, params string[] strings ) => ConcatenateWithDelimiter(delimiter, (IEnumerable<string>)strings);
+		internal static string ConcatenateWithDelimiter( string delimiter, params string[] strings )
+			=> ConcatenateWithDelimiter( delimiter, (IEnumerable<string>)strings );
 
 		/// <summary>
 		/// Creates a single string consisting of each string in the given list, delimited by the given delimiter.  Empty strings
@@ -117,6 +118,37 @@ namespace TypedDataLayer.Tools {
 			foreach( var token in tokens.Skip( 1 ) )
 				result.Append( delimiter + token );
 			return result.ToString();
+		}
+
+		/// <summary>
+		/// Creates a single string consisting of each string in the given list, delimited by the given delimiter.  Empty strings
+		/// are handled intelligently in that you will not get two delimiters in a row, or a delimiter at the end of the string.
+		/// Whitespace is trimmed from the given strings before concatenation.
+		/// Null strings are treated as empty strings.
+		/// Returns the StringBuilder that is passed to this function.
+		/// </summary>
+		internal static StringBuilder ConcatenateWithDelimiter( StringBuilder sb, string delimiter, IEnumerable<string> strings ) {
+			var tokens = strings.Select( i => ( i ?? "" ).Trim() ).Where( i => i.Length > 0 );
+			if( !tokens.Any() )
+				return sb;
+
+			sb.Append( tokens.First() );
+			foreach( var token in tokens.Skip( 1 ) ) {
+				sb.Append( delimiter );
+				sb.Append( token );
+			}
+			return sb;
+		}
+
+		/// <summary>
+		/// Creates a single string consisting of each string in the given list, delimited by the given delimiter.  Empty strings
+		/// are handled intelligently in that you will not get two delimiters in a row, or a delimiter at the end of the string.
+		/// Whitespace is trimmed from the given strings before concatenation.
+		/// Null strings are treated as empty strings.
+		/// Returns the StringBuilder that is passed to this function.
+		/// </summary>
+		internal static StringBuilder ConcatenateWithDelimiter( StringBuilder sb, string delimiter, params string[] strings ) {
+			return ConcatenateWithDelimiter( sb, delimiter, (IEnumerable<string>)strings );
 		}
 
 		/// <summary>

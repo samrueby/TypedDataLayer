@@ -64,14 +64,43 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 				if( isSmallTable )
 					writeGetAllRowsMethod( writer, isRevisionHistoryTable, false );
-				writeGetRowsMethod( cn, writer, database, table, columns, isSmallTable, tableUsesRowVersionedCaching, isRevisionHistoryTable, false );
+				writeGetRowsMethod(
+					cn,
+					writer,
+					database,
+					table,
+					columns,
+					isSmallTable,
+					tableUsesRowVersionedCaching,
+					isRevisionHistoryTable,
+					false,
+					configuration.CommandTimeoutSecondsTyped );
 				if( isRevisionHistoryTable ) {
 					if( isSmallTable )
 						writeGetAllRowsMethod( writer, true, true );
-					writeGetRowsMethod( cn, writer, database, table, columns, isSmallTable, tableUsesRowVersionedCaching, true, true );
+					writeGetRowsMethod(
+						cn,
+						writer,
+						database,
+						table,
+						columns,
+						isSmallTable,
+						tableUsesRowVersionedCaching,
+						true,
+						true,
+						configuration.CommandTimeoutSecondsTyped );
 				}
 
-				writeGetRowMatchingPkMethod( cn, writer, database, table, columns, isSmallTable, tableUsesRowVersionedCaching, isRevisionHistoryTable );
+				writeGetRowMatchingPkMethod(
+					cn,
+					writer,
+					database,
+					table,
+					columns,
+					isSmallTable,
+					tableUsesRowVersionedCaching,
+					isRevisionHistoryTable,
+					configuration.CommandTimeoutSecondsTyped );
 
 				if( isRevisionHistoryTable )
 					DataAccessStatics.WriteGetLatestRevisionsConditionMethod( writer, columns.PrimaryKeyAndRevisionIdColumn.Name );
@@ -152,7 +181,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 		private static void writeGetRowsMethod(
 			DBConnection cn, TextWriter writer, IDatabase database, string table, TableColumns tableColumns, bool isSmallTable, bool tableUsesRowVersionedCaching,
-			bool isRevisionHistoryTable, bool excludePreviousRevisions ) {
+			bool isRevisionHistoryTable, bool excludePreviousRevisions, int? commandTimeoutSeconds ) {
 			// header
 			var methodName = "GetRows" + ( isSmallTable ? "MatchingConditions" : "" ) +
 			                 ( isRevisionHistoryTable && !excludePreviousRevisions ? "IncludingPreviousRevisions" : "" );
@@ -189,7 +218,16 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			if( excludePreviousRevisions )
 				commandConditionsExpression += ".Concat( new [] {getLatestRevisionsCondition()} )";
 			writer.WriteLine( "return cache.Queries.GetResultSet( " + commandConditionsExpression + ", commandConditions => {" );
-			writeResultSetCreatorBody( cn, writer, database, table, tableColumns, tableUsesRowVersionedCaching, excludePreviousRevisions, "!isPkQuery" );
+			writeResultSetCreatorBody(
+				cn,
+				writer,
+				database,
+				table,
+				tableColumns,
+				tableUsesRowVersionedCaching,
+				excludePreviousRevisions,
+				"!isPkQuery",
+				commandTimeoutSeconds );
 			writer.WriteLine( "} );" );
 
 			writer.WriteLine( "}" );
@@ -197,7 +235,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 		private static void writeGetRowMatchingPkMethod(
 			DBConnection cn, TextWriter writer, IDatabase database, string table, TableColumns tableColumns, bool isSmallTable, bool tableUsesRowVersionedCaching,
-			bool isRevisionHistoryTable ) {
+			bool isRevisionHistoryTable, int? commandTimeoutSeconds ) {
 			var pkIsId = tableColumns.KeyColumns.Count() == 1 && tableColumns.KeyColumns.Single().Name.ToLower().EndsWith( "id" );
 			var methodName = pkIsId ? "GetRowMatchingId" : "GetRowMatchingPk";
 			var pkParameters = pkIsId
@@ -208,7 +246,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "var cache = Cache.Current;" );
 				var commandConditionsExpression = isRevisionHistoryTable ? "new [] {getLatestRevisionsCondition()}" : "new InlineDbCommandCondition[ 0 ]";
 				writer.WriteLine( "cache.Queries.GetResultSet( " + commandConditionsExpression + ", commandConditions => {" );
-				writeResultSetCreatorBody( cn, writer, database, table, tableColumns, tableUsesRowVersionedCaching, isRevisionHistoryTable, "true" );
+				writeResultSetCreatorBody( cn, writer, database, table, tableColumns, tableUsesRowVersionedCaching, isRevisionHistoryTable, "true", commandTimeoutSeconds );
 				writer.WriteLine( "} );" );
 
 				var rowsByPkExpression = "cache.{0}RowsByPk".FormatWith( isRevisionHistoryTable ? "LatestRevision" : "" );
@@ -236,7 +274,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 		private static void writeResultSetCreatorBody(
 			DBConnection cn, TextWriter writer, IDatabase database, string table, TableColumns tableColumns, bool tableUsesRowVersionedCaching,
-			bool excludesPreviousRevisions, string cacheQueryInDbExpression ) {
+			bool excludesPreviousRevisions, string cacheQueryInDbExpression, int? commandTimeoutSeconds ) {
 			if( tableUsesRowVersionedCaching ) {
 				writer.WriteLine( "var results = new List<Row>();" );
 				writer.WriteLine( DataAccessStatics.GetConnectionExpression() + ".ExecuteInTransaction( () => {" );
@@ -250,7 +288,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 							"{0}, \"{1}\"".FormatWith(
 								StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => "\"{0}\"".FormatWith( i.Name ) ).ToArray() ),
 								cn.DatabaseInfo is OracleInfo ? "ORA_ROWSCN" : tableColumns.RowVersionColumn.Name ),
-							cacheQueryInDbExpression ) ) );
+							cacheQueryInDbExpression,
+							commandTimeoutSeconds ) ) );
 				writer.WriteLine( getCommandConditionAddingStatement( "keyCommand" ) );
 				writer.WriteLine( $"var keys = new List<{TypeNames.Tuple}<{getPkAndVersionTupleTypeArguments( cn, tableColumns )}>>();" );
 				var concatenateWithDelimiter = StringTools.ConcatenateWithDelimiter(
@@ -270,7 +309,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "if( cachedKeyCount >= keys.Count() - 1 || cachedKeyCount >= keys.Count() * .99 ) {" );
 				writer.WriteLine( "foreach( var key in keys ) {" );
 				writer.WriteLine( "results.Add( new Row( rowsByPkAndVersion.GetOrAdd( key, () => {" );
-				writer.WriteLine( "var singleRowCommand = {0};".FormatWith( getInlineSelectExpression( table, tableColumns, "\"*\"", "false" ) ) );
+				writer.WriteLine( "var singleRowCommand = {0};".FormatWith( getInlineSelectExpression( table, tableColumns, "\"*\"", "false", commandTimeoutSeconds ) ) );
 				foreach( var i in tableColumns.KeyColumns.Select( ( c, i ) => new { column = c, index = i } ) ) {
 					writer.WriteLine(
 						"singleRowCommand.AddCondition( ( ({0})new {1}( key.Item{2} ) ).CommandCondition );".FormatWith(
@@ -294,7 +333,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 							table,
 							tableColumns,
 							cn.DatabaseInfo is OracleInfo ? "\"{0}.*\", \"ORA_ROWSCN\"".FormatWith( table ) : "\"*\"",
-							cacheQueryInDbExpression ) ) );
+							cacheQueryInDbExpression,
+							commandTimeoutSeconds ) ) );
 				writer.WriteLine( getCommandConditionAddingStatement( "command" ) );
 				writer.WriteLine( "command.Execute( " + DataAccessStatics.GetConnectionExpression() + ", r => {" );
 				writer.WriteLine(
@@ -309,7 +349,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "} );" );
 			}
 			else {
-				writer.WriteLine( "var command = {0};".FormatWith( getInlineSelectExpression( table, tableColumns, "\"*\"", cacheQueryInDbExpression ) ) );
+				writer.WriteLine(
+					"var command = {0};".FormatWith( getInlineSelectExpression( table, tableColumns, @"""*""", cacheQueryInDbExpression, commandTimeoutSeconds ) ) );
 				writer.WriteLine( getCommandConditionAddingStatement( "command" ) );
 				writer.WriteLine( "var results = new List<Row>();" );
 				writer.WriteLine(
@@ -320,24 +361,22 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "foreach( var i in results ) {" );
 			var pkTupleCreationArgs = tableColumns.KeyColumns.Select( i => "i." + Utility.GetCSharpIdentifier( i.PascalCasedNameExceptForOracle ) );
 			var pkTuple = "System.Tuple.Create( " + StringTools.ConcatenateWithDelimiter( ", ", pkTupleCreationArgs.ToArray() ) + " )";
-			writer.WriteLine( "cache.RowsByPk[ " + pkTuple + " ] = i;" );
+			writer.WriteLine( $"cache.RowsByPk[ {pkTuple} ] = i;" );
 			if( excludesPreviousRevisions )
-				writer.WriteLine( "cache.LatestRevisionRowsByPk[ " + pkTuple + " ] = i;" );
+				writer.WriteLine( $"cache.LatestRevisionRowsByPk[ {pkTuple} ] = i;" );
 			writer.WriteLine( "}" );
 
 			writer.WriteLine( "return results;" );
 		}
 
-		private static string getInlineSelectExpression( string table, TableColumns tableColumns, string selectExpressions, string cacheQueryInDbExpression ) {
-			return "new InlineSelect( {0}, \"FROM {1}\", {2}, orderByClause: \"ORDER BY {3}\" )".FormatWith(
-				"new[] { " + selectExpressions + " }",
-				table,
-				cacheQueryInDbExpression,
-				StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.Name ).ToArray() ) );
+		private static string getInlineSelectExpression(
+			string table, TableColumns tableColumns, string selectExpressions, string cacheQueryInDbExpression, int? commandTimeoutSeconds ) {
+			var concatenateWithDelimiter = StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.Name ) );
+			return
+				$@"new {TypeNames.InlineSelect}( new[] {{ {selectExpressions} }}, ""FROM {table}"", {cacheQueryInDbExpression}, {commandTimeoutSeconds}, orderByClause: ""ORDER BY {concatenateWithDelimiter}"" )";
 		}
 
-		private static string getCommandConditionAddingStatement( string commandName )
-			=> "foreach( var i in commandConditions ) {0}.AddCondition( i );".FormatWith( commandName );
+		private static string getCommandConditionAddingStatement( string commandName ) => $"foreach( var i in commandConditions ) {commandName}.AddCondition( i );";
 
 		private static string getPkAndVersionTupleTypeArguments( DBConnection cn, TableColumns tableColumns )
 			=>

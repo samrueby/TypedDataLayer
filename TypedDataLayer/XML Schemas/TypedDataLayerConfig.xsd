@@ -39,6 +39,7 @@
   </complexType>
   <complexType name="Database">
     <sequence>
+      <element name="CommandTimeoutSeconds" type="int" minOccurs="0" />
       <element name="WhitelistedTables" minOccurs="0">
         <complexType>
           <sequence>

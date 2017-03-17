@@ -24,9 +24,9 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			foreach( var tableName in tableNames ) {
 				var isRevisionHistoryTable = DataAccessStatics.IsRevisionHistoryTable( tableName, configuration );
 
-				writeClass( cn, tableName, isRevisionHistoryTable, false );
+				writeClass( cn, tableName, isRevisionHistoryTable, false, configuration.CommandTimeoutSeconds );
 				if( isRevisionHistoryTable )
-					writeClass( cn, tableName, true, true );
+					writeClass( cn, tableName, true, true, configuration.CommandTimeoutSecondsTyped );
 			}
 			writer.WriteLine( "}" );
 		}
@@ -55,7 +55,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			}
 		}
 
-		private static void writeClass( DBConnection cn, string tableName, bool isRevisionHistoryTable, bool isRevisionHistoryClass ) {
+		private static void writeClass( DBConnection cn, string tableName, bool isRevisionHistoryTable, bool isRevisionHistoryClass, int? commandTimeoutSeconds ) {
 			columns = new TableColumns( cn, tableName, isRevisionHistoryClass );
 
 			writer.WriteLine( "public partial class " + GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryClass ) + " {" );
@@ -69,7 +69,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writeUpdateRowsMethod( cn, tableName, revisionHistorySuffix, "WithoutAdditionalLogic" );
 			writeDeleteRowsMethod( cn, tableName, revisionHistorySuffix, true );
 			writeDeleteRowsMethod( cn, tableName, revisionHistorySuffix + "WithoutAdditionalLogic", false );
-			writePrivateDeleteRowsMethod( cn, tableName, isRevisionHistoryClass );
+			writePrivateDeleteRowsMethod( cn, tableName, isRevisionHistoryClass, commandTimeoutSeconds );
 			writer.WriteLine(
 				"static partial void preDelete( List<" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "> conditions, ref " +
 				getPostDeleteCallClassName( cn, tableName ) + " postDeleteCall );" );
@@ -99,7 +99,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "partial void preInsert();" );
 			writer.WriteLine( "partial void preUpdate();" );
 			writeExecuteWithoutAdditionalLogicMethod( tableName );
-			writeExecuteInsertOrUpdateMethod( cn, tableName, isRevisionHistoryClass, columns.KeyColumns, columns.IdentityColumn );
+			writeExecuteInsertOrUpdateMethod( cn, tableName, isRevisionHistoryClass, columns.KeyColumns, columns.IdentityColumn, commandTimeoutSeconds );
 			writeAddColumnModificationsMethod( columns.AllNonIdentityColumnsExceptRowVersion );
 			if( isRevisionHistoryClass ) {
 				writeCopyLatestRevisionsMethod( cn, tableName, columns.AllNonIdentityColumnsExceptRowVersion );
@@ -194,7 +194,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static void writePrivateDeleteRowsMethod( DBConnection cn, string tableName, bool isRevisionHistoryClass ) {
+		private static void writePrivateDeleteRowsMethod( DBConnection cn, string tableName, bool isRevisionHistoryClass, int? commandTimeoutSeconds ) {
 			// NOTE: For revision history tables, we should have the delete method automatically clean up the revisions table (but not user transactions) for us when doing direct-with-revision-bypass deletions.
 
 			writer.WriteLine( "private static int deleteRows( List<" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "> conditions ) {" );
@@ -204,7 +204,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			if( isRevisionHistoryClass )
 				writer.WriteLine( "copyLatestRevisions( conditions );" );
 
-			writer.WriteLine( "var delete = new InlineDelete( \"" + tableName + "\" );" );
+			writer.WriteLine( $@"var delete = new {TypeNames.InlineDelete}( ""{tableName}, {commandTimeoutSeconds}"" );" );
 			writer.WriteLine( "conditions.ForEach( condition => delete.AddCondition( condition.CommandCondition ) );" );
 
 			if( isRevisionHistoryClass )
@@ -429,7 +429,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 		}
 
 		private static void writeExecuteInsertOrUpdateMethod(
-			DBConnection cn, string tableName, bool isRevisionHistoryClass, IEnumerable<Column> keyColumns, Column identityColumn ) {
+			DBConnection cn, string tableName, bool isRevisionHistoryClass, IEnumerable<Column> keyColumns, Column identityColumn, int? commandTimeoutSeconds ) {
 			writer.WriteLine( "private void executeInsertOrUpdate() {" );
 			writer.WriteLine( "try {" );
 			if( isRevisionHistoryClass )
@@ -450,7 +450,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 					DataAccessStatics.GetConnectionExpression() + ".GetUserTransactionId() );" );
 			}
 
-			writer.WriteLine( $@"var insert = new InlineInsert( ""{tableName}"" );" );
+			writer.WriteLine( $@"var insert = new {TypeNames.InlineInsert}( ""{tableName}, {commandTimeoutSeconds}"" );" );
 			writer.WriteLine( "addColumnModifications( insert );" );
 			if( identityColumn != null )
 				// One reason the ChangeType call is necessary: SQL Server identities always come back as decimal, and you can't cast a boxed decimal to an int.
@@ -478,7 +478,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "else {" );
 			if( isRevisionHistoryClass )
 				writer.WriteLine( "copyLatestRevisions( conditions );" );
-			writer.WriteLine( "var update = new InlineUpdate( \"" + tableName + "\" );" );
+			writer.WriteLine( $@"var update = new {TypeNames.InlineUpdate}( ""{tableName}"" );" );
 			writer.WriteLine( "addColumnModifications( update );" );
 			writer.WriteLine( "conditions.ForEach( condition => update.AddCondition( condition.CommandCondition ) );" );
 			if( isRevisionHistoryClass )
@@ -514,7 +514,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 			writer.WriteLine( "var revisionHistorySetup = RevisionHistoryStatics.SystemProvider;" );
 
-			writer.WriteLine( $@"var command = new InlineSelect( ""new [] {{{columns.PrimaryKeyAndRevisionIdColumn.Name}""}}, ""FROM {tableName}"", false );" );
+			writer.WriteLine( $@"var command = new {TypeNames.InlineSelect}( ""new [] {{{columns.PrimaryKeyAndRevisionIdColumn.Name}""}}, ""FROM {tableName}"", false );" );
 			writer.WriteLine( "conditions.ForEach( condition => command.AddCondition( condition.CommandCondition ) );" );
 			writer.WriteLine( "command.AddCondition( getLatestRevisionsCondition() );" );
 			writer.WriteLine( "var latestRevisionIds = new List<int>();" );

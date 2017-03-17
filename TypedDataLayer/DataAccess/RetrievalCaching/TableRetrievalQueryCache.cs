@@ -8,7 +8,7 @@ using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.RetrievalCaching {
 	/// <summary>
-	/// EWL use only.
+	/// Use at your own risk.
 	/// </summary>
 	public class TableRetrievalQueryCache<RowType> {
 		private readonly Cache<InlineDbCommandCondition[], IEnumerable<RowType>> cache;

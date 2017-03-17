@@ -17,7 +17,7 @@ namespace TypedDataLayer.DataAccess.StandardModification {
 		}
 
 		/// <summary>
-		/// EWL use only.
+		/// Use at your own risk.
 		/// </summary>
 		public void Execute() => method( rowCollection );
 	}

@@ -21,7 +21,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "public static void " + procedure + "( " + StringTools.ConcatenateWithDelimiter( ", ", parameterDeclarations.ToArray() ) + " ) {" );
 
 				// body
-				writer.WriteLine( "var cmd = new SprocExecution( \"" + procedure + "\" );" );
+				writer.WriteLine( $@"var cmd = new {TypeNames.SprocExecution}( ""{procedure}"" );" );
 				foreach( var parameter in parameters ) {
 					if( parameter.Direction == ParameterDirection.Input ) {
 						writer.WriteLine( "cmd.AddParameter( " + getDbCommandParameterCreationExpression( parameter ) + " );" );
@@ -29,8 +29,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 					else {
 						writer.WriteLine( "var " + parameter.Name + "Parameter = " + getDbCommandParameterCreationExpression( parameter ) + ";" );
 						writer.WriteLine(
-							parameter.Name + "Parameter.GetAdoDotNetParameter( " + DataAccessStatics.GetConnectionExpression() +
-							".DatabaseInfo ).Direction = ParameterDirection." + parameter.Direction + ";" );
+							parameter.Name + "Parameter.GetAdoDotNetParameter( " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo ).Direction = ParameterDirection." +
+							parameter.Direction + ";" );
 						writer.WriteLine( "cmd.AddParameter( " + parameter.Name + "Parameter );" );
 					}
 				}

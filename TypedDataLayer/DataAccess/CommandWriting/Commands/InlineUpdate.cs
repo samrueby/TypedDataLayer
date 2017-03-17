@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
@@ -13,14 +14,16 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		internal static string GetParamNameFromNumber( int number ) => "p" + number;
 
 		private readonly string tableName;
+		private readonly int? timeout;
 		private readonly List<InlineDbCommandColumnValue> columnModifications = new List<InlineDbCommandColumnValue>();
 		private readonly List<InlineDbCommandCondition> conditions = new List<InlineDbCommandCondition>();
 
 		/// <summary>
 		/// Creates a modification that will execute an inline UPDATE statement.
 		/// </summary>
-		public InlineUpdate( string tableName ) {
+		public InlineUpdate( string tableName, int? timeout ) {
 			this.tableName = tableName;
+			this.timeout = timeout;
 		}
 
 		/// <summary>
@@ -29,7 +32,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		public void AddColumnModification( InlineDbCommandColumnValue columnModification ) => columnModifications.Add( columnModification );
 
 		/// <summary>
-		/// EWL use only.
+		/// Use at your own risk.
 		/// </summary>
 		public void AddCondition( InlineDbCommandCondition condition ) => conditions.Add( condition );
 
@@ -42,22 +45,34 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			if( conditions.Count == 0 )
 				throw new ApplicationException( "Executing an inline update command with no parameters in the where clause is not allowed." );
 
-			var command = cn.DatabaseInfo.CreateCommand();
-			command.CommandText = "UPDATE " + tableName + " SET ";
+			var cmd = cn.DatabaseInfo.CreateCommand();
+			var sb = new StringBuilder( "UPDATE " );
+			sb.Append( tableName );
+			sb.Append( " SET " );
 			var paramNumber = 0;
 			foreach( var columnMod in columnModifications ) {
 				var parameter = columnMod.GetParameter( name: GetParamNameFromNumber( paramNumber++ ) );
-				command.CommandText += columnMod.ColumnName + " = " + parameter.GetNameForCommandText( cn.DatabaseInfo ) + ", ";
-				command.Parameters.Add( parameter.GetAdoDotNetParameter( cn.DatabaseInfo ) );
+
+				sb.Append( columnMod.ColumnName );
+				sb.Append( " = " );
+				sb.Append( parameter.GetNameForCommandText( cn.DatabaseInfo ) );
+				sb.Append( ", " );
+				cmd.Parameters.Add( parameter.GetAdoDotNetParameter( cn.DatabaseInfo ) );
 			}
-			command.CommandText = command.CommandText.Remove( command.CommandText.Length - 2 );
-			command.CommandText += " WHERE ";
+			sb.Remove( sb.Length - 2, 2 );
+			sb.Append( " WHERE " );
+
 			foreach( var condition in conditions ) {
-				condition.AddToCommand( command, cn.DatabaseInfo, GetParamNameFromNumber( paramNumber++ ) );
-				command.CommandText += " AND ";
+				condition.AddToCommand( cmd, sb, cn.DatabaseInfo, GetParamNameFromNumber( paramNumber++ ) );
+				sb.Append( " AND " );
 			}
-			command.CommandText = command.CommandText.Remove( command.CommandText.Length - 5 );
-			return cn.ExecuteNonQueryCommand( command );
+			sb.Remove( sb.Length - 5, 5 );
+
+			cmd.CommandText = sb.ToString();
+			if( timeout.HasValue )
+				cmd.CommandTimeout = timeout.Value;
+
+			return cn.ExecuteNonQueryCommand( cmd );
 		}
 	}
 }

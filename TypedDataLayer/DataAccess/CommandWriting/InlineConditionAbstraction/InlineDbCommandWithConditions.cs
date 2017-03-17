@@ -1,10 +1,10 @@
 namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction {
 	/// <summary>
-	/// EWL use only.
+	/// Use at your own risk.
 	/// </summary>
 	public interface InlineDbCommandWithConditions {
 		/// <summary>
-		/// EWL use only.
+		/// Use at your own risk.
 		/// </summary>
 		void AddCondition( InlineDbCommandCondition condition );
 	}

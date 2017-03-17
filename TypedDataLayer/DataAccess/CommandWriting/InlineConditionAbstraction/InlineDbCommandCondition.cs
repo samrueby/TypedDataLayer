@@ -1,15 +1,16 @@
 using System;
 using System.Data;
+using System.Text;
 using TypedDataLayer.DatabaseSpecification;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction {
 	/// <summary>
-	/// EWL use only.
+	/// Use at your own risk.
 	/// </summary>
 	public interface InlineDbCommandCondition: IEquatable<InlineDbCommandCondition>, IComparable, IComparable<InlineDbCommandCondition> {
 		/// <summary>
-		/// EWL use only.
+		/// Use at your own risk.
 		/// </summary>
-		void AddToCommand( IDbCommand command, DatabaseInfo databaseInfo, string parameterName );
+		void AddToCommand( IDbCommand command, StringBuilder commandText, DatabaseInfo databaseInfo, string parameterName );
 	}
 }

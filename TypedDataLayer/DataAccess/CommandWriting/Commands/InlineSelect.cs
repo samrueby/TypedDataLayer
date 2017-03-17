@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Text;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction;
 using TypedDataLayer.Tools;
 
@@ -15,15 +16,17 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		private readonly string orderByClause;
 		private readonly bool cacheQueryInDatabase;
 		private readonly List<InlineDbCommandCondition> conditions = new List<InlineDbCommandCondition>();
+		private readonly int? timeout;
 
 		/// <summary>
 		/// Creates a new inline SELECT command.
 		/// </summary>
-		public InlineSelect( IEnumerable<string> selectExpressions, string fromClause, bool cacheQueryInDatabase, string orderByClause = "" ) {
+		public InlineSelect( IEnumerable<string> selectExpressions, string fromClause, bool cacheQueryInDatabase, int? timeout, string orderByClause = "" ) {
 			this.selectExpressions = selectExpressions;
 			this.fromClause = fromClause;
 			this.orderByClause = orderByClause;
 			this.cacheQueryInDatabase = cacheQueryInDatabase;
+			this.timeout = timeout;
 		}
 
 		/// <summary>
@@ -36,24 +39,39 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// </summary>
 		public void Execute( DBConnection cn, Action<DbDataReader> readerMethod ) {
 			var command = cn.DatabaseInfo.CreateCommand();
-			command.CommandText =
-				"SELECT{0} {1} ".FormatWith(
-					cacheQueryInDatabase && cn.DatabaseInfo.QueryCacheHint.Any() ? " {0}".FormatWith( cn.DatabaseInfo.QueryCacheHint ) : "",
-					StringTools.ConcatenateWithDelimiter( ", ", selectExpressions.ToArray() ) ) + fromClause;
+
+			var sb = new StringBuilder( "SELECT" );
+			if( cacheQueryInDatabase && cn.DatabaseInfo.QueryCacheHint.Any() ) {
+				sb.Append( " " );
+				sb.Append( cn.DatabaseInfo.QueryCacheHint );
+			}
+			sb.Append( " " );
+			sb.Append( StringTools.ConcatenateWithDelimiter( ", ", selectExpressions ) );
+			sb.Append( fromClause );
 
 			if( conditions.Any() ) {
-				command.CommandText += " WHERE ";
+				sb.Append( " WHERE " );
+
 				var first = true;
 				var paramNumber = 0;
 				foreach( var condition in conditions ) {
 					if( !first )
-						command.CommandText += " AND ";
+						sb.Append( " AND " );
 					first = false;
-					condition.AddToCommand( command, cn.DatabaseInfo, InlineUpdate.GetParamNameFromNumber( paramNumber++ ) );
+					condition.AddToCommand( command, sb, cn.DatabaseInfo, InlineUpdate.GetParamNameFromNumber( paramNumber++ ) );
 				}
 			}
 
-			command.CommandText = command.CommandText.ConcatenateWithSpace( orderByClause );
+			if( orderByClause != "" ) {
+				sb.Append( " " );
+				sb.Append( orderByClause );
+			}
+
+			command.CommandText = sb.ToString();
+			if( timeout.HasValue ) {
+				command.CommandTimeout = timeout.Value;
+			}
+
 			cn.ExecuteReaderCommand( command, readerMethod );
 		}
 	}

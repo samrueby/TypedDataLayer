@@ -258,6 +258,10 @@ namespace TypedDataLayer {
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://samrueby.com")]
     public partial class Database {
         
+        private int commandTimeoutSecondsField;
+        
+        private bool commandTimeoutSecondsFieldSpecified;
+        
         private string[] whitelistedTablesField;
         
         private RowConstantTable[] rowConstantTablesField;
@@ -271,6 +275,27 @@ namespace TypedDataLayer {
         private Query[] queriesField;
         
         private CustomModification[] customModificationsField;
+        
+        /// <remarks/>
+        public int CommandTimeoutSeconds {
+            get {
+                return this.commandTimeoutSecondsField;
+            }
+            set {
+                this.commandTimeoutSecondsField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool CommandTimeoutSecondsSpecified {
+            get {
+                return this.commandTimeoutSecondsFieldSpecified;
+            }
+            set {
+                this.commandTimeoutSecondsFieldSpecified = value;
+            }
+        }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlArrayItemAttribute("Table", IsNullable=false)]

@@ -1,24 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 	/// <summary>
-	/// EWL use only.
+	/// Use at your own risk.
 	/// </summary>
 	public class InlineDelete: InlineDbCommandWithConditions {
 		private readonly string tableName;
+		private readonly int? timeout;
 		private readonly List<InlineDbCommandCondition> conditions = new List<InlineDbCommandCondition>();
 
 		/// <summary>
 		/// Creates a modification that will execute an inline DELETE statement.
 		/// </summary>
-		public InlineDelete( string tableName ) {
+		public InlineDelete( string tableName, int? timeout ) {
 			this.tableName = tableName;
+			this.timeout = timeout;
 		}
 
 		/// <summary>
-		/// EWL use only.
+		/// Use at your own risk.
 		/// </summary>
 		public void AddCondition( InlineDbCommandCondition condition ) => conditions.Add( condition );
 
@@ -28,15 +31,25 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		public int Execute( DBConnection cn ) {
 			if( conditions.Count == 0 )
 				throw new ApplicationException( "Executing an inline delete command with no parameters in the where clause is not allowed." );
-			var command = cn.DatabaseInfo.CreateCommand();
-			command.CommandText = "DELETE FROM " + tableName + " WHERE ";
+			var cmd = cn.DatabaseInfo.CreateCommand();
+
+			var sb = new StringBuilder( "DELETE FROM " );
+			sb.Append( tableName );
+			sb.Append( " WHERE " );
+
 			var paramNumber = 0;
 			foreach( var condition in conditions ) {
-				condition.AddToCommand( command, cn.DatabaseInfo, InlineUpdate.GetParamNameFromNumber( paramNumber++ ) );
-				command.CommandText += " AND ";
+				condition.AddToCommand( cmd, sb, cn.DatabaseInfo, InlineUpdate.GetParamNameFromNumber( paramNumber++ ) );
+				sb.Append( " AND " );
 			}
-			command.CommandText = command.CommandText.Remove( command.CommandText.Length - 5 );
-			return cn.ExecuteNonQueryCommand( command );
+			sb.Remove( cmd.CommandText.Length - 5, 5 );
+
+			cmd.CommandText = sb.ToString();
+			if( timeout.HasValue ) {
+				cmd.CommandTimeout = timeout.Value;
+			}
+
+			return cn.ExecuteNonQueryCommand( cmd );
 		}
 	}
 }

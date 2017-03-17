@@ -56,7 +56,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 		void IDatabase.UpdateLineMarker( int value ) {
 			ExecuteDbMethod(
 				cn => {
-					var command = new InlineUpdate( "global_numbers" );
+					var command = new InlineUpdate( "global_numbers", null );
 					command.AddColumnModification( new InlineDbCommandColumnValue( "v", new DbParameterValue( value ) ) );
 					command.AddCondition( new EqualityCondition( new InlineDbCommandColumnValue( "k", new DbParameterValue( "LineMarker" ) ) ) );
 					command.Execute( cn );

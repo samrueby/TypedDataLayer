@@ -23,13 +23,16 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				var names = new List<string>();
 				try {
 					var columns = new TableColumns( cn, table.tableName, false );
-					valueColumn = columns.AllColumnsExceptRowVersion.Single( column => column.Name.ToLower() == table.valueColumn.ToLower() );
-					var nameColumn = columns.AllColumnsExceptRowVersion.Single( column => column.Name.ToLower() == table.nameColumn.ToLower() );
+					valueColumn =
+						columns.AllColumnsExceptRowVersion.Single( column => string.Equals( column.Name, table.valueColumn, StringComparison.CurrentCultureIgnoreCase ) );
+					var nameColumn =
+						columns.AllColumnsExceptRowVersion.Single( column => string.Equals( column.Name, table.nameColumn, StringComparison.CurrentCultureIgnoreCase ) );
 
 					var cmd = new InlineSelect(
 						new[] { valueColumn.Name, nameColumn.Name },
 						"FROM " + table.tableName,
 						false,
+						configuration.CommandTimeoutSecondsTyped,
 						orderByClause: orderIsSpecified ? "ORDER BY " + table.orderByColumn : "" );
 					cmd.Execute(
 						cn,

@@ -1,26 +1,30 @@
 using System;
 using System.Data;
+using System.Text;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions {
 	/// <summary>
-	/// EWL use only.
+	/// Use at your own risk.
 	/// </summary>
 	public class InCondition: InlineDbCommandCondition {
 		private readonly string columnName;
 		private readonly string subQuery;
 
 		/// <summary>
-		/// EWL use only. Nothing in the sub-query is escaped, so do not base any part of it on user input.
+		/// Use at your own risk. Nothing in the sub-query is escaped, so do not base any part of it on user input.
 		/// </summary>
 		public InCondition( string columnName, string subQuery ) {
 			this.columnName = columnName;
 			this.subQuery = subQuery;
 		}
 
-		void InlineDbCommandCondition.AddToCommand( IDbCommand command, DatabaseInfo databaseInfo, string parameterName ) {
-			command.CommandText += columnName + " IN ( " + subQuery + " )";
+		void InlineDbCommandCondition.AddToCommand( IDbCommand command, StringBuilder commandText, DatabaseInfo databaseInfo, string parameterName ) {
+			commandText.Append( columnName );
+			commandText.Append( " IN ( " );
+			commandText.Append( subQuery );
+			commandText.Append( " )" );
 		}
 
 		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandCondition );
