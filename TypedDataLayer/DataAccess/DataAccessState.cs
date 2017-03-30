@@ -18,6 +18,10 @@ namespace TypedDataLayer.DataAccess {
 		private static readonly ThreadLocal<Stack<DataAccessState>> mainStateOverrideStack =
 			new ThreadLocal<Stack<DataAccessState>>( () => new Stack<DataAccessState>() );
 
+		public static void Init( Func<DataAccessState> mainDataAccessStateGetter ) {
+			mainStateGetter = mainDataAccessStateGetter;
+		}
+
 
 		/// <summary>
 		/// Gets the current data-access state. In EWF web applications, this will throw an exception when called from the worker threads used by parallel
