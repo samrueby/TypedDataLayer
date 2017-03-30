@@ -93,7 +93,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 			writer.WriteLine( "var cmd = " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo.CreateCommand();" );
 			writer.WriteLine( "cmd.CommandText = selectFromClause" );
-			if( !postSelectFromClause.Value.IsWhitespace() ) {
+			if( !postSelectFromClause.Value.IsNullOrWhiteSpace() ) {
 				writer.Write( "+ @\"" + postSelectFromClause.Value + "\"" );
 			}
 			writer.Write( ";" );
