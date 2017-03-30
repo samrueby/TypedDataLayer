@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Assembly.cs" />
     <Compile Include="Collections\Cache.cs" />
+    <Compile Include="Collections\OneToOneMap.cs" />
     <Compile Include="Containers\DataValue.cs" />
     <Compile Include="Containers\InitializationAwareValue.cs" />
     <Compile Include="DataAccess\CommandWriting\Commands\InlineDelete.cs" />
@@ -110,7 +111,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Examples\TypedDataLayerConfig.xml" />
+    <Content Include="Examples\Configuration.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="readme.txt" />
     <None Include="XML Schemas\Examples\TypedDataLayerConfig.xml" />
   </ItemGroup>

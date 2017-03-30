@@ -373,7 +373,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			string table, TableColumns tableColumns, string selectExpressions, string cacheQueryInDbExpression, int? commandTimeoutSeconds ) {
 			var concatenateWithDelimiter = StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.Name ) );
 			return
-				$@"new {TypeNames.InlineSelect}( new[] {{ {selectExpressions} }}, ""FROM {table}"", {cacheQueryInDbExpression}, {commandTimeoutSeconds}, orderByClause: ""ORDER BY {concatenateWithDelimiter}"" )";
+				$@"new {TypeNames.InlineSelect}( new[] {{ {selectExpressions} }}, ""FROM {table}"", {cacheQueryInDbExpression}, {commandTimeoutSeconds?.ToString() ?? "null"}, orderByClause: ""ORDER BY {concatenateWithDelimiter}"" )";
 		}
 
 		private static string getCommandConditionAddingStatement( string commandName ) => $"foreach( var i in commandConditions ) {commandName}.AddCondition( i );";

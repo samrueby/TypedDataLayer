@@ -24,7 +24,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			foreach( var tableName in tableNames ) {
 				var isRevisionHistoryTable = DataAccessStatics.IsRevisionHistoryTable( tableName, configuration );
 
-				writeClass( cn, tableName, isRevisionHistoryTable, false, configuration.CommandTimeoutSeconds );
+				writeClass( cn, tableName, isRevisionHistoryTable, false, configuration.CommandTimeoutSecondsTyped );
 				if( isRevisionHistoryTable )
 					writeClass( cn, tableName, true, true, configuration.CommandTimeoutSecondsTyped );
 			}
@@ -37,11 +37,11 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "Modification" );
 			var templateFilePath = Utility.CombinePaths(
 				folderPath,
-				GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryTable ) + DataAccessStatics.CSharpTemplateFileExtension );
+				GetClassFileName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryTable ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
 
 			// If a real file exists, don't create a template.
-			if( File.Exists( Utility.CombinePaths( folderPath, GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryTable ) + ".cs" ) ) )
+			if( File.Exists( Utility.CombinePaths( folderPath, GetClassFileName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryTable ) + ".cs" ) ) )
 				return;
 
 			using( var templateWriter = IoMethods.GetTextWriterForWrite( templateFilePath ) ) {
@@ -102,7 +102,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writeExecuteInsertOrUpdateMethod( cn, tableName, isRevisionHistoryClass, columns.KeyColumns, columns.IdentityColumn, commandTimeoutSeconds );
 			writeAddColumnModificationsMethod( columns.AllNonIdentityColumnsExceptRowVersion );
 			if( isRevisionHistoryClass ) {
-				writeCopyLatestRevisionsMethod( cn, tableName, columns.AllNonIdentityColumnsExceptRowVersion );
+				writeCopyLatestRevisionsMethod( cn, tableName, columns.AllNonIdentityColumnsExceptRowVersion, commandTimeoutSeconds );
 				DataAccessStatics.WriteGetLatestRevisionsConditionMethod( writer, columns.PrimaryKeyAndRevisionIdColumn.Name );
 			}
 			writeRethrowAsEwfExceptionIfNecessary();
@@ -204,7 +204,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			if( isRevisionHistoryClass )
 				writer.WriteLine( "copyLatestRevisions( conditions );" );
 
-			writer.WriteLine( $@"var delete = new {TypeNames.InlineDelete}( ""{tableName}, {commandTimeoutSeconds}"" );" );
+			writer.WriteLine( $@"var delete = new {TypeNames.InlineDelete}( ""{tableName}"", {commandTimeoutSeconds?.ToString() ?? "null"} );" );
 			writer.WriteLine( "conditions.ForEach( condition => delete.AddCondition( condition.CommandCondition ) );" );
 
 			if( isRevisionHistoryClass )
@@ -257,9 +257,9 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			CodeGenerationStatics.AddSummaryDocComment(
 				writer,
 				"Creates a modification object in insert mode, which can be used to do a piecemeal insert of a new row in the " + tableName + " table." );
-			writer.WriteLine(
-				"public static " + GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryClass ) + " CreateForInsert" + methodNameSuffix + "() {" );
-			writer.WriteLine( "return new " + GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryClass ) + " { modType = ModificationType.Insert };" );
+			var className = GetClassName( cn, tableName, isRevisionHistoryTable, isRevisionHistoryClass );
+			writer.WriteLine( $"public static {className} CreateForInsert{methodNameSuffix}() {{" );
+			writer.WriteLine( $"return new {className} {{ modType = ModificationType.Insert }};" );
 			writer.WriteLine( "}" );
 		}
 
@@ -346,6 +346,10 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			=>
 				"" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + " requiredCondition, params " +
 				DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "[] additionalConditions";
+
+		internal static string GetClassFileName( DBConnection cn, string table, bool isRevisionHistoryTable, bool isRevisionHistoryClass )
+			// Substring because GetClassName uses GetCSharpIdentifier which prefixes everything with @.
+			=> GetClassName( cn, table, isRevisionHistoryTable, isRevisionHistoryClass ).Substring( 1 );
 
 		internal static string GetClassName( DBConnection cn, string table, bool isRevisionHistoryTable, bool isRevisionHistoryClass )
 			=>
@@ -450,7 +454,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 					DataAccessStatics.GetConnectionExpression() + ".GetUserTransactionId() );" );
 			}
 
-			writer.WriteLine( $@"var insert = new {TypeNames.InlineInsert}( ""{tableName}, {commandTimeoutSeconds}"" );" );
+			writer.WriteLine( $@"var insert = new {TypeNames.InlineInsert}( ""{tableName}"", {commandTimeoutSeconds?.ToString() ?? "null"} );" );
 			writer.WriteLine( "addColumnModifications( insert );" );
 			if( identityColumn != null )
 				// One reason the ChangeType call is necessary: SQL Server identities always come back as decimal, and you can't cast a boxed decimal to an int.
@@ -478,7 +482,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "else {" );
 			if( isRevisionHistoryClass )
 				writer.WriteLine( "copyLatestRevisions( conditions );" );
-			writer.WriteLine( $@"var update = new {TypeNames.InlineUpdate}( ""{tableName}"" );" );
+			writer.WriteLine( $@"var update = new {TypeNames.InlineUpdate}( ""{tableName}"", {commandTimeoutSeconds?.ToString() ?? "null"} );" );
 			writer.WriteLine( "addColumnModifications( update );" );
 			writer.WriteLine( "conditions.ForEach( condition => update.AddCondition( condition.CommandCondition ) );" );
 			if( isRevisionHistoryClass )
@@ -508,13 +512,16 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static void writeCopyLatestRevisionsMethod( DBConnection cn, string tableName, IEnumerable<Column> nonIdentityColumns ) {
+		private static void writeCopyLatestRevisionsMethod( DBConnection cn, string tableName, IEnumerable<Column> nonIdentityColumns, int? commandTimeoutSeconds ) {
 			writer.WriteLine(
 				"private static void copyLatestRevisions( List<" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "> conditions ) {" );
 
 			writer.WriteLine( "var revisionHistorySetup = RevisionHistoryStatics.SystemProvider;" );
 
-			writer.WriteLine( $@"var command = new {TypeNames.InlineSelect}( ""new [] {{{columns.PrimaryKeyAndRevisionIdColumn.Name}""}}, ""FROM {tableName}"", false );" );
+			writer.WriteLine(
+				$@"var command = new {TypeNames.InlineSelect}( ""new [] {{{columns.PrimaryKeyAndRevisionIdColumn.Name}""}}, ""FROM {tableName}"", false, {commandTimeoutSeconds
+					                                                                                                                                          ?.ToString() ??
+				                                                                                                                                          "null"} );" );
 			writer.WriteLine( "conditions.ForEach( condition => command.AddCondition( condition.CommandCondition ) );" );
 			writer.WriteLine( "command.AddCondition( getLatestRevisionsCondition() );" );
 			writer.WriteLine( "var latestRevisionIds = new List<int>();" );

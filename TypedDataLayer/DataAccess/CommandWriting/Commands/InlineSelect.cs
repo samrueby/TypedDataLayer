@@ -47,6 +47,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			}
 			sb.Append( " " );
 			sb.Append( StringTools.ConcatenateWithDelimiter( ", ", selectExpressions ) );
+			sb.Append( " " );
 			sb.Append( fromClause );
 
 			if( conditions.Any() ) {

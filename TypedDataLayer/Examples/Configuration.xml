@@ -9,12 +9,6 @@
   -->
 <LibraryNamespaceAndAssemblyName>ExampleNamespace</LibraryNamespaceAndAssemblyName>
   <databaseConfiguration xsi:type="SqlServerDatabase">
-    <server>(local)</server>
-    <!--Use this to use SQL authentication. Delete this element to use Windows authentication. -->
-    <SqlServerAuthenticationLogin>
-      <LoginName>SqlUserName</LoginName>
-      <Password>SqlUserpassword</Password>
-    </SqlServerAuthenticationLogin>
-    <database>TestingTypedDataLayer</database>
+    <ConnectionString>data source=(local);Integrated Security=SSPI;initial catalog=YourDatabase</ConnectionString>
   </databaseConfiguration>
 </systemDevelopmentConfiguration>
