@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace TypedDataLayer.Collections {
 	/// <summary>
@@ -6,6 +7,7 @@ namespace TypedDataLayer.Collections {
 	/// All left values must be unique.
 	/// All right values must be unique.
 	/// </summary>
+	[ UsedImplicitly( ImplicitUseTargetFlags.Members ) ] // By generated code
 	public class OneToOneMap<T1, T2> {
 		private readonly Dictionary<T1, T2> leftToRight = new Dictionary<T1, T2>();
 		private readonly Dictionary<T2, T1> rightToLeft = new Dictionary<T2, T1>();
