@@ -1,5 +1,5 @@
 ﻿How to get started with TypedDataLayer
-- You will find an example configuration file in the Examples folder. Rename 'Examples' to 'Configuration' and set the values in this file to use TDL.
+- You will find an example configuration file in the Examples folder. Rename 'Examples' to 'TypedDataLayer' and set the values in this file to use TDL.
 - In your Package Manager Console, you now have the Update-DataLayer command. This command does two things:
 	- If Database Updates.sql file is in the root of your project your project, Update-DataLayer will query the GlobalInts table in your database for 'LineMarker'. 
 	  All of the lines after LineMarker in the Database Updates.sql file will be executed against your database.
