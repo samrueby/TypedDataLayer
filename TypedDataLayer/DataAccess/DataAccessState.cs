@@ -76,18 +76,23 @@ namespace TypedDataLayer.DataAccess {
 			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
 		}
 
-		private DBConnection primaryConnection;
+		private DBConnection dbConnection;
 
 		/// <summary>
-		/// Gets the connection to the primary database.
+		/// Gets the connection to the database.
 		/// </summary>
 		[ UsedImplicitly ]
-		public DBConnection PrimaryDatabaseConnection
+		public DBConnection DatabaseConnection
 			=>
-				initConnection( primaryConnection ?? ( primaryConnection = new DBConnection( database != null ? DatabaseFactory.CreateDatabaseInfo( database ) : null ) ) );
+				initConnection( dbConnection ?? ( dbConnection = new DBConnection( database != null ? DatabaseFactory.CreateDatabaseInfo( database ) : null ) ) );
 
+		/// <summary>
+		/// Returns true if the <see cref="DatabaseConnection"/> has ever been accessed.
+		/// </summary>
+		public bool ConnectionInitialized { get; private set; }
 
 		private DBConnection initConnection( DBConnection connection ) {
+			ConnectionInitialized = true;
 			connectionInitializer( connection );
 			return connection;
 		}

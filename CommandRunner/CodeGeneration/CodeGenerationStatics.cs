@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace CommandRunner.CodeGeneration {
 	internal static class CodeGenerationStatics {
@@ -19,5 +20,16 @@ namespace CommandRunner.CodeGeneration {
 
 		internal static void AddGeneratedCodeUseOnlyComment( TextWriter writer ) => AddSummaryDocComment( writer, "Auto-generated code use only." );
 
+		/// <summary>
+		/// Closes your block for you with a }.
+		/// </summary>
+		/// <param name="writer">The writer being used.</param>
+		/// <param name="begin">The expression beginning the block, which should end with {.</param>
+		/// <param name="a">immediately executed.</param>
+		internal static void CodeBlock( this TextWriter writer, string begin, Action a ) {
+			writer.WriteLine( begin );
+			a();
+			writer.WriteLine( "}" );
+		}
 	}
 }

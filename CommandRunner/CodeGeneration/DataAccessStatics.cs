@@ -137,7 +137,7 @@ namespace CommandRunner.CodeGeneration {
 			foreach( var param in GetNamedParamList( info, commandText ) ) {
 				writer.WriteLine(
 					commandVariable + ".Parameters.Add( new DbCommandParameter( \"" + param + "\", new DbParameterValue( " + param + " ) ).GetAdoDotNetParameter( " +
-					GetConnectionExpression() + ".DatabaseInfo ) );" );
+					DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo ) );" );
 			}
 		}
 
@@ -164,6 +164,7 @@ namespace CommandRunner.CodeGeneration {
 		internal static string TableNameToPascal( this string tableName, DBConnection cn )
 			=> cn.DatabaseInfo is MySqlInfo ? tableName.OracleToEnglish().EnglishToPascal() : tableName;
 
-		internal static string GetConnectionExpression() => "DataAccessState.Current.PrimaryDatabaseConnection";
+		internal static readonly string DataAccessStateCurrentDatabaseConnectionExpression =
+			$"{nameof( DataAccessState )}.{nameof( DataAccessState.Current )}.{nameof( DataAccessState.Current.DatabaseConnection )}";
 	}
 }

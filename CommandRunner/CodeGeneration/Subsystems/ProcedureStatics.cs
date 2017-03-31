@@ -29,18 +29,18 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 					else {
 						writer.WriteLine( "var " + parameter.Name + "Parameter = " + getDbCommandParameterCreationExpression( parameter ) + ";" );
 						writer.WriteLine(
-							parameter.Name + "Parameter.GetAdoDotNetParameter( " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo ).Direction = ParameterDirection." +
+							parameter.Name + "Parameter.GetAdoDotNetParameter( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo ).Direction = ParameterDirection." +
 							parameter.Direction + ";" );
 						writer.WriteLine( "cmd.AddParameter( " + parameter.Name + "Parameter );" );
 					}
 				}
 				foreach( var parameter in parameters.Where( parameter => parameter.Direction != ParameterDirection.Input ) )
 					writer.WriteLine( parameter.DataTypeName + " " + parameter.Name + "Local = default( " + parameter.DataTypeName + " );" );
-				writer.WriteLine( "cmd.ExecuteReader( " + DataAccessStatics.GetConnectionExpression() + ", r => {" );
+				writer.WriteLine( "cmd.ExecuteReader( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ", r => {" );
 				foreach( var parameter in parameters.Where( parameter => parameter.Direction != ParameterDirection.Input ) ) {
 					var adoDotNetParameterValueExpression = "{0}Parameter.GetAdoDotNetParameter( {1}.DatabaseInfo ).Value".FormatWith(
 						parameter.Name,
-						DataAccessStatics.GetConnectionExpression() );
+						DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression );
 
 
 					// We are not sure if this is handling null correctly. When a null comes back via an "out" parameter, we're not sure whether it is represented with

@@ -171,7 +171,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				"<para>WARNING: After calling this method, delete referenced rows in other tables that are no longer needed.</para>" );
 			writer.WriteLine( "public static int DeleteRows" + methodNameSuffix + "( " + getConditionParameterDeclarations( cn, tableName ) + " ) {" );
 			if( executeAdditionalLogic )
-				writer.WriteLine( "return " + DataAccessStatics.GetConnectionExpression() + ".ExecuteInTransaction( () => {" );
+				writer.WriteLine( "return " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteInTransaction( () => {" );
 
 			writer.WriteLine( "var conditions = getConditionList( requiredCondition, additionalConditions );" );
 
@@ -199,7 +199,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 			writer.WriteLine( "private static int deleteRows( List<" + DataAccessStatics.GetTableConditionInterfaceName( cn, database, tableName ) + "> conditions ) {" );
 			if( isRevisionHistoryClass )
-				writer.WriteLine( "return " + DataAccessStatics.GetConnectionExpression() + ".ExecuteInTransaction( () => {" );
+				writer.WriteLine( "return " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteInTransaction( () => {" );
 
 			if( isRevisionHistoryClass )
 				writer.WriteLine( "copyLatestRevisions( conditions );" );
@@ -211,7 +211,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer.WriteLine( "delete.AddCondition( getLatestRevisionsCondition() );" );
 
 			writer.WriteLine( "try {" );
-			writer.WriteLine( "return delete.Execute( " + DataAccessStatics.GetConnectionExpression() + " );" );
+			writer.WriteLine( "return delete.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + " );" );
 			writer.WriteLine( "}" ); // try
 			writer.WriteLine( "catch(" + nameof( Exception ) + " e) {" );
 			writer.WriteLine( "rethrowAsDataModificationExceptionIfNecessary( e );" );
@@ -397,7 +397,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				"Executes this " + tableName +
 				" modification, persisting all changes. Executes any pre-insert, pre-update, post-insert, or post-update logic that may exist in the class." );
 			writer.WriteLine( "public void Execute() {" );
-			writer.WriteLine( DataAccessStatics.GetConnectionExpression() + ".ExecuteInTransaction( delegate {" );
+			writer.WriteLine( DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteInTransaction( () => {" );
 
 			// The mod type may change during execute.
 			writer.WriteLine( "var frozenModType = modType;" );
@@ -437,7 +437,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "private void executeInsertOrUpdate() {" );
 			writer.WriteLine( "try {" );
 			if( isRevisionHistoryClass )
-				writer.WriteLine( DataAccessStatics.GetConnectionExpression() + ".ExecuteInTransaction( delegate {" );
+				writer.WriteLine( DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteInTransaction( () => {" );
 
 
 			// insert
@@ -451,7 +451,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer.WriteLine(
 					"revisionHistorySetup.InsertRevision( System.Convert.ToInt32( " + getColumnFieldName( columns.PrimaryKeyAndRevisionIdColumn ) +
 					".Value ), System.Convert.ToInt32( " + getColumnFieldName( columns.PrimaryKeyAndRevisionIdColumn ) + ".Value ), " +
-					DataAccessStatics.GetConnectionExpression() + ".GetUserTransactionId() );" );
+					DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".GetUserTransactionId() );" );
 			}
 
 			writer.WriteLine( $@"var insert = new {TypeNames.InlineInsert}( ""{tableName}"", {commandTimeoutSeconds?.ToString() ?? "null"} );" );
@@ -462,9 +462,9 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 					"{0}.Value = {1};".FormatWith(
 						getColumnFieldName( identityColumn ),
 						identityColumn.GetIncomingValueConversionExpression(
-							$"{nameof( Utility )}.{nameof( Utility.ChangeType )}( insert.Execute( {DataAccessStatics.GetConnectionExpression()} ), typeof( {identityColumn.UnconvertedDataTypeName} ) )" ) ) );
+							$"{nameof( Utility )}.{nameof( Utility.ChangeType )}( insert.Execute( {DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression} ), typeof( {identityColumn.UnconvertedDataTypeName} ) )" ) ) );
 			else
-				writer.WriteLine( "insert.Execute( " + DataAccessStatics.GetConnectionExpression() + " );" );
+				writer.WriteLine( "insert.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + " );" );
 
 			// Future calls to Execute should perform updates, not inserts. Use the values of key columns as conditions.
 			writer.WriteLine( "modType = ModificationType.Update;" );
@@ -487,7 +487,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "conditions.ForEach( condition => update.AddCondition( condition.CommandCondition ) );" );
 			if( isRevisionHistoryClass )
 				writer.WriteLine( "update.AddCondition( getLatestRevisionsCondition() );" );
-			writer.WriteLine( "update.Execute( " + DataAccessStatics.GetConnectionExpression() + " );" );
+			writer.WriteLine( "update.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + " );" );
 			writer.WriteLine( "}" ); // else
 
 			if( isRevisionHistoryClass )
@@ -526,7 +526,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "command.AddCondition( getLatestRevisionsCondition() );" );
 			writer.WriteLine( "var latestRevisionIds = new List<int>();" );
 			writer.WriteLine(
-				"command.Execute( " + DataAccessStatics.GetConnectionExpression() +
+				"command.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
 				", r => { while( r.Read() ) latestRevisionIds.Add( System.Convert.ToInt32( r[0] ) ); } );" );
 			writer.WriteLine( "foreach( var latestRevisionId in latestRevisionIds ) {" );
 
@@ -535,12 +535,13 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 			// If this condition is true, we've already modified the row in this transaction. If we were to copy it, we'd end up with two revisions of the same entity
 			// in the same user transaction, which we don't support.
-			writer.WriteLine( "if( latestRevision.UserTransactionId == " + DataAccessStatics.GetConnectionExpression() + ".GetUserTransactionId() )" );
+			writer.WriteLine(
+				"if( latestRevision.UserTransactionId == " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".GetUserTransactionId() )" );
 			writer.WriteLine( "continue;" );
 
 			// Update the latest revision with a new user transaction.
 			writer.WriteLine(
-				"revisionHistorySetup.UpdateRevision( latestRevisionId, latestRevisionId, " + DataAccessStatics.GetConnectionExpression() +
+				"revisionHistorySetup.UpdateRevision( latestRevisionId, latestRevisionId, " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
 				".GetUserTransactionId(), latestRevisionId );" );
 
 			// Insert a copy of the latest revision with a new ID. This will represent the revision of the data before it was changed.
@@ -548,15 +549,17 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "revisionHistorySetup.InsertRevision( copiedRevisionId, latestRevisionId, latestRevision.UserTransactionId );" );
 
 			// Insert a copy of the data row and make it correspond to the copy of the latest revision.
-			writer.WriteLine( "var copyCommand = " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo.CreateCommand();" );
+			writer.WriteLine( "var copyCommand = " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo.CreateCommand();" );
 			writer.WriteLine( "copyCommand.CommandText = \"INSERT INTO " + tableName + " SELECT \";" );
 			foreach( var column in nonIdentityColumns ) {
 				if( column == columns.PrimaryKeyAndRevisionIdColumn ) {
 					writer.WriteLine( "var revisionIdParameter = new DbCommandParameter( \"copiedRevisionId\", new DbParameterValue( copiedRevisionId ) );" );
 					writer.WriteLine(
-						"copyCommand.CommandText += revisionIdParameter.GetNameForCommandText( " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo ) + \", \";" );
+						"copyCommand.CommandText += revisionIdParameter.GetNameForCommandText( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
+						".DatabaseInfo ) + \", \";" );
 					writer.WriteLine(
-						"copyCommand.Parameters.Add( revisionIdParameter.GetAdoDotNetParameter( " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo ) );" );
+						"copyCommand.Parameters.Add( revisionIdParameter.GetAdoDotNetParameter( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
+						".DatabaseInfo ) );" );
 				}
 				else {
 					writer.WriteLine( "copyCommand.CommandText += \"" + column.Name + ", \";" );
@@ -566,9 +569,9 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "copyCommand.CommandText += \" FROM " + tableName + " WHERE \";" );
 			writer.WriteLine(
 				"( new EqualityCondition( new InlineDbCommandColumnValue( \"" + columns.PrimaryKeyAndRevisionIdColumn.Name +
-				"\", new DbParameterValue( latestRevisionId ) ) ) as InlineDbCommandCondition ).AddToCommand( copyCommand, " + DataAccessStatics.GetConnectionExpression() +
-				".DatabaseInfo, \"latestRevisionId\" );" );
-			writer.WriteLine( DataAccessStatics.GetConnectionExpression() + ".ExecuteNonQueryCommand( copyCommand );" );
+				"\", new DbParameterValue( latestRevisionId ) ) ) as InlineDbCommandCondition ).AddToCommand( copyCommand, " +
+				DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo, \"latestRevisionId\" );" );
+			writer.WriteLine( DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteNonQueryCommand( copyCommand );" );
 
 			writer.WriteLine( "}" ); // foreach
 			writer.WriteLine( "}" ); // method
