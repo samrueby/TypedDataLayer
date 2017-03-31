@@ -99,6 +99,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="BuildNugetPackage - Publish.ps1" />
     <None Include="BuildNugetPackage - Debug.ps1" />
     <None Include="BuildNugetPackage.ps1" />
     <None Include="packages.config" />

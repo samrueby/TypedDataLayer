@@ -43,7 +43,6 @@ namespace TypedDataLayer.DataAccess {
 			}
 		}
 
-		private DBConnection primaryConnection;
 		private readonly Action<DBConnection> connectionInitializer;
 
 		private bool cacheEnabled;
@@ -76,6 +75,8 @@ namespace TypedDataLayer.DataAccess {
 			database = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( configFilePath ).databaseConfiguration;
 			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
 		}
+
+		private DBConnection primaryConnection;
 
 		/// <summary>
 		/// Gets the connection to the primary database.
