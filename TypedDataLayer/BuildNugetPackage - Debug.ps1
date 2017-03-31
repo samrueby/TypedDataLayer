@@ -1,1 +1,0 @@
-﻿nuget.exe pack TypedDataLayer.csproj -Prop Configuration=Debug

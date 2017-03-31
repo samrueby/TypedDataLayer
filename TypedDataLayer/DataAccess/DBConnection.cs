@@ -37,11 +37,11 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Creates a database connection based on the specified database information object.
 		/// </summary>
-		internal DBConnection( DatabaseInfo databaseInfo/*, int? timeout */) {
+		internal DBConnection( DatabaseInfo databaseInfo /*, int? timeout */ ) {
 			// Allowing connection pooling might cause problems.
 			// Before we disabled pooling, we couldn't repeatedly perform Update Data operations since users with open connections can't be dropped.
 			this.databaseInfo = databaseInfo;
-			
+
 			// NOTE SJR: We're going to have to generate code to retrieve this value.
 			this.timeout = timeout;
 			cn = new ProfiledDbConnection( databaseInfo.CreateConnection(), MiniProfiler.Current );
@@ -90,9 +90,9 @@ namespace TypedDataLayer.DataAccess {
 				// to abort this line ourselves if it hangs.
 				cn.Open();
 
-				if( databaseInfo is OracleInfo ) {
+				if( databaseInfo is OracleInfo  odi ) {
 					// Make Oracle case-insensitive, like SQL Server.
-					if( ( (OracleInfo)databaseInfo ).SupportsLinguisticIndexes ) {
+					if( odi.SupportsLinguisticIndexes ) {
 						executeText( "ALTER SESSION SET NLS_COMP = LINGUISTIC" );
 						executeText( "ALTER SESSION SET NLS_SORT = BINARY_CI" );
 					}
