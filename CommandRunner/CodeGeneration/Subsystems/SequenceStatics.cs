@@ -17,9 +17,9 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 						writer.WriteLine();
 						writer.WriteLine( "public class " + sequenceName + " {" );
 						writer.WriteLine( "public static decimal GetNextValue() {" );
-						writer.WriteLine( "DbCommand cmd = " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo.CreateCommand();" );
+						writer.WriteLine( "DbCommand cmd = " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo.CreateCommand();" );
 						writer.WriteLine( "cmd.CommandText = \"SELECT " + sequenceName + ".NEXTVAL FROM DUAL\";" );
-						writer.WriteLine( "return (decimal)" + DataAccessStatics.GetConnectionExpression() + ".ExecuteScalarCommand( cmd );" );
+						writer.WriteLine( "return (decimal)" + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteScalarCommand( cmd );" );
 						writer.WriteLine( "}" );
 						writer.WriteLine( "}" );
 					}

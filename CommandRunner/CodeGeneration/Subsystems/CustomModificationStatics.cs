@@ -55,14 +55,14 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				"public static void " + mod.name + "( " +
 				DataAccessStatics.GetMethodParamsFromCommandText( info, StringTools.ConcatenateWithDelimiter( "; ", mod.commands ) ) + " ) {" );
 
-			writer.WriteLine( DataAccessStatics.GetConnectionExpression() + ".ExecuteInTransaction( delegate {" );
+			writer.WriteLine( DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteInTransaction( delegate {" );
 			var cnt = 0;
 			foreach( var command in mod.commands ) {
 				var commandVariableName = "cmd" + cnt++;
-				writer.WriteLine( "DbCommand " + commandVariableName + " = " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo.CreateCommand();" );
+				writer.WriteLine( "DbCommand " + commandVariableName + " = " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo.CreateCommand();" );
 				writer.WriteLine( commandVariableName + ".CommandText = @\"" + command + "\";" );
 				DataAccessStatics.WriteAddParamBlockFromCommandText( writer, commandVariableName, info, command, database );
-				writer.WriteLine( DataAccessStatics.GetConnectionExpression() + ".ExecuteNonQueryCommand( " + commandVariableName + " );" );
+				writer.WriteLine( DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteNonQueryCommand( " + commandVariableName + " );" );
 			}
 			writer.WriteLine( "} );" ); // execute in transaction call
 

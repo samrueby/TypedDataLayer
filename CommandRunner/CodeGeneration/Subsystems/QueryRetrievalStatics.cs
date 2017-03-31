@@ -91,7 +91,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			var getResultSetFirstArg = namedParamList.Any() ? "new[] { " + StringTools.ConcatenateWithDelimiter( ", ", namedParamList.ToArray() ) + " }, " : "";
 			writer.WriteLine( "return Cache.Current." + getQueryCacheName( query, postSelectFromClause, false ) + ".GetResultSet( " + getResultSetFirstArg + "() => {" );
 
-			writer.WriteLine( "var cmd = " + DataAccessStatics.GetConnectionExpression() + ".DatabaseInfo.CreateCommand();" );
+			writer.WriteLine( "var cmd = " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo.CreateCommand();" );
 			writer.WriteLine( "cmd.CommandText = selectFromClause" );
 			if( !postSelectFromClause.Value.IsNullOrWhiteSpace() ) {
 				writer.Write( "+ @\"" + postSelectFromClause.Value + "\"" );
@@ -100,7 +100,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			DataAccessStatics.WriteAddParamBlockFromCommandText( writer, "cmd", info, query.selectFromClause + " " + postSelectFromClause.Value, database );
 			writer.WriteLine( "var results = new List<Row>();" );
 			writer.WriteLine(
-				DataAccessStatics.GetConnectionExpression() + ".ExecuteReaderCommand( cmd, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
+				DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteReaderCommand( cmd, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
 
 			// Update single-row caches.
 			writer.WriteLine( "foreach( var i in results )" );

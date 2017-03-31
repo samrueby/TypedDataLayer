@@ -8,4 +8,4 @@
 After you have generated code successfully, [TableName]TableRetrieval classes will be available to you to retrieve data. [TableName]Modification classes are available to modify data.
 
 To open a database connection and query data, use:
-new DataAccessState().ExecuteWithThis( () => DataAccessState.Current.PrimaryDatabaseConnection.ExecuteWithConnectionOpen( method ) )
+new DataAccessState().ExecuteWithThis( () => DataAccessState.Current.DatabaseConnection.ExecuteWithConnectionOpen( method ) )

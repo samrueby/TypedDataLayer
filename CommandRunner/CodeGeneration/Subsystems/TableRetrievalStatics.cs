@@ -277,7 +277,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			bool excludesPreviousRevisions, string cacheQueryInDbExpression, int? commandTimeoutSeconds ) {
 			if( tableUsesRowVersionedCaching ) {
 				writer.WriteLine( "var results = new List<Row>();" );
-				writer.WriteLine( DataAccessStatics.GetConnectionExpression() + ".ExecuteInTransaction( () => {" );
+				writer.WriteLine( DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteInTransaction( () => {" );
 
 				// Query for the cache keys of the results.
 				writer.WriteLine(
@@ -299,52 +299,56 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 					        ? "({0})r.GetValue( {1} )".FormatWith( oracleRowVersionDataType, tableColumns.KeyColumns.Count() )
 					        : tableColumns.RowVersionColumn.GetDataReaderValueExpression( "r", ordinalOverride: tableColumns.KeyColumns.Count() );
 				writer.WriteLine(
-					"keyCommand.Execute( " + DataAccessStatics.GetConnectionExpression() + ", r => { while( r.Read() ) keys.Add( " +
+					"keyCommand.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ", r => { while( r.Read() ) keys.Add( " +
 					$"{TypeNames.Tuple}.Create( {concatenateWithDelimiter}, {o} )" + " ); } );" );
 
 				writer.WriteLine( "var rowsByPkAndVersion = getRowsByPkAndVersion();" );
 				writer.WriteLine( "var cachedKeyCount = keys.Where( i => rowsByPkAndVersion.ContainsKey( i ) ).Count();" );
 
 				// If all but a few results are cached, execute a single-row query for each missing result.
-				writer.WriteLine( "if( cachedKeyCount >= keys.Count() - 1 || cachedKeyCount >= keys.Count() * .99 ) {" );
-				writer.WriteLine( "foreach( var key in keys ) {" );
-				writer.WriteLine( "results.Add( new Row( rowsByPkAndVersion.GetOrAdd( key, () => {" );
-				writer.WriteLine( "var singleRowCommand = {0};".FormatWith( getInlineSelectExpression( table, tableColumns, "\"*\"", "false", commandTimeoutSeconds ) ) );
-				foreach( var i in tableColumns.KeyColumns.Select( ( c, i ) => new { column = c, index = i } ) ) {
-					writer.WriteLine(
-						"singleRowCommand.AddCondition( ( ({0})new {1}( key.Item{2} ) ).CommandCondition );".FormatWith(
-							DataAccessStatics.GetTableConditionInterfaceName( cn, database, table ),
-							DataAccessStatics.GetEqualityConditionClassName( cn, database, table, i.column ),
-							i.index + 1 ) );
-				}
-				writer.WriteLine( "var singleRowResults = new List<BasicRow>();" );
-				writer.WriteLine(
-					"singleRowCommand.Execute( " + DataAccessStatics.GetConnectionExpression() + ", r => { while( r.Read() ) singleRowResults.Add( new BasicRow( r ) ); } );" );
-				writer.WriteLine( "return singleRowResults.Single();" );
-				writer.WriteLine( "} ) ) );" );
-				writer.WriteLine( "}" );
-				writer.WriteLine( "}" );
-
+				writer.CodeBlock(
+					"if( cachedKeyCount >= keys.Count() - 1 || cachedKeyCount >= keys.Count() * .99 ) {",
+					() => {
+						writer.WriteLine( "foreach( var key in keys ) {" );
+						writer.WriteLine( "results.Add( new Row( rowsByPkAndVersion.GetOrAdd( key, () => {" );
+						writer.WriteLine( "var singleRowCommand = {0};".FormatWith( getInlineSelectExpression( table, tableColumns, "\"*\"", "false", commandTimeoutSeconds ) ) );
+						foreach( var i in tableColumns.KeyColumns.Select( ( c, i ) => new { column = c, index = i } ) ) {
+							writer.WriteLine(
+								"singleRowCommand.AddCondition( ( ({0})new {1}( key.Item{2} ) ).CommandCondition );".FormatWith(
+									DataAccessStatics.GetTableConditionInterfaceName( cn, database, table ),
+									DataAccessStatics.GetEqualityConditionClassName( cn, database, table, i.column ),
+									i.index + 1 ) );
+						}
+						writer.WriteLine( "var singleRowResults = new List<BasicRow>();" );
+						writer.WriteLine(
+							"singleRowCommand.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
+							", r => { while( r.Read() ) singleRowResults.Add( new BasicRow( r ) ); } );" );
+						writer.WriteLine( "return singleRowResults.Single();" );
+						writer.WriteLine( "} ) ) );" );
+						writer.WriteLine( "}" );
+					} );
 				// Otherwise, execute the full query.
-				writer.WriteLine( "else {" );
-				writer.WriteLine(
-					"var command = {0};".FormatWith(
-						getInlineSelectExpression(
-							table,
-							tableColumns,
-							cn.DatabaseInfo is OracleInfo ? "\"{0}.*\", \"ORA_ROWSCN\"".FormatWith( table ) : "\"*\"",
-							cacheQueryInDbExpression,
-							commandTimeoutSeconds ) ) );
-				writer.WriteLine( getCommandConditionAddingStatement( "command" ) );
-				writer.WriteLine( "command.Execute( " + DataAccessStatics.GetConnectionExpression() + ", r => {" );
-				writer.WriteLine(
-					"while( r.Read() ) results.Add( new Row( rowsByPkAndVersion.GetOrAdd( System.Tuple.Create( {0}, {1} ), () => new BasicRow( r ) ) ) );".FormatWith(
-						StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.GetDataReaderValueExpression( "r" ) ).ToArray() ),
-						cn.DatabaseInfo is OracleInfo
-							? "({0})r.GetValue( {1} )".FormatWith( oracleRowVersionDataType, tableColumns.AllColumns.Count() )
-							: tableColumns.RowVersionColumn.GetDataReaderValueExpression( "r" ) ) );
-				writer.WriteLine( "} );" );
-				writer.WriteLine( "}" );
+				writer.CodeBlock(
+					"else {",
+					() => {
+						writer.WriteLine(
+							"var command = {0};".FormatWith(
+								getInlineSelectExpression(
+									table,
+									tableColumns,
+									cn.DatabaseInfo is OracleInfo ? "\"{0}.*\", \"ORA_ROWSCN\"".FormatWith( table ) : "\"*\"",
+									cacheQueryInDbExpression,
+									commandTimeoutSeconds ) ) );
+						writer.WriteLine( getCommandConditionAddingStatement( "command" ) );
+						writer.WriteLine( "command.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ", r => {" );
+						writer.WriteLine(
+							"while( r.Read() ) results.Add( new Row( rowsByPkAndVersion.GetOrAdd( System.Tuple.Create( {0}, {1} ), () => new BasicRow( r ) ) ) );".FormatWith(
+								StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.GetDataReaderValueExpression( "r" ) ).ToArray() ),
+								cn.DatabaseInfo is OracleInfo
+									? "({0})r.GetValue( {1} )".FormatWith( oracleRowVersionDataType, tableColumns.AllColumns.Count() )
+									: tableColumns.RowVersionColumn.GetDataReaderValueExpression( "r" ) ) );
+						writer.WriteLine( "} );" );
+					} );
 
 				writer.WriteLine( "} );" );
 			}
@@ -354,7 +358,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( getCommandConditionAddingStatement( "command" ) );
 				writer.WriteLine( "var results = new List<Row>();" );
 				writer.WriteLine(
-					"command.Execute( " + DataAccessStatics.GetConnectionExpression() + ", r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
+					"command.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
+					", r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
 			}
 
 			// Add all results to RowsByPk.
