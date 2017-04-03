@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CommandRunner.DatabaseAbstraction;
+using CommandRunner.Exceptions;
 using TypedDataLayer;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
@@ -25,7 +26,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 					columns = validateQueryAndGetColumns( cn, query );
 				}
 				catch( Exception e ) {
-					throw new ApplicationException( "Column retrieval failed for the " + query.name + " query.", e );
+					throw new UserCorrectableException( $"Column retrieval failed for the {query.name} query.", e );
 				}
 
 				CodeGenerationStatics.AddSummaryDocComment( writer, "This object holds the values returned from a " + query.name + " query." );
@@ -47,9 +48,14 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		private static List<Column> validateQueryAndGetColumns( DBConnection cn, Query query ) {
 			// Attempt to query with every postSelectFromClause to ensure validity.
 			foreach( var postSelectFromClause in query.postSelectFromClauses ) {
-				cn.ExecuteReaderCommandWithSchemaOnlyBehavior(
-					DataAccessStatics.GetCommandFromRawQueryText( cn, query.selectFromClause + " " + postSelectFromClause.Value ),
-					r => { } );
+				try {
+					cn.ExecuteReaderCommandWithSchemaOnlyBehavior(
+						DataAccessStatics.GetCommandFromRawQueryText( cn, query.selectFromClause + " " + postSelectFromClause.Value ),
+						r => { } );
+				}
+				catch( Exception e ) {
+					throw new UserCorrectableException( $"Column retrieval failed for the {postSelectFromClause.name} postSelectFromClause.", e );
+				}
 			}
 
 			return Column.GetColumnsInQueryResults( cn, query.selectFromClause, false );
@@ -100,7 +106,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			DataAccessStatics.WriteAddParamBlockFromCommandText( writer, "cmd", info, query.selectFromClause + " " + postSelectFromClause.Value, database );
 			writer.WriteLine( "var results = new List<Row>();" );
 			writer.WriteLine(
-				DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteReaderCommand( cmd, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
+				DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
+				".ExecuteReaderCommand( cmd, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );" );
 
 			// Update single-row caches.
 			writer.WriteLine( "foreach( var i in results )" );
