@@ -37,20 +37,22 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 				sb.Append( " DEFAULT VALUES" );
 			}
 			else {
-				sb.Append( "( " );
-				foreach( var columnMod in columnModifications )
+				sb.Append( "(" );
+				foreach( var columnMod in columnModifications ) {
 					sb.Append( columnMod.ColumnName );
-				sb.Append( ", " );
+					sb.Append( ", " );
+				}
 				sb.Remove( sb.Length - 2, 2 );
-				sb.Append( " ) VALUES( " );
+
+				sb.Append( ") VALUES (" );
 				foreach( var columnMod in columnModifications ) {
 					var parameter = columnMod.GetParameter();
 					sb.Append( parameter.GetNameForCommandText( cn.DatabaseInfo ) );
-					sb.Append( ", )" );
+					sb.Append( "," );
 					cmd.Parameters.Add( parameter.GetAdoDotNetParameter( cn.DatabaseInfo ) );
 				}
-				sb.Remove( sb.Length - 2, 2 );
-				sb.Append( " )" );
+				sb.Remove( sb.Length - 1, 1 );
+				sb.Append( ")" );
 			}
 			cmd.CommandText = sb.ToString();
 			if( timeout.HasValue )
