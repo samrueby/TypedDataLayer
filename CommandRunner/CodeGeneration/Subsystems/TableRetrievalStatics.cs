@@ -241,35 +241,48 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			var pkParameters = pkIsId
 				                   ? tableColumns.KeyColumns.Single().DataTypeName + " id"
 				                   : StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => $"{i.DataTypeName} {i.CamelCasedName}" ) );
-			writer.WriteLine( $"public static Row {methodName}( {pkParameters}, bool returnNullIfNoMatch = false ) {{" );
-			if( isSmallTable ) {
-				writer.WriteLine( "var cache = Cache.Current;" );
-				var commandConditionsExpression = isRevisionHistoryTable ? "new [] {getLatestRevisionsCondition()}" : "new InlineDbCommandCondition[ 0 ]";
-				writer.WriteLine( "cache.Queries.GetResultSet( " + commandConditionsExpression + ", commandConditions => {" );
-				writeResultSetCreatorBody( cn, writer, database, table, tableColumns, tableUsesRowVersionedCaching, isRevisionHistoryTable, "true", commandTimeoutSeconds );
-				writer.WriteLine( "} );" );
 
-				var rowsByPkExpression = "cache.{0}RowsByPk".FormatWith( isRevisionHistoryTable ? "LatestRevision" : "" );
-				var pkTupleCreationArguments = pkIsId
-					                               ? "id"
-					                               : StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.CamelCasedName ).ToArray() );
-				writer.WriteLine( "if( !returnNullIfNoMatch )" );
-				writer.WriteLine( $"return {rowsByPkExpression}[ {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ) ];" );
-				writer.WriteLine( "Row row;" );
-				writer.WriteLine( $"return {rowsByPkExpression}.TryGetValue( {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ), out row ) ? row : null;" );
-			}
-			else {
-				writer.WriteLine(
-					"var rows = GetRows( {0} );".FormatWith(
-						pkIsId
-							? "new {0}( id )".FormatWith( DataAccessStatics.GetEqualityConditionClassName( cn, database, table, tableColumns.KeyColumns.Single() ) )
-							: StringTools.ConcatenateWithDelimiter(
-								", ",
-								tableColumns.KeyColumns.Select(
-									i => "new {0}( {1} )".FormatWith( DataAccessStatics.GetEqualityConditionClassName( cn, database, table, i ), i.CamelCasedName ) ).ToArray() ) ) );
-				writer.WriteLine( "return returnNullIfNoMatch ? rows.SingleOrDefault() : rows.Single();" );
-			}
-			writer.WriteLine( "}" );
+			const string returnNullIfNoMatch = nameof( returnNullIfNoMatch );
+			const string id = nameof( id );
+
+			writer.CodeBlock(
+				$"public static Row {methodName}( {pkParameters}, bool {returnNullIfNoMatch} = false ) {{",
+				() => {
+					if( isSmallTable ) {
+						writer.WriteLine( "var cache = Cache.Current;" );
+						var commandConditionsExpression = isRevisionHistoryTable ? "new [] {getLatestRevisionsCondition()}" : "new InlineDbCommandCondition[ 0 ]";
+						writer.WriteLine( "cache.Queries.GetResultSet( " + commandConditionsExpression + ", commandConditions => {" );
+						writeResultSetCreatorBody(
+							cn,
+							writer,
+							database,
+							table,
+							tableColumns,
+							tableUsesRowVersionedCaching,
+							isRevisionHistoryTable,
+							"true",
+							commandTimeoutSeconds );
+						writer.WriteLine( "} );" );
+
+						var rowsByPkExpression = $"cache.{( isRevisionHistoryTable ? "LatestRevision" : "" )}RowsByPk";
+						var pkTupleCreationArguments = pkIsId ? id : StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.CamelCasedName ) );
+						writer.WriteLine( $"if( !{returnNullIfNoMatch} )" );
+						writer.WriteLine( $"return {rowsByPkExpression}[ {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ) ];" );
+						writer.WriteLine( "Row row;" );
+						writer.WriteLine( $"return {rowsByPkExpression}.TryGetValue( {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ), out row ) ? row : null;" );
+					}
+					else {
+						var equalityConditionClassName = DataAccessStatics.GetEqualityConditionClassName( cn, database, table, tableColumns.KeyColumns.Single() );
+						var condition = pkIsId
+							                ? $"new {equalityConditionClassName}( {id} )"
+							                : StringTools.ConcatenateWithDelimiter(
+								                ", ",
+								                from keyColumn in tableColumns.KeyColumns
+								                let className = DataAccessStatics.GetEqualityConditionClassName( cn, database, table, keyColumn )
+								                select $"new {className}( {keyColumn.CamelCasedName} )" );
+						writer.WriteLine( $"return GetRows( {condition} ).PrimaryKeySingle({returnNullIfNoMatch});" );
+					}
+				} );
 		}
 
 		private static void writeResultSetCreatorBody(

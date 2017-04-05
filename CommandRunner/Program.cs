@@ -29,6 +29,8 @@ namespace CommandRunner {
 			var solutionPath = Path.GetFullPath( args[ 0 ] );
 			var command = args[ 1 ];
 
+			log.Debug( "Executing directory: " + AppDomain.CurrentDomain.BaseDirectory );
+			log.Debug( "Current working directory: " + Environment.CurrentDirectory );
 			log.Debug( "Solution path: " + solutionPath );
 			log.Debug( "Command: " + command );
 			log.Info( "Running " + command );
@@ -38,14 +40,15 @@ namespace CommandRunner {
 				if( configurationFiles.Any() ) {
 					foreach( var config in configurationFiles ) {
 						log.Debug( "Found config file: " + config );
-						var projectFolder = getFirstFolder( config, solutionPath );
-						log.Debug( "Project folder: " + projectFolder );
+						var projectFolderName = getFirstFolder( config, solutionPath );
+						var projectFolderPath = Path.Combine( solutionPath, projectFolderName );
+						log.Debug( "Project folder path: " + projectFolderPath );
 
 						log.Debug( "Deserializing config." );
 						var configuration = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( config );
 
 						log.Debug( "Generating database access logic." );
-						GenerateDatabaseAccessLogic.Run( projectFolder, configuration, log );
+						GenerateDatabaseAccessLogic.Run( projectFolderPath, configuration, log );
 					}
 				}
 				else {
