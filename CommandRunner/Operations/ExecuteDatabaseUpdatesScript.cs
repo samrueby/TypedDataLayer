@@ -36,7 +36,7 @@ namespace CommandRunner.Operations {
 				return;
 			}
 
-			log.Debug( "Executing script." );
+			log.Info( "Executing Database Updates script." );
 			try {
 				databaseInfo.ExecuteSqlScriptInTransaction(
 					File.ReadLines( dbUpdatesPath ).Skip( lineMarker ).Aggregate( new StringBuilder(), ( sb, line ) => sb.AppendLine( line ), sb => sb.ToString() ) );

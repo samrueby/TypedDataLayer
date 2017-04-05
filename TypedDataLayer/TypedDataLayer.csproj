@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="Assembly.cs" />
     <Compile Include="Collections\Cache.cs" />
+    <Compile Include="Collections\CollectionExtensions.cs" />
     <Compile Include="Collections\OneToOneMap.cs" />
     <Compile Include="Containers\DataValue.cs" />
     <Compile Include="Containers\InitializationAwareValue.cs" />
@@ -89,6 +90,8 @@
     <Compile Include="DatabaseSpecification\Databases\OracleInfo.cs" />
     <Compile Include="DatabaseSpecification\Databases\SqlServerInfo.cs" />
     <Compile Include="Exceptions\DataModificationException.cs" />
+    <Compile Include="Exceptions\InvalidPrimaryKeyException.cs" />
+    <Compile Include="Exceptions\MoreThanOneRowException.cs" />
     <Compile Include="Exceptions\MultiMessageApplicationException.cs" />
     <Compile Include="FileNames.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

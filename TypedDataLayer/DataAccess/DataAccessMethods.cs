@@ -76,7 +76,7 @@ namespace TypedDataLayer.DataAccess {
 
 					if( errorNumber.Value == 4060 )
 						customMessage = "The " + new SqlConnectionStringBuilder( sqlServerInfo.ConnectionString ).InitialCatalog +
-						                " database does not exist. You may need to execute an Update Data operation.";
+						                " database does not exist.";
 
 					// We also handle this error at the command level.
 					if( errorNumber.Value == 233 )
