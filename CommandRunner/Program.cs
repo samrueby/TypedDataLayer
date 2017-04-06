@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using CommandRunner.Configuration;
 using CommandRunner.Exceptions;
 using CommandRunner.Operations;
 using CommandRunner.Tools;
-using TypedDataLayer;
 using TypedDataLayer.Tools;
 
 namespace CommandRunner {
@@ -36,7 +37,7 @@ namespace CommandRunner {
 			log.Info( "Running " + command );
 
 			try {
-				var configurationFiles = Utility.FindConfigFiles( solutionPath );
+				var configurationFiles = findConfigFiles( solutionPath );
 				if( configurationFiles.Any() ) {
 					foreach( var config in configurationFiles ) {
 						log.Debug( "Found config file: " + config );
@@ -76,6 +77,12 @@ namespace CommandRunner {
 			var relative = filePath.Replace( solutionPath, "" );
 			var startIndex = relative.StartsWith( "\\" ) ? 1 : 0;
 			return relative.Substring( startIndex, relative.IndexOf( '\\', startIndex ) - startIndex );
+		}
+
+		private static IEnumerable<string> findConfigFiles( string basePath ) {
+			return
+				Directory.EnumerateFiles( basePath, FileNames.ConfigurationFileName, SearchOption.AllDirectories )
+					.Where( p => p.Contains( @"TypedDataLayer\" + FileNames.ConfigurationFileName ) );
 		}
 	}
 }

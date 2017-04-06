@@ -11,7 +11,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class RowConstantStatics {
 		private const string dictionaryName = "valuesAndNames";
 
-		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, TypedDataLayer.Database configuration ) {
+		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, Database configuration ) {
 			if( configuration.rowConstantTables == null )
 				return;
 

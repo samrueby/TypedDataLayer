@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using CommandRunner.CodeGeneration;
 using CommandRunner.DatabaseAbstraction;
+using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.Tools;
 
-namespace TypedDataLayer.DataAccess {
+namespace CommandRunner.CodeGeneration {
 	internal class Column {
 		/// <summary>
 		/// If includeKeyInfo is true, all key columns for involved tables will be returned even if they were not selected.

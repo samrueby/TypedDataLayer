@@ -157,7 +157,7 @@ namespace CommandRunner.CodeGeneration {
 		internal static void WriteGetLatestRevisionsConditionMethod( TextWriter writer, string revisionIdColumn ) {
 			writer.WriteLine( "private static InlineDbCommandCondition getLatestRevisionsCondition() {" );
 			writer.WriteLine( "var provider = RevisionHistoryStatics.SystemProvider;" );
-			writer.WriteLine( "return new InCondition( \"" + revisionIdColumn + "\", provider.GetLatestRevisionsQuery() );" );
+			writer.WriteLine( $@"return new InCondition( ""{revisionIdColumn}"", provider.GetLatestRevisionsQuery() );" );
 			writer.WriteLine( "}" );
 		}
 

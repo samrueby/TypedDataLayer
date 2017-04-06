@@ -8,7 +8,6 @@ using CommandRunner.CodeGeneration.Subsystems;
 using CommandRunner.CodeGeneration.Subsystems.StandardModification;
 using CommandRunner.DatabaseAbstraction;
 using CommandRunner.Tools;
-using TypedDataLayer;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
@@ -28,7 +27,9 @@ namespace CommandRunner.Operations {
 			using( var writer = new StreamWriter( outputFilePath ) ) {
 				writeUsingStatements( writer );
 
-				var databaseInfo = DatabaseOps.CreateDatabase( DatabaseFactory.CreateDatabaseInfo( configuration.databaseConfiguration ) );
+				var databaseInfo =
+					DatabaseOps.CreateDatabase(
+						DatabaseFactory.CreateDatabaseInfo( configuration.databaseConfiguration.DatabaseType, configuration.databaseConfiguration.ConnectionString ) );
 
 				ExecuteDatabaseUpdatesScript.Run( projectFolder, databaseInfo, log );
 				generateDataAccessCodeForDatabase( log, databaseInfo, projectFolder, writer, baseNamespace, configuration );
@@ -48,7 +49,7 @@ namespace CommandRunner.Operations {
 
 			// Include every namespace in our TypedDataLayer assembly.
 			foreach( var @namespace in
-				Assembly.GetAssembly( typeof( SystemDevelopmentConfiguration ) ).GetTypes().Select( t => t.Namespace ).Distinct().Where( n => !string.IsNullOrEmpty( n ) ) ) {
+				Assembly.GetAssembly( typeof( DBConnection ) ).GetTypes().Select( t => t.Namespace ).Distinct().Where( n => !string.IsNullOrEmpty( n ) ) ) {
 				writer.WriteLine( "using " + @namespace + ";" );
 			}
 		}

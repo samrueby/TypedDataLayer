@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Configuration;
 using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
@@ -9,26 +9,90 @@ using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.Tools;
 
 namespace TypedDataLayer.DataAccess {
+	/// <summary>
+	/// Controls how database connections are retrieved and initialized within a call stack.
+	/// </summary>
 	public class DataAccessState {
+		private readonly Action<DBConnection> connectionInitializer;
+		private readonly SupportedDatabaseType databaseType;
+		private readonly string connectionString;
+
+
 		/// <summary>
-		/// NOTE SJR: Figure out what the point of this is and maybe allow it to not be null sometimes.
+		/// This should only be used for two purposes. First, to create objects that will be returned by the mainDataAccessStateGetter argument of
+		/// GlobalInitializationOps.InitStatics. Second, to create supplemental data-access state objects, which you may need if you want to communicate with a
+		/// database outside of the main transaction.
 		/// </summary>
+		/// <param name="databaseConnectionInitializer">A method that is called every time a database connection is requested. Can be used to initialize the
+		/// connection.</param>
+		public DataAccessState( Action<DBConnection> databaseConnectionInitializer = null )
+			: this( readSupportedDatabaseTypeFromConfiguration(), readConnectionStringFromConfiguration(), databaseConnectionInitializer ) { }
+
+		private static string readConnectionStringFromConfiguration() {
+			var str = ConfigurationManager.AppSettings[ ConfigurationConstants.ConnectionString ];
+			if( str.IsNullOrWhiteSpace() ) {
+				throw new ApplicationException(
+					$"Attempted to read {ConfigurationConstants.ConnectionString} from <appSettings>. " +
+					$"You must either set this value, or user the {nameof( DataAccessState )} constructor that allows you to provide this value manually." );
+			}
+			return str;
+		}
+
+		private static SupportedDatabaseType readSupportedDatabaseTypeFromConfiguration() {
+			var type = ConfigurationManager.AppSettings[ ConfigurationConstants.SupportedDatabaseType ];
+			if( type.IsNullOrWhiteSpace() ) {
+				throw new ApplicationException(
+					$"Attempted to read {ConfigurationConstants.SupportedDatabaseType} from <appSettings>. " +
+					$"You must either set this value, or user the {nameof( DataAccessState )} constructor that allows you to provide this value manually." );
+			}
+
+			SupportedDatabaseType toEnum;
+			try {
+				toEnum = type.ToEnum<SupportedDatabaseType>();
+			}
+			catch( ArgumentException ae ) {
+				throw new ApplicationException(
+					$"Attempted to read {ConfigurationConstants.SupportedDatabaseType} from <appSettings>. " +
+					$"{type} is an invalid value. Valid values are: {string.Join( ",", StringTools.GetEnumValues<SupportedDatabaseType>() )}." +
+					$"You must either set this value, or user the {nameof( DataAccessState )} constructor that allows you to provide this value manually.",
+					ae );
+			}
+			return toEnum;
+		}
+
+
+		/// <summary>
+		/// This should only be used for two purposes. First, to create objects that will be returned by the mainDataAccessStateGetter argument of
+		/// GlobalInitializationOps.InitStatics. Second, to create supplemental data-access state objects, which you may need if you want to communicate with a
+		/// database outside of the main transaction.
+		/// </summary>
+		/// <param name="connectionString"></param>
+		/// <param name="databaseConnectionInitializer">A method that is called whenever a database connection is requested. Can be used to initialize the
+		/// connection.</param>
+		/// <param name="databaseType"></param>
+		public DataAccessState( SupportedDatabaseType databaseType, string connectionString, Action<DBConnection> databaseConnectionInitializer = null ) {
+			this.databaseType = databaseType;
+			this.connectionString = connectionString;
+			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
+		}
+
+
 		private static Func<DataAccessState> mainStateGetter;
 
 		private static readonly ThreadLocal<Stack<DataAccessState>> mainStateOverrideStack =
 			new ThreadLocal<Stack<DataAccessState>>( () => new Stack<DataAccessState>() );
 
+		/// <summary>
+		/// Initializes the <paramref name="mainDataAccessStateGetter"/>.
+		/// </summary>
+		[ UsedImplicitly ]
 		public static void Init( Func<DataAccessState> mainDataAccessStateGetter ) {
 			mainStateGetter = mainDataAccessStateGetter;
 		}
 
 
 		/// <summary>
-		/// Gets the current data-access state. In EWF web applications, this will throw an exception when called from the worker threads used by parallel
-		/// programming tools such as PLINQ and the Task Parallel Library unless it is executed with a supplemental data-access state object. While it would be
-		/// possible for us to create a main data-access state getter implementation that returns a separate object for each thread, we've decided against this
-		/// because we feel it's a leaky abstraction. Each thread would silently have its own database transactions and its own cache, and not being aware of this
-		/// fact could be extremely frustrating. Therefore we require developers to use supplemental data-access state objects on worker threads.
+		/// Gets the current data-access state.
 		/// </summary>
 		public static DataAccessState Current {
 			get {
@@ -43,39 +107,8 @@ namespace TypedDataLayer.DataAccess {
 			}
 		}
 
-		private readonly Action<DBConnection> connectionInitializer;
-
 		private bool cacheEnabled;
 		private Cache<string, object> cache;
-		private readonly DatabaseConfiguration database;
-
-		/// <summary>
-		/// This should only be used for two purposes. First, to create objects that will be returned by the mainDataAccessStateGetter argument of
-		/// GlobalInitializationOps.InitStatics. Second, to create supplemental data-access state objects, which you may need if you want to communicate with a
-		/// database outside of the main transaction.
-		/// </summary>
-		/// <param name="databaseConnectionInitializer">A method that is called whenever a database connection is requested. Can be used to initialize the
-		/// connection.</param>
-		public DataAccessState( Action<DBConnection> databaseConnectionInitializer = null )
-			// NOTE SJR: Have them set the config to copy-local true
-			: this( Utility.FindConfigFiles( AppDomain.CurrentDomain.BaseDirectory ).First(), databaseConnectionInitializer ) { }
-
-		/// <summary>
-		/// This should only be used for two purposes. First, to create objects that will be returned by the mainDataAccessStateGetter argument of
-		/// GlobalInitializationOps.InitStatics. Second, to create supplemental data-access state objects, which you may need if you want to communicate with a
-		/// database outside of the main transaction.
-		/// </summary>
-		/// <param name="configFilePath">Absolute path to config file.</param>
-		/// /// <param name="databaseConnectionInitializer">A method that is called whenever a database connection is requested. Can be used to initialize the
-		/// connection.</param>
-		public DataAccessState( string configFilePath, Action<DBConnection> databaseConnectionInitializer = null ) {
-			if( !File.Exists( configFilePath ) ) {
-				throw new ApplicationException( "Unable to find config file at " + configFilePath );
-			}
-			database = Utility.XmlDeserialize<SystemDevelopmentConfiguration>( configFilePath ).databaseConfiguration;
-			connectionInitializer = databaseConnectionInitializer ?? ( connection => { } );
-		}
-
 		private DBConnection dbConnection;
 
 		/// <summary>
@@ -83,12 +116,12 @@ namespace TypedDataLayer.DataAccess {
 		/// </summary>
 		[ UsedImplicitly ]
 		public DBConnection DatabaseConnection
-			=>
-				initConnection( dbConnection ?? ( dbConnection = new DBConnection( database != null ? DatabaseFactory.CreateDatabaseInfo( database ) : null ) ) );
+			=> initConnection( dbConnection ?? ( dbConnection = new DBConnection( DatabaseFactory.CreateDatabaseInfo( databaseType, connectionString ) ) ) );
 
 		/// <summary>
 		/// Returns true if the <see cref="DatabaseConnection"/> has ever been accessed.
 		/// </summary>
+		[ UsedImplicitly ]
 		public bool ConnectionInitialized { get; private set; }
 
 		private DBConnection initConnection( DBConnection connection ) {
@@ -110,6 +143,32 @@ namespace TypedDataLayer.DataAccess {
 		/// Executes the specified method with the cache enabled. Supports nested calls by leaving the cache alone if it is already enabled. Do not modify data in
 		/// the method; this could cause a stale cache and lead to data integrity problems!
 		/// </summary>
+		public T ExecuteWithCache<T>( Func<T> method ) {
+			if( cacheEnabled )
+				return method();
+			ResetCache();
+			try {
+				return method();
+			}
+			finally {
+				DisableCache();
+			}
+		}
+
+		public void ResetCache() {
+			cacheEnabled = true;
+			cache = new Cache<string, object>( false );
+		}
+
+		internal void DisableCache() {
+			cacheEnabled = false;
+		}
+
+		/// <summary>
+		/// Executes the specified method with the cache enabled. Supports nested calls by leaving the cache alone if it is already enabled. Do not modify data in
+		/// the method; this could cause a stale cache and lead to data integrity problems!
+		/// </summary>
+		[ UsedImplicitly ]
 		public void ExecuteWithCache( Action method ) {
 			if( cacheEnabled ) {
 				method();
@@ -126,33 +185,9 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		/// <summary>
-		/// Executes the specified method with the cache enabled. Supports nested calls by leaving the cache alone if it is already enabled. Do not modify data in
-		/// the method; this could cause a stale cache and lead to data integrity problems!
-		/// </summary>
-		public T ExecuteWithCache<T>( Func<T> method ) {
-			if( cacheEnabled )
-				return method();
-			ResetCache();
-			try {
-				return method();
-			}
-			finally {
-				DisableCache();
-			}
-		}
-
-		internal void ResetCache() {
-			cacheEnabled = true;
-			cache = new Cache<string, object>( false );
-		}
-
-		internal void DisableCache() {
-			cacheEnabled = false;
-		}
-
-		/// <summary>
 		/// Executes the specified method with this as the current data-access state. Only necessary when using supplemental data-access state objects.
 		/// </summary>
+		[ UsedImplicitly ]
 		public void ExecuteWithThis( Action method ) {
 			mainStateOverrideStack.Value.Push( this );
 			try {
@@ -166,6 +201,7 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Executes the specified method with this as the current data-access state. Only necessary when using supplemental data-access state objects.
 		/// </summary>
+		[ UsedImplicitly ]
 		public T ExecuteWithThis<T>( Func<T> method ) {
 			mainStateOverrideStack.Value.Push( this );
 			try {

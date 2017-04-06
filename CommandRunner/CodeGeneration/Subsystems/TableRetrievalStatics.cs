@@ -16,7 +16,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		public static string GetNamespaceDeclaration( string baseNamespace, IDatabase database ) => "namespace " + baseNamespace + ".TableRetrieval {";
 
 		internal static void Generate(
-			DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<string> tableNames, TypedDataLayer.Database configuration ) {
+			DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<string> tableNames, Database configuration ) {
 			writer.WriteLine( namespaceDeclaration );
 			foreach( var table in tableNames ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "Contains logic that retrieves rows from the " + table + " table." );

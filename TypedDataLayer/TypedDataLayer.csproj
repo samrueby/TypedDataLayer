@@ -40,6 +40,7 @@
       <HintPath>..\packages\MiniProfiler.3.2.0.157\lib\net40\MiniProfiler.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -70,6 +71,7 @@
     <Compile Include="DataAccess\CommandWriting\InlineConditionAbstraction\InlineDbCommandWithConditions.cs" />
     <Compile Include="DataAccess\CommandWriting\InlineDbCommandColumnValue.cs" />
     <Compile Include="DataAccess\CommandWriting\InlineDbModificationCommand.cs" />
+    <Compile Include="DataAccess\ConfigurationConstants.cs" />
     <Compile Include="DataAccess\DataAccessMethods.cs" />
     <Compile Include="DataAccess\DataAccessState.cs" />
     <Compile Include="DataAccess\DbCommandTimeoutException.cs" />
@@ -89,28 +91,20 @@
     <Compile Include="DatabaseSpecification\Databases\MySqlInfo.cs" />
     <Compile Include="DatabaseSpecification\Databases\OracleInfo.cs" />
     <Compile Include="DatabaseSpecification\Databases\SqlServerInfo.cs" />
+    <Compile Include="DatabaseSpecification\SupportedDatabaseType.cs" />
     <Compile Include="Exceptions\DataModificationException.cs" />
     <Compile Include="Exceptions\InvalidPrimaryKeyException.cs" />
     <Compile Include="Exceptions\MoreThanOneRowException.cs" />
     <Compile Include="Exceptions\MultiMessageApplicationException.cs" />
-    <Compile Include="FileNames.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools\StringTools.cs" />
     <Compile Include="Tools\StructuralEqualityComparer.cs" />
     <Compile Include="Tools\Utility.cs" />
-    <Compile Include="XML Schemas\Partials\Database.cs" />
-    <Compile Include="XML Schemas\TypedDataLayerConfig.cs">
-      <DependentUpon>TypedDataLayerConfig.xsd</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="BuildNugetPackage.ps1" />
     <None Include="packages.config" />
     <None Include="TypedDataLayer.nuspec">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="XML Schemas\GenerateSchemaClasses.bat" />
-    <None Include="XML Schemas\TypedDataLayerConfig.xsd">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
@@ -119,7 +113,6 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="readme.txt" />
-    <None Include="XML Schemas\Examples\TypedDataLayerConfig.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

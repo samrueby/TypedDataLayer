@@ -12,11 +12,7 @@ namespace TypedDataLayer.Tools {
 	/// A collection of miscellaneous statics that may be useful.
 	/// </summary>
 	public static class Utility {
-		public static IEnumerable<string> FindConfigFiles( string basePath ) {
-			return
-				Directory.EnumerateFiles( basePath, FileNames.ConfigurationFileName, SearchOption.AllDirectories )
-					.Where( p => p.Contains( @"TypedDataLayer\" + FileNames.ConfigurationFileName ) );
-		}
+		
 
 		/// <summary>
 		/// Recursively calls Path.Combine on the given paths.  Path is returned without a trailing slash.

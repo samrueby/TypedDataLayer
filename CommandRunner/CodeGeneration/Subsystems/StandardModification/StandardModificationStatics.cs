@@ -16,7 +16,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 		public static string GetNamespaceDeclaration( string baseNamespace, IDatabase database ) => "namespace " + baseNamespace + ".Modification {";
 
 		internal static void Generate(
-			DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<string> tableNames, TypedDataLayer.Database configuration ) {
+			DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<string> tableNames, Database configuration ) {
 			StandardModificationStatics.writer = writer;
 			StandardModificationStatics.database = database;
 

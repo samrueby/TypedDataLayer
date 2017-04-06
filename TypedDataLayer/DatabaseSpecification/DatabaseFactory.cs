@@ -2,24 +2,24 @@
 using TypedDataLayer.DatabaseSpecification.Databases;
 
 namespace TypedDataLayer.DatabaseSpecification {
+	/// <summary>
+	/// Factory methods for <see cref="DatabaseInfo"/>s.
+	/// </summary>
 	public static class DatabaseFactory {
-		public static DatabaseInfo CreateDatabaseInfo( DatabaseConfiguration database ) {
-			if( database is SqlServerDatabase ) {
-				var sqlServerDatabase = (SqlServerDatabase)database;
-				return new SqlServerInfo( sqlServerDatabase.ConnectionString );
+		/// <summary>
+		/// Creates a <see cref="DatabaseInfo"/>
+		/// </summary>
+		public static DatabaseInfo CreateDatabaseInfo( SupportedDatabaseType type, string connectionString ) {
+			switch( type ) {
+				case SupportedDatabaseType.SqlServer:
+					return new SqlServerInfo( connectionString );
+				case SupportedDatabaseType.MySql:
+					return new MySqlInfo( connectionString );
+				case SupportedDatabaseType.Oracle:
+					return new OracleInfo( connectionString, false );
 			}
 
-			if( database is MySqlDatabase ) {
-				var mySqlDatabase = database as MySqlDatabase;
-				return new MySqlInfo( mySqlDatabase.ConnectionString );
-			}
-
-			if( database is OracleDatabase ) {
-				var oracleDatabase = database as OracleDatabase;
-				return new OracleInfo( oracleDatabase.ConnectionString, oracleDatabase.SupportsLinguisticIndexes );
-			}
-
-			throw new ApplicationException( $"{nameof( database )} is a {database.GetType().Name} which is an unknown database type." );
+			throw new ApplicationException( $"{type} is an unknown database type." );
 		}
 	}
 }

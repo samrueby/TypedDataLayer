@@ -80,6 +80,7 @@
     <Compile Include="CodeGeneration\TableConstantStatics.cs" />
     <Compile Include="CodeGeneration\TypeNames.cs" />
     <Compile Include="CodeGeneration\DataAccessStatics.cs" />
+    <Compile Include="Configuration\FileNames.cs" />
     <Compile Include="DatabaseAbstraction\IDatabase.cs" />
     <Compile Include="DatabaseAbstraction\DatabaseOps.cs" />
     <Compile Include="DatabaseAbstraction\Databases\MySql.cs" />
@@ -96,6 +97,14 @@
     <Compile Include="Tools\Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XML Schemas\Partials\Database.cs" />
+    <Compile Include="XML Schemas\Partials\DatabaseConfiguration.cs" />
+    <Compile Include="XML Schemas\Partials\MySqlDatabase.cs" />
+    <Compile Include="XML Schemas\Partials\OracleDatabase.cs" />
+    <Compile Include="XML Schemas\Partials\SqlServerDatabase.cs" />
+    <Compile Include="XML Schemas\TypedDataLayerConfig.cs">
+      <DependentUpon>TypedDataLayerConfig.xsd</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -103,15 +112,20 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Package Manager Console\Commands.ps1" />
+    <None Include="XML Schemas\GenerateSchemaClasses.bat" />
+    <None Include="XML Schemas\TypedDataLayerConfig.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Configuration\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\TypedDataLayer\TypedDataLayer.csproj">
       <Project>{bdc551c5-8840-4c4f-88da-093aeb6ef611}</Project>
       <Name>TypedDataLayer</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="XML Schemas\Examples\TypedDataLayerConfig.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

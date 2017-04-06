@@ -234,6 +234,8 @@ namespace TypedDataLayer.Tools {
 		/// C# doesn't allow constraining the value to an Enum
 		public static T ToEnum<T>( this string s ) => (T)Enum.Parse( typeof( T ), s );
 
+		public static IEnumerable<T> GetEnumValues<T>() => Enum.GetValues( typeof( T ) ).Cast<T>();
+
 		public static string FormatWith( this string s, params object[] os ) => string.Format( s, os );
 	}
 }
