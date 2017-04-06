@@ -19,8 +19,8 @@
     <file src="bin\$configuration$\$id$.pdb" target="lib\net451\" />
     <file src="bin\$configuration$\$id$.xml" target="lib\net451\" />
     <file src="..\CommandRunner\bin\$configuration$\*" target="CommandRunner\" />
-    <file src="XML Schemas\TypedDataLayerConfig.xsd" target="content\TypedDataLayerConfig.xsd" />
-    <file src="XML Schemas\Examples\TypedDataLayerConfig.xml" target="Examples\TypedDataLayerConfig.xml" />
+    <file src="..\CommandRunner\XML Schemas\TypedDataLayerConfig.xsd" target="content\TypedDataLayerConfig.xsd" />
+    <file src="..\CommandRunner\XML Schemas\Examples\TypedDataLayerConfig.xml" target="Examples\TypedDataLayerConfig.xml" />
     <file src="..\CommandRunner\Package Manager Console\Commands.ps1" target="tools\Init.ps1" />
   </files>
 </package>

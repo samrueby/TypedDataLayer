@@ -38,8 +38,6 @@ namespace TypedDataLayer.DataAccess {
 		/// Creates a database connection based on the specified database information object.
 		/// </summary>
 		internal DBConnection( DatabaseInfo databaseInfo /*, int? timeout */ ) {
-			// Allowing connection pooling might cause problems.
-			// Before we disabled pooling, we couldn't repeatedly perform Update Data operations since users with open connections can't be dropped.
 			this.databaseInfo = databaseInfo;
 
 			// NOTE SJR: We're going to have to generate code to retrieve this value.

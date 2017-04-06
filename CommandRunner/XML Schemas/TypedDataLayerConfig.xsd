@@ -8,22 +8,20 @@
       <element name="database" type="rs:Database" minOccurs="0" />
     </sequence>
   </complexType>
-  <complexType name="DatabaseConfiguration" abstract="true" />
+  <complexType name="DatabaseConfiguration" abstract="true" >
+    <sequence>
+      <element name="ConnectionString" type="string" minOccurs="0" />
+    </sequence>
+  </complexType>
   <complexType name="SqlServerDatabase">
     <complexContent>
       <extension base="rs:DatabaseConfiguration">
-        <sequence>
-            <element name="ConnectionString" type="string" minOccurs="0" />
-        </sequence>
       </extension>
     </complexContent>
   </complexType>
   <complexType name="MySqlDatabase">
     <complexContent>
       <extension base="rs:DatabaseConfiguration">
-        <sequence>
-          <element name="ConnectionString" type="string" minOccurs="0" />
-        </sequence>
       </extension>
     </complexContent>
   </complexType>
@@ -31,7 +29,6 @@
     <complexContent>
       <extension base="rs:DatabaseConfiguration">
         <sequence>
-          <element name="ConnectionString" type="string" minOccurs="0" />
           <element name="SupportsLinguisticIndexes" type="boolean" minOccurs="0" />
         </sequence>
       </extension>
