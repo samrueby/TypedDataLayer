@@ -13,7 +13,7 @@ using TypedDataLayer.Tools;
 
 namespace CommandRunner {
 	class Program {
-		static void Main( string[] args ) {
+		static int Main( string[] args ) {
 			var log = new Logger( args.Any( a => a == "-debug" ) );
 
 			if( args.Any( a => a == "-attachDebugger" ) ) {
@@ -62,15 +62,18 @@ namespace CommandRunner {
 				log.Info( "An error occurred." );
 				log.Info( e.ToFriendlyStack() );
 				log.Debug( e.ToString() );
+				return 1;
 			}
 			catch( Exception e ) {
 				log.Info();
 				log.Info( "An error occurred." );
 				log.Info( e.ToString() );
+				return 2;
 			}
 			finally {
 				log.Info( "Done." );
 			}
+			return 0;
 		}
 
 		private static string getFirstFolder( string filePath, string solutionPath ) {
