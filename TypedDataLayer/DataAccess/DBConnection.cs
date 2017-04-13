@@ -256,7 +256,7 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		private void executeText( string commandText ) {
-			var cmd = databaseInfo.CreateCommand();
+			var cmd = databaseInfo.CreateCommand( null );
 			cmd.CommandText = commandText;
 			if( timeout.HasValue )
 				cmd.CommandTimeout = timeout.Value;

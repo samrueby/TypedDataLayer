@@ -32,7 +32,7 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 
 		DbConnection DatabaseInfo.CreateConnection() => new SqlConnection( ConnectionString );
 
-		DbCommand DatabaseInfo.CreateCommand() => new ProfiledDbCommand( new SqlCommand { CommandTimeout = 15 }, null, MiniProfiler.Current );
+		DbCommand DatabaseInfo.CreateCommand( int? commandTimeout ) => new ProfiledDbCommand( new SqlCommand { CommandTimeout = commandTimeout ?? 30 }, null, MiniProfiler.Current );
 
 		DbParameter DatabaseInfo.CreateParameter() => new SqlParameter();
 

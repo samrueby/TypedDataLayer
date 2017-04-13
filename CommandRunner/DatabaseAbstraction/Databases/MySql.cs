@@ -48,7 +48,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			var value = 0;
 			ExecuteDbMethod(
 				cn => {
-					var command = cn.DatabaseInfo.CreateCommand();
+					var command = cn.DatabaseInfo.CreateCommand( null );
 					command.CommandText = "SELECT ParameterValue FROM global_ints WHERE ParameterName = 'LineMarker'";
 					value = (int)cn.ExecuteScalarCommand( command );
 				} );
@@ -69,7 +69,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			var tables = new List<string>();
 			ExecuteDbMethod(
 				delegate( DBConnection cn ) {
-					var command = cn.DatabaseInfo.CreateCommand();
+					var command = cn.DatabaseInfo.CreateCommand( null );
 					command.CommandText = $"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{connectionString.Database}' AND TABLE_TYPE = 'BASE TABLE'";
 					cn.ExecuteReaderCommand(
 						command,

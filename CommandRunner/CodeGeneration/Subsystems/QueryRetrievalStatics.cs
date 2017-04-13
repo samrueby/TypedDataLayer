@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using CommandRunner.DatabaseAbstraction;
 using CommandRunner.Exceptions;
-using TypedDataLayer;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.Tools;
@@ -38,7 +37,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 				writer.WriteLine( "private const string selectFromClause = @\"" + query.selectFromClause + " \";" );
 				foreach( var postSelectFromClause in query.postSelectFromClauses )
-					writeQueryMethod( writer, database, query, postSelectFromClause );
+					writeQueryMethod( writer, database, query, postSelectFromClause, configuration.CommandTimeoutSecondsTyped );
 				writer.WriteLine( "static partial void updateSingleRowCaches( Row row );" );
 				writer.WriteLine( "}" ); // class
 			}
@@ -83,7 +82,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 					? "QueryRetrievalQueryCache<Row>"
 					: "ParameterlessQueryCache<Row>";
 
-		private static void writeQueryMethod( TextWriter writer, IDatabase database, Query query, QueryPostSelectFromClause postSelectFromClause ) {
+		private static void writeQueryMethod(
+			TextWriter writer, IDatabase database, Query query, QueryPostSelectFromClause postSelectFromClause, int? commandTimeout ) {
 			// header
 			CodeGenerationStatics.AddSummaryDocComment( writer, "Queries the database and returns the full results collection immediately." );
 			writer.WriteLine(
@@ -97,10 +97,10 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			var getResultSetFirstArg = namedParamList.Any() ? "new[] { " + StringTools.ConcatenateWithDelimiter( ", ", namedParamList.ToArray() ) + " }, " : "";
 			writer.WriteLine( "return Cache.Current." + getQueryCacheName( query, postSelectFromClause, false ) + ".GetResultSet( " + getResultSetFirstArg + "() => {" );
 
-			writer.WriteLine( "var cmd = " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo.CreateCommand();" );
+			writer.WriteLine( $"var cmd = {DataAccessStatics.DataAccessStateCurrentDatabaseConnectionCreateCommandExpression( commandTimeout )};" );
 			writer.WriteLine( "cmd.CommandText = selectFromClause" );
 			if( !postSelectFromClause.Value.IsNullOrWhiteSpace() ) {
-				writer.Write( "+ @\"" + postSelectFromClause.Value + "\"" );
+				writer.Write( $@"+ @""{postSelectFromClause.Value}""" );
 			}
 			writer.Write( ";" );
 			DataAccessStatics.WriteAddParamBlockFromCommandText( writer, "cmd", info, query.selectFromClause + " " + postSelectFromClause.Value, database );

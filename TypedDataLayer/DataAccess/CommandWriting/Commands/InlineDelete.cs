@@ -31,7 +31,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		public int Execute( DBConnection cn ) {
 			if( conditions.Count == 0 )
 				throw new ApplicationException( "Executing an inline delete command with no parameters in the where clause is not allowed." );
-			var cmd = cn.DatabaseInfo.CreateCommand();
+			var cmd = cn.DatabaseInfo.CreateCommand( timeout );
 
 			var sb = new StringBuilder( "DELETE FROM " );
 			sb.Append( tableName );
@@ -45,9 +45,6 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			sb.Remove( cmd.CommandText.Length - 5, 5 );
 
 			cmd.CommandText = sb.ToString();
-			if( timeout.HasValue ) {
-				cmd.CommandTimeout = timeout.Value;
-			}
 
 			return cn.ExecuteNonQueryCommand( cmd );
 		}

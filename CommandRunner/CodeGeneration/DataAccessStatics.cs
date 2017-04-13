@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using CommandRunner.CodeGeneration.Subsystems;
 using CommandRunner.Collections;
 using CommandRunner.DatabaseAbstraction;
-using TypedDataLayer;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DataAccess.CommandWriting;
 using TypedDataLayer.DatabaseSpecification;
@@ -44,7 +43,8 @@ namespace CommandRunner.CodeGeneration {
 			// This replacement is necessary because SQL Server chooses to care about the type of the parameter passed to TOP.
 			commandText = Regex.Replace( commandText, @"TOP\( *@\w+ *\)", "TOP 0", RegexOptions.IgnoreCase );
 
-			var cmd = cn.DatabaseInfo.CreateCommand();
+			// NOTE SJR: Maybe should be using the configured command timeout, but is probably fine.
+			var cmd = cn.DatabaseInfo.CreateCommand( null );
 			cmd.CommandText = commandText;
 			foreach( var param in GetNamedParamList( cn.DatabaseInfo, cmd.CommandText ) )
 				cmd.Parameters.Add( new DbCommandParameter( param, new DbParameterValue( "0" ) ).GetAdoDotNetParameter( cn.DatabaseInfo ) );
@@ -166,5 +166,9 @@ namespace CommandRunner.CodeGeneration {
 
 		internal static readonly string DataAccessStateCurrentDatabaseConnectionExpression =
 			$"{nameof( DataAccessState )}.{nameof( DataAccessState.Current )}.{nameof( DataAccessState.Current.DatabaseConnection )}";
+
+		internal static string DataAccessStateCurrentDatabaseConnectionCreateCommandExpression( int? commandTimeout )
+			=>
+				$"{nameof( DataAccessState )}.{nameof( DataAccessState.Current )}.{nameof( DataAccessState.Current.DatabaseConnection )}.{nameof( DatabaseInfo )}.{nameof( DatabaseInfo.CreateCommand )}({commandTimeout?.ToString() ?? "null"})";
 	}
 }

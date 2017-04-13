@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using CommandRunner.DatabaseAbstraction;
-using TypedDataLayer;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
@@ -22,7 +21,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "public static class CustomModifications {" );
 
 				foreach( var mod in configuration.customModifications )
-					writeMethod( writer, database, mod );
+					writeMethod( writer, database, mod, configuration.CommandTimeoutSecondsTyped );
 
 				writer.WriteLine( "}" ); // class
 				writer.WriteLine( "}" ); // namespace
@@ -50,19 +49,19 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			}
 		}
 
-		private static void writeMethod( TextWriter writer, IDatabase database, CustomModification mod ) {
+		private static void writeMethod( TextWriter writer, IDatabase database, CustomModification mod, int? commandTimeout ) {
 			writer.WriteLine(
-				"public static void " + mod.name + "( " +
-				DataAccessStatics.GetMethodParamsFromCommandText( info, StringTools.ConcatenateWithDelimiter( "; ", mod.commands ) ) + " ) {" );
+				$"public static void {mod.name}( {DataAccessStatics.GetMethodParamsFromCommandText( info, StringTools.ConcatenateWithDelimiter( "; ", mod.commands ) )} ) {{" );
 
 			writer.WriteLine( DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteInTransaction( delegate {" );
 			var cnt = 0;
 			foreach( var command in mod.commands ) {
 				var commandVariableName = "cmd" + cnt++;
-				writer.WriteLine( "DbCommand " + commandVariableName + " = " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo.CreateCommand();" );
+				writer.WriteLine(
+					$"{TypeNames.DbCommand} {commandVariableName} = {DataAccessStatics.DataAccessStateCurrentDatabaseConnectionCreateCommandExpression( commandTimeout )};" );
 				writer.WriteLine( commandVariableName + ".CommandText = @\"" + command + "\";" );
 				DataAccessStatics.WriteAddParamBlockFromCommandText( writer, commandVariableName, info, command, database );
-				writer.WriteLine( DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteNonQueryCommand( " + commandVariableName + " );" );
+				writer.WriteLine( $"{DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression}.ExecuteNonQueryCommand( {commandVariableName} );" );
 			}
 			writer.WriteLine( "} );" ); // execute in transaction call
 

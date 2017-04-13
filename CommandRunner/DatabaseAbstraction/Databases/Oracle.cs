@@ -46,7 +46,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			var value = 0;
 			ExecuteDbMethod(
 				cn => {
-					var cmd = cn.DatabaseInfo.CreateCommand();
+					var cmd = cn.DatabaseInfo.CreateCommand( null );
 					cmd.CommandText = "SELECT v FROM global_numbers WHERE k = 'LineMarker'";
 					value = Convert.ToInt32( cn.ExecuteScalarCommand( cmd ) );
 				} );
@@ -67,7 +67,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			var tables = new List<string>();
 			ExecuteDbMethod(
 				cn => {
-					var command = cn.DatabaseInfo.CreateCommand();
+					var command = cn.DatabaseInfo.CreateCommand( null );
 					command.CommandText = "SELECT table_name FROM user_tables";
 					cn.ExecuteReaderCommand(
 						command,

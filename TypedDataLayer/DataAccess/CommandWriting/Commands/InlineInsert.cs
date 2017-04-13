@@ -30,7 +30,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// auto-increment table.
 		/// </summary>
 		public object Execute( DBConnection cn ) {
-			var cmd = cn.DatabaseInfo.CreateCommand();
+			var cmd = cn.DatabaseInfo.CreateCommand( timeout );
 			var sb = new StringBuilder( "INSERT INTO " );
 			sb.Append( table );
 			if( columnModifications.Count == 0 ) {
@@ -62,10 +62,9 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			if( !cn.DatabaseInfo.LastAutoIncrementValueExpression.Any() )
 				return null;
 
-			var autoIncrementRetriever = cn.DatabaseInfo.CreateCommand();
+			var autoIncrementRetriever = cn.DatabaseInfo.CreateCommand( timeout );
 			autoIncrementRetriever.CommandText = "SELECT " + cn.DatabaseInfo.LastAutoIncrementValueExpression;
-			if( timeout.HasValue )
-				autoIncrementRetriever.CommandTimeout = timeout.Value;
+
 			var autoIncrementValue = cn.ExecuteScalarCommand( autoIncrementRetriever );
 			return autoIncrementValue != DBNull.Value ? autoIncrementValue : null;
 		}

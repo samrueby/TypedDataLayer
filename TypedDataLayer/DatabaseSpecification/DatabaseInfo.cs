@@ -33,7 +33,7 @@ namespace TypedDataLayer.DatabaseSpecification {
 		/// <summary>
 		/// Creates an ADO.NET command for the database.
 		/// </summary>
-		DbCommand CreateCommand();
+		DbCommand CreateCommand(int? commandTimeout);
 
 		/// <summary>
 		/// Creates an ADO.NET command parameter for the database.

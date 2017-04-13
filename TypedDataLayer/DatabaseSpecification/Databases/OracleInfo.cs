@@ -44,7 +44,9 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 			return connection;
 		}
 
-		DbCommand DatabaseInfo.CreateCommand() {
+		DbCommand DatabaseInfo.CreateCommand( int? commandTimeout ) {
+			// NOTE SJR: Stop ignoring commandTimeout
+
 			var c = factory.CreateCommand();
 
 			// This property would be important if we screwed up the order of parameter adding later on.

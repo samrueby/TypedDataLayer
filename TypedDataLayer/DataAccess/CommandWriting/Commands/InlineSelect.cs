@@ -38,7 +38,13 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// Executes this command using the specified database connection to get a data reader and then executes the specified method with the reader.
 		/// </summary>
 		public void Execute( DBConnection cn, Action<DbDataReader> readerMethod ) {
-			var command = cn.DatabaseInfo.CreateCommand();
+			// NOTE SJR: Say a single insert statement gets executed 1000 times. This will generate the same 
+			// duplicate string in memory 1000 times. But, we wouldn't want to intern the strings because 
+			// those strings would never leave the pool and effectively be leaked. I think per maybe, a transaction,
+			// we should intern strings ourselves. We could either generate the string again, but then dump it if
+			// it's a duplicate (easy), or use the inputs to determine if WOULD generate the same string, and instead
+			// pull the one already-generated out of the cache (hard).
+			var command = cn.DatabaseInfo.CreateCommand( timeout );
 
 			var sb = new StringBuilder( "SELECT" );
 			if( cacheQueryInDatabase && cn.DatabaseInfo.QueryCacheHint.Any() ) {
@@ -69,9 +75,6 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			}
 
 			command.CommandText = sb.ToString();
-			if( timeout.HasValue ) {
-				command.CommandTimeout = timeout.Value;
-			}
 
 			cn.ExecuteReaderCommand( command, readerMethod );
 		}

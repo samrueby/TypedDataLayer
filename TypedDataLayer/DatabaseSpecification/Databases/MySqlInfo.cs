@@ -36,7 +36,8 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 			return connection;
 		}
 
-		DbCommand DatabaseInfo.CreateCommand() => new ProfiledDbCommand( factory.CreateCommand(), null, MiniProfiler.Current );
+		// NOTE SJR: Stop ignoring commandTimeout
+		DbCommand DatabaseInfo.CreateCommand( int? commandTimeout ) => new ProfiledDbCommand( factory.CreateCommand(), null, MiniProfiler.Current );
 
 		DbParameter DatabaseInfo.CreateParameter() => factory.CreateParameter();
 

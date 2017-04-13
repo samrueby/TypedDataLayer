@@ -56,7 +56,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		}
 
 		private DbCommand getCommand( DBConnection cn ) {
-			var cmd = cn.DatabaseInfo.CreateCommand();
+			var cmd = cn.DatabaseInfo.CreateCommand( timeout );
 			if( timeout.HasValue )
 				cmd.CommandTimeout = timeout.Value;
 			return cmd;

@@ -69,6 +69,7 @@
     <Compile Include="CodeGeneration\CodeGenerationStatics.cs" />
     <Compile Include="CodeGeneration\Column.cs" />
     <Compile Include="CodeGeneration\Subsystems\CommandConditionStatics.cs" />
+    <Compile Include="CodeGeneration\Subsystems\ConfigurationRetrievalStatics.cs" />
     <Compile Include="CodeGeneration\Subsystems\CustomModificationStatics.cs" />
     <Compile Include="CodeGeneration\Subsystems\ProcedureStatics.cs" />
     <Compile Include="CodeGeneration\Subsystems\QueryRetrievalStatics.cs" />

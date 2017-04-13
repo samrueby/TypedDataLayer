@@ -549,7 +549,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "revisionHistorySetup.InsertRevision( copiedRevisionId, latestRevisionId, latestRevision.UserTransactionId );" );
 
 			// Insert a copy of the data row and make it correspond to the copy of the latest revision.
-			writer.WriteLine( "var copyCommand = " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo.CreateCommand();" );
+			writer.WriteLine( "var copyCommand = " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionCreateCommandExpression( commandTimeoutSeconds ) + ";" );
 			writer.WriteLine( "copyCommand.CommandText = \"INSERT INTO " + tableName + " SELECT \";" );
 			foreach( var column in nonIdentityColumns ) {
 				if( column == columns.PrimaryKeyAndRevisionIdColumn ) {

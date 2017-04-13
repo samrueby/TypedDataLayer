@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +6,7 @@ using CommandRunner.CodeGeneration;
 using CommandRunner.CodeGeneration.Subsystems;
 using CommandRunner.CodeGeneration.Subsystems.StandardModification;
 using CommandRunner.DatabaseAbstraction;
+using CommandRunner.Exceptions;
 using CommandRunner.Tools;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification;
@@ -74,7 +74,10 @@ namespace CommandRunner.Operations {
 					table => configuration.database.WhitelistedTables == null || configuration.database.WhitelistedTables.Any( i => i.EqualsIgnoreCase( table ) ) );
 
 			database.ExecuteDbMethod(
-				delegate( DBConnection cn ) {
+				cn => {
+					writer.WriteLine();
+					ConfigurationRetrievalStatics.Generate( writer, baseNamespace, configuration.database );
+
 					// database logic access - standard
 					writer.WriteLine();
 					TableConstantStatics.Generate( cn, writer, baseNamespace, database, tableNames );
@@ -115,7 +118,7 @@ namespace CommandRunner.Operations {
 					// other commands
 					if( cn.DatabaseInfo is OracleInfo ) {
 						writer.WriteLine();
-						SequenceStatics.Generate( cn, writer, baseNamespace, database );
+						SequenceStatics.Generate( cn, writer, baseNamespace, database, configuration.database.CommandTimeoutSecondsTyped );
 						writer.WriteLine();
 						ProcedureStatics.Generate( cn, writer, baseNamespace, database );
 					}
@@ -127,7 +130,7 @@ namespace CommandRunner.Operations {
 				return;
 			var nonexistentTables = specifiedTables.Where( specifiedTable => databaseTables.All( i => !i.EqualsIgnoreCase( specifiedTable ) ) ).ToList();
 			if( nonexistentTables.Any() )
-				throw new ApplicationException(
+				throw new UserCorrectableException(
 					$"{tableAdjective.CapitalizeString()} {( nonexistentTables.Count > 1 ? "tables" : "table" )} {StringTools.GetEnglishListPhrase( nonexistentTables.Select( i => "'" + i + "'" ), true )} {( nonexistentTables.Count > 1 ? "do" : "does" )} not exist." );
 		}
 	}

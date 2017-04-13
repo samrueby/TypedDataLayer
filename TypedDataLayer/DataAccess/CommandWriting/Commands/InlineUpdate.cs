@@ -45,7 +45,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			if( conditions.Count == 0 )
 				throw new ApplicationException( "Executing an inline update command with no parameters in the where clause is not allowed." );
 
-			var cmd = cn.DatabaseInfo.CreateCommand();
+			var cmd = cn.DatabaseInfo.CreateCommand( timeout );
 			var sb = new StringBuilder( "UPDATE " );
 			sb.Append( tableName );
 			sb.Append( " SET " );
@@ -69,8 +69,6 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			sb.Remove( sb.Length - 5, 5 );
 
 			cmd.CommandText = sb.ToString();
-			if( timeout.HasValue )
-				cmd.CommandTimeout = timeout.Value;
 
 			return cn.ExecuteNonQueryCommand( cmd );
 		}
