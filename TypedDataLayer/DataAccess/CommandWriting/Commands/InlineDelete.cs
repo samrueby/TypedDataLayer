@@ -38,11 +38,13 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			sb.Append( " WHERE " );
 
 			var paramNumber = 0;
+			const string and = " AND ";
+
 			foreach( var condition in conditions ) {
 				condition.AddToCommand( cmd, sb, cn.DatabaseInfo, InlineUpdate.GetParamNameFromNumber( paramNumber++ ) );
-				sb.Append( " AND " );
+				sb.Append( and );
 			}
-			sb.Remove( cmd.CommandText.Length - 5, 5 );
+			sb.Remove( sb.Length - and.Length, and.Length );
 
 			cmd.CommandText = sb.ToString();
 
