@@ -79,7 +79,6 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writeGetValueFromNameMethod( writer, valueColumn.DataTypeName );
 				if( orderIsSpecified ) {
 					writeGetValuesToNamesMethod( writer, valueColumn.DataTypeName );
-					writeFillListControlMethod( writer, valueColumn );
 				}
 
 				writer.WriteLine( "}" ); // class
@@ -119,12 +118,6 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "public static ICollection<KeyValuePair<" + valueTypeName + ", string>> GetValuesToNames() {" );
 			writer.WriteLine( "return valuesAndNames.GetAllPairs();" );
 			writer.WriteLine( "}" ); // method
-		}
-
-		private static void writeFillListControlMethod( TextWriter writer, Column valueColumn ) {
-			writer.WriteLine( "public static IEnumerable<SelectListItem<" + valueColumn.NullableDataTypeName + ">> GetListItems() {" );
-			writer.WriteLine( "return from i in valuesAndNames.GetAllPairs() select SelectListItem.Create<" + valueColumn.NullableDataTypeName + ">( i.Key, i.Value );" );
-			writer.WriteLine( "}" );
 		}
 	}
 }

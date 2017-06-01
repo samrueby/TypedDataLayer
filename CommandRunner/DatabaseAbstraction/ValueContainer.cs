@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using CommandRunner.Tools;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
 using TypedDataLayer.Tools;
@@ -51,7 +50,7 @@ namespace CommandRunner.DatabaseAbstraction {
 			}
 			else {
 				this.dataType = unconvertedDataType;
-				incomingValueConversionExpressionGetter = valueExpression => "({0}){1}".FormatWith( dataType.ToString(), valueExpression );
+				incomingValueConversionExpressionGetter = valueExpression => "({0}){1}".FormatWith( PrimitiveNameToFriendlyName( dataType ), valueExpression );
 				incomingValueConverter = value => value;
 				outgoingValueConversionExpressionGetter = valueExpression => valueExpression;
 			}
@@ -74,16 +73,28 @@ namespace CommandRunner.DatabaseAbstraction {
 		public static string PrimitiveNameToFriendlyName( Type t ) {
 			var str = t.ToString();
 			switch( str ) {
+				case "System.Boolean":
+					return "bool";
+				case "System.Boolean?":
+					return "bool?";
 				case "System.Int32":
 					return "int";
+				case "System.Int32?":
+					return "int?";
 				case "System.String":
 					return "string";
 				case "System.Decimal":
 					return "decimal";
+				case "System.Decimal?":
+					return "decimal?";
 				case "System.Double":
 					return "double";
+				case "System.Double?":
+					return "double?";
 				case "System.DateTime":
 					return "DateTime";
+				case "System.DateTime?":
+					return "DateTime?";
 				default:
 					return str;
 			}

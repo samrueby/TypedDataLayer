@@ -237,5 +237,10 @@ namespace TypedDataLayer.Tools {
 		public static IEnumerable<T> GetEnumValues<T>() => Enum.GetValues( typeof( T ) ).Cast<T>();
 
 		public static string FormatWith( this string s, params object[] os ) => string.Format( s, os );
+
+		/// <summary>
+		/// Returns a string in the format of "a, b, c" for the provided collection.
+		/// </summary>
+		public static string GetCommaDelimitedList( this IEnumerable<string> strs ) => ConcatenateWithDelimiter( ", ", strs );
 	}
 }

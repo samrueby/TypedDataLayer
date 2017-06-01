@@ -11,4 +11,7 @@
   <databaseConfiguration xsi:type="SqlServerDatabase">
     <ConnectionString>data source=(local);Integrated Security=SSPI;initial catalog=YourDatabase</ConnectionString>
   </databaseConfiguration>
+  <database>
+    <CommandTimeoutSeconds>30</CommandTimeoutSeconds>
+  </database>
 </systemDevelopmentConfiguration>

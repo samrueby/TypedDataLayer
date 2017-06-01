@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using CommandRunner.CodeGeneration.Subsystems.StandardModification;
 using CommandRunner.DatabaseAbstraction;
+using CommandRunner.Exceptions;
 using CommandRunner.Tools;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DatabaseSpecification.Databases;
@@ -19,65 +20,52 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<string> tableNames, Database configuration ) {
 			writer.WriteLine( namespaceDeclaration );
 			foreach( var table in tableNames ) {
-				CodeGenerationStatics.AddSummaryDocComment( writer, "Contains logic that retrieves rows from the " + table + " table." );
-				writer.WriteLine( "public static partial class " + GetClassName( cn, table ) + " {" );
+				try {
+					CodeGenerationStatics.AddSummaryDocComment( writer, "Contains logic that retrieves rows from the " + table + " table." );
+					writer.WriteLine( "public static partial class " + GetClassName( cn, table ) + " {" );
 
-				var isRevisionHistoryTable = DataAccessStatics.IsRevisionHistoryTable( table, configuration );
-				var columns = new TableColumns( cn, table, isRevisionHistoryTable );
+					var isRevisionHistoryTable = DataAccessStatics.IsRevisionHistoryTable( table, configuration );
+					var columns = new TableColumns( cn, table, isRevisionHistoryTable );
 
-				// Write nested classes.
-				DataAccessStatics.WriteRowClasses(
-					writer,
-					columns.AllColumns,
-					localWriter => {
-						if( !isRevisionHistoryTable )
-							return;
-						writer.WriteLine(
-							"public UserTransaction Transaction { get { return RevisionHistoryStatics.UserTransactionsById[ RevisionHistoryStatics.RevisionsById[ System.Convert.ToInt32( " +
-							Utility.GetCSharpIdentifier( columns.PrimaryKeyAndRevisionIdColumn.PascalCasedNameExceptForOracle ) + " ) ].UserTransactionId ]; } }" );
-					},
-					localWriter => {
-						if( !columns.DataColumns.Any() )
-							return;
+					// Write nested classes.
+					DataAccessStatics.WriteRowClasses(
+						writer,
+						columns.AllColumns,
+						localWriter => {
+							if( !isRevisionHistoryTable )
+								return;
+							writer.WriteLine(
+								"public UserTransaction Transaction { get { return RevisionHistoryStatics.UserTransactionsById[ RevisionHistoryStatics.RevisionsById[ System.Convert.ToInt32( " +
+								Utility.GetCSharpIdentifier( columns.PrimaryKeyAndRevisionIdColumn.PascalCasedNameExceptForOracle ) + " ) ].UserTransactionId ]; } }" );
+						},
+						localWriter => {
+							if( !columns.DataColumns.Any() )
+								return;
 
-						var modClass = "Modification." + StandardModificationStatics.GetClassName( cn, table, isRevisionHistoryTable, isRevisionHistoryTable );
-						var revisionHistorySuffix = StandardModificationStatics.GetRevisionHistorySuffix( isRevisionHistoryTable );
-						writer.WriteLine( "public " + modClass + " ToModification" + revisionHistorySuffix + "() {" );
-						writer.WriteLine(
-							"return " + modClass + ".CreateForSingleRowUpdate" + revisionHistorySuffix + "( " +
-							StringTools.ConcatenateWithDelimiter(
-								", ",
-								columns.AllColumnsExceptRowVersion.Select( i => Utility.GetCSharpIdentifier( i.PascalCasedNameExceptForOracle ) ).ToArray() ) + " );" );
-						writer.WriteLine( "}" );
-					} );
-				writeCacheClass( cn, writer, database, table, columns, isRevisionHistoryTable );
+							var modClass = "Modification." + StandardModificationStatics.GetClassName( cn, table, isRevisionHistoryTable, isRevisionHistoryTable );
+							var revisionHistorySuffix = StandardModificationStatics.GetRevisionHistorySuffix( isRevisionHistoryTable );
+							writer.WriteLine( "public " + modClass + " ToModification" + revisionHistorySuffix + "() {" );
+							writer.WriteLine(
+								"return " + modClass + ".CreateForSingleRowUpdate" + revisionHistorySuffix + "( " +
+								StringTools.ConcatenateWithDelimiter(
+									", ",
+									columns.AllColumnsExceptRowVersion.Select( i => Utility.GetCSharpIdentifier( i.PascalCasedNameExceptForOracle ) ).ToArray() ) + " );" );
+							writer.WriteLine( "}" );
+						} );
+					writeCacheClass( cn, writer, database, table, columns, isRevisionHistoryTable );
 
-				var isSmallTable = configuration.SmallTables != null && configuration.SmallTables.Any( i => i.EqualsIgnoreCase( table ) );
+					var isSmallTable = configuration.SmallTables != null && configuration.SmallTables.Any( i => i.EqualsIgnoreCase( table ) );
 
-				var tableUsesRowVersionedCaching = configuration.TablesUsingRowVersionedDataCaching != null &&
-				                                   configuration.TablesUsingRowVersionedDataCaching.Any( i => i.EqualsIgnoreCase( table ) );
-				if( tableUsesRowVersionedCaching && columns.RowVersionColumn == null && !( cn.DatabaseInfo is OracleInfo ) )
-					throw new ApplicationException(
-						cn.DatabaseInfo is MySqlInfo
-							? "Row-versioned data caching cannot currently be used with MySQL databases."
-							: "Row-versioned data caching can only be used with the {0} table if you add a rowversion column.".FormatWith( table ) );
+					var tableUsesRowVersionedCaching = configuration.TablesUsingRowVersionedDataCaching != null &&
+					                                   configuration.TablesUsingRowVersionedDataCaching.Any( i => i.EqualsIgnoreCase( table ) );
+					if( tableUsesRowVersionedCaching && columns.RowVersionColumn == null && !( cn.DatabaseInfo is OracleInfo ) )
+						throw new ApplicationException(
+							cn.DatabaseInfo is MySqlInfo
+								? "Row-versioned data caching cannot currently be used with MySQL databases."
+								: "Row-versioned data caching can only be used with the {0} table if you add a rowversion column.".FormatWith( table ) );
 
-				if( isSmallTable )
-					writeGetAllRowsMethod( writer, isRevisionHistoryTable, false );
-				writeGetRowsMethod(
-					cn,
-					writer,
-					database,
-					table,
-					columns,
-					isSmallTable,
-					tableUsesRowVersionedCaching,
-					isRevisionHistoryTable,
-					false,
-					configuration.CommandTimeoutSecondsTyped );
-				if( isRevisionHistoryTable ) {
 					if( isSmallTable )
-						writeGetAllRowsMethod( writer, true, true );
+						writeGetAllRowsMethod( writer, isRevisionHistoryTable, false );
 					writeGetRowsMethod(
 						cn,
 						writer,
@@ -86,43 +74,61 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 						columns,
 						isSmallTable,
 						tableUsesRowVersionedCaching,
-						true,
-						true,
+						isRevisionHistoryTable,
+						false,
 						configuration.CommandTimeoutSecondsTyped );
+					if( isRevisionHistoryTable ) {
+						if( isSmallTable )
+							writeGetAllRowsMethod( writer, true, true );
+						writeGetRowsMethod(
+							cn,
+							writer,
+							database,
+							table,
+							columns,
+							isSmallTable,
+							tableUsesRowVersionedCaching,
+							true,
+							true,
+							configuration.CommandTimeoutSecondsTyped );
+					}
+
+					writeGetRowMatchingPkMethod(
+						cn,
+						writer,
+						database,
+						table,
+						columns,
+						isSmallTable,
+						tableUsesRowVersionedCaching,
+						isRevisionHistoryTable,
+						configuration.CommandTimeoutSecondsTyped );
+
+					if( isRevisionHistoryTable )
+						DataAccessStatics.WriteGetLatestRevisionsConditionMethod( writer, columns.PrimaryKeyAndRevisionIdColumn.Name );
+
+					if( tableUsesRowVersionedCaching ) {
+						var keyTupleTypeArguments = getPkAndVersionTupleTypeArguments( cn, columns );
+
+						writer.WriteLine( $"private static Cache<{TypeNames.Tuple}<{keyTupleTypeArguments}>, BasicRow> getRowsByPkAndVersion() {{" );
+						var first = $"VersionedRowDataCache<{TypeNames.Tuple}<{getPkTupleTypeArguments( columns )}>, {TypeNames.Tuple}<{keyTupleTypeArguments}>, BasicRow>";
+						var second = table.TableNameToPascal( cn ) + "TableRetrievalRowsByPkAndVersion";
+						var third = StringTools.ConcatenateWithDelimiter( ", ", Enumerable.Range( 1, columns.KeyColumns.Count() ).Select( i => "i.Item{0}".FormatWith( i ) ) );
+						writer.WriteLine(
+							$@"return AppMemoryCache.GetCacheValue<{first}>( ""{second}"", () => new {first}( i => {TypeNames.Tuple}.Create( {third} ) ) ).RowsByPkAndVersion;" );
+						writer.WriteLine( "}" );
+					}
+
+					// Initially we did not generate this method for small tables, but we found a need for it when the cache is disabled since that will cause
+					// GetRowMatchingId to repeatedly query.
+					if( columns.KeyColumns.Count() == 1 && columns.KeyColumns.Single().Name.ToLower().EndsWith( "id" ) )
+						writeToIdDictionaryMethod( writer, columns );
+
+					writer.WriteLine( "}" ); // class
 				}
-
-				writeGetRowMatchingPkMethod(
-					cn,
-					writer,
-					database,
-					table,
-					columns,
-					isSmallTable,
-					tableUsesRowVersionedCaching,
-					isRevisionHistoryTable,
-					configuration.CommandTimeoutSecondsTyped );
-
-				if( isRevisionHistoryTable )
-					DataAccessStatics.WriteGetLatestRevisionsConditionMethod( writer, columns.PrimaryKeyAndRevisionIdColumn.Name );
-
-				if( tableUsesRowVersionedCaching ) {
-					var keyTupleTypeArguments = getPkAndVersionTupleTypeArguments( cn, columns );
-
-					writer.WriteLine( $"private static Cache<{TypeNames.Tuple}<{keyTupleTypeArguments}>, BasicRow> getRowsByPkAndVersion() {{" );
-					var first = $"VersionedRowDataCache<{TypeNames.Tuple}<{getPkTupleTypeArguments( columns )}>, {TypeNames.Tuple}<{keyTupleTypeArguments}>, BasicRow>";
-					var second = table.TableNameToPascal( cn ) + "TableRetrievalRowsByPkAndVersion";
-					var third = StringTools.ConcatenateWithDelimiter( ", ", Enumerable.Range( 1, columns.KeyColumns.Count() ).Select( i => "i.Item{0}".FormatWith( i ) ) );
-					writer.WriteLine(
-						$@"return AppMemoryCache.GetCacheValue<{first}>( ""{second}"", () => new {first}( i => {TypeNames.Tuple}.Create( {third} ) ) ).RowsByPkAndVersion;" );
-					writer.WriteLine( "}" );
+				catch( Exception e ) when( !( e is UserCorrectableException ) ) {
+					throw new ApplicationException( $"An error occurred while generating TableRetrieval logic for the '{table}' table.", e );
 				}
-
-				// Initially we did not generate this method for small tables, but we found a need for it when the cache is disabled since that will cause
-				// GetRowMatchingId to repeatedly query.
-				if( columns.KeyColumns.Count() == 1 && columns.KeyColumns.Single().Name.ToLower().EndsWith( "id" ) )
-					writeToIdDictionaryMethod( writer, columns );
-
-				writer.WriteLine( "}" ); // class
 			}
 			writer.WriteLine( "}" ); // namespace
 		}
@@ -240,7 +246,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			var methodName = pkIsId ? "GetRowMatchingId" : "GetRowMatchingPk";
 			var pkParameters = pkIsId
 				                   ? tableColumns.KeyColumns.Single().DataTypeName + " id"
-				                   : StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => $"{i.DataTypeName} {i.CamelCasedName}" ) );
+				                   : tableColumns.KeyColumns.Select( i => $"{i.DataTypeName} {i.CamelCasedName}" ).GetCommaDelimitedList();
 
 			const string returnNullIfNoMatch = nameof( returnNullIfNoMatch );
 			const string id = nameof( id );
@@ -272,14 +278,11 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 						writer.WriteLine( $"return {rowsByPkExpression}.TryGetValue( {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ), out row ) ? row : null;" );
 					}
 					else {
-						var equalityConditionClassName = DataAccessStatics.GetEqualityConditionClassName( cn, database, table, tableColumns.KeyColumns.Single() );
 						var condition = pkIsId
-							                ? $"new {equalityConditionClassName}( {id} )"
-							                : StringTools.ConcatenateWithDelimiter(
-								                ", ",
-								                from keyColumn in tableColumns.KeyColumns
-								                let className = DataAccessStatics.GetEqualityConditionClassName( cn, database, table, keyColumn )
-								                select $"new {className}( {keyColumn.CamelCasedName} )" );
+							                ? $"new {DataAccessStatics.GetEqualityConditionClassName( cn, database, table, tableColumns.KeyColumns.Single() )}( {id} )"
+							                : ( from keyColumn in tableColumns.KeyColumns
+							                    let className = DataAccessStatics.GetEqualityConditionClassName( cn, database, table, keyColumn )
+							                    select $"new {className}( {keyColumn.CamelCasedName} )" ).GetCommaDelimitedList();
 						writer.WriteLine( $"return GetRows( {condition} ).PrimaryKeySingle({returnNullIfNoMatch});" );
 					}
 				} );
