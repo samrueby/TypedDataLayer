@@ -31,19 +31,18 @@ namespace TypedDataLayer.DataAccess {
 		private static string readConnectionStringFromConfiguration() {
 			var str = ConfigurationManager.AppSettings[ ConfigurationConstants.ConnectionString ];
 			if( str.IsNullOrWhiteSpace() ) {
-				throw new ApplicationException(
-					$"Attempted to read {ConfigurationConstants.ConnectionString} from <appSettings>. " +
-					$"You must either set this value, or user the {nameof( DataAccessState )} constructor that allows you to provide this value manually." );
+				throw new ApplicationException( $"Attempted to read {ConfigurationConstants.ConnectionString} from <appSettings>. " + errorRecommendation );
 			}
 			return str;
 		}
 
 		private static SupportedDatabaseType readSupportedDatabaseTypeFromConfiguration() {
 			var type = ConfigurationManager.AppSettings[ ConfigurationConstants.SupportedDatabaseType ];
+			string validValues() => StringTools.GetEnumValues<SupportedDatabaseType>().Select( e => e.ToString() ).GetCommaDelimitedList();
+			
 			if( type.IsNullOrWhiteSpace() ) {
 				throw new ApplicationException(
-					$"Attempted to read {ConfigurationConstants.SupportedDatabaseType} from <appSettings>. " +
-					$"You must either set this value, or user the {nameof( DataAccessState )} constructor that allows you to provide this value manually." );
+					$"Attempted to read {ConfigurationConstants.SupportedDatabaseType} from <appSettings>. " + errorRecommendation + $"Valid values are {validValues()}." );
 			}
 
 			SupportedDatabaseType toEnum;
@@ -53,8 +52,7 @@ namespace TypedDataLayer.DataAccess {
 			catch( ArgumentException ae ) {
 				throw new ApplicationException(
 					$"Attempted to read {ConfigurationConstants.SupportedDatabaseType} from <appSettings>. " +
-					$"{type} is an invalid value. Valid values are: {string.Join( ",", StringTools.GetEnumValues<SupportedDatabaseType>() )}." +
-					$"You must either set this value, or user the {nameof( DataAccessState )} constructor that allows you to provide this value manually.",
+					$"{type} is an invalid value. Valid values are: {validValues()}." + errorRecommendation,
 					ae );
 			}
 			return toEnum;
@@ -110,6 +108,9 @@ namespace TypedDataLayer.DataAccess {
 		private bool cacheEnabled;
 		private Cache<string, object> cache;
 		private DBConnection dbConnection;
+
+		private static readonly string errorRecommendation =
+			$"You must either set this value, or user the {nameof( DataAccessState )} constructor that allows you to provide this value manually.";
 
 		/// <summary>
 		/// Gets the connection to the database.
