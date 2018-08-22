@@ -4,7 +4,7 @@
   
   <!--
   This file is an example configuration file using the latest schema.
-  Create a Configuration folder and place this file in it.
+  Create a TypedDataLayer folder and place this file in it.
   Use this file create or update your config file.
   -->
 <LibraryNamespaceAndAssemblyName>ExampleNamespace</LibraryNamespaceAndAssemblyName>
