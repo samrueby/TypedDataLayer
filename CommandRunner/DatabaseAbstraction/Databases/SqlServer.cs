@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using JetBrains.Annotations;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Smo;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DataAccess.CommandWriting;
 using TypedDataLayer.DataAccess.CommandWriting.Commands;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Conditions;
 using TypedDataLayer.DatabaseSpecification.Databases;
-using TypedDataLayer.Tools;
 
 namespace CommandRunner.DatabaseAbstraction.Databases {
 	[ UsedImplicitly ]
@@ -22,19 +23,20 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			executeMethodWithDbExceptionHandling(
 				() => {
 					try {
-						var cn = new SqlConnectionStringBuilder( info.ConnectionString );
-						// -b "On error batch abort"
-						// -e "echo input"
-						Utility.RunProgram(
-							"sqlcmd",
-							$"-S {cn.DataSource} -d {cn.InitialCatalog} {( cn.Encrypt ? "-N" : "" )} -e -b",
-							$"BEGIN TRAN{Environment.NewLine}GO{Environment.NewLine}{script}COMMIT TRAN{Environment.NewLine}GO{Environment.NewLine}EXIT{Environment.NewLine}",
-							true );
+						runDatabaseScript( info.ConnectionString, script );
 					}
 					catch( Exception e ) {
 						throw DataAccessMethods.CreateDbConnectionException( info, "updating logic in", e );
 					}
 				} );
+		}
+
+		private static void runDatabaseScript( string connectionString, string script ) {
+			using( var sqlConnection = new SqlConnection( connectionString ) ) {
+				var svrConnection = new ServerConnection( sqlConnection );
+				var server = new Server( svrConnection );
+				server.ConnectionContext.ExecuteNonQuery( script );
+			}
 		}
 
 		int IDatabase.GetLineMarker() {
@@ -86,11 +88,12 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 		public void ExecuteDbMethod( Action<DBConnection> method ) => executeDbMethodWithSpecifiedDatabaseInfo( info, method );
 
 
-		private void executeDbMethodWithSpecifiedDatabaseInfo( SqlServerInfo info, Action<DBConnection> method ) => executeMethodWithDbExceptionHandling(
-			() => {
-				var connection = new DBConnection( new SqlServerInfo( info.ConnectionString ) );
-				connection.ExecuteWithConnectionOpen( () => method( connection ) );
-			} );
+		private void executeDbMethodWithSpecifiedDatabaseInfo( SqlServerInfo info, Action<DBConnection> method ) =>
+			executeMethodWithDbExceptionHandling(
+				() => {
+					var connection = new DBConnection( new SqlServerInfo( info.ConnectionString ) );
+					connection.ExecuteWithConnectionOpen( () => method( connection ) );
+				} );
 
 		private void executeMethodWithDbExceptionHandling( Action method ) {
 			try {

@@ -70,7 +70,8 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			ExecuteDbMethod(
 				delegate( DBConnection cn ) {
 					var command = cn.DatabaseInfo.CreateCommand( null );
-					command.CommandText = $"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{connectionString.Database}' AND TABLE_TYPE = 'BASE TABLE'";
+					command.CommandText =
+						$"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{connectionString.Database}' AND TABLE_TYPE = 'BASE TABLE'";
 					cn.ExecuteReaderCommand(
 						command,
 						reader => {
@@ -81,19 +82,16 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return tables;
 		}
 
-		List<string> IDatabase.GetProcedures() {
-			throw new NotSupportedException();
-		}
+		List<string> IDatabase.GetProcedures() => throw new NotSupportedException();
 
-		List<ProcedureParameter> IDatabase.GetProcedureParameters( string procedure ) {
-			throw new NotSupportedException();
-		}
+		List<ProcedureParameter> IDatabase.GetProcedureParameters( string procedure ) => throw new NotSupportedException();
 
-		public void ExecuteDbMethod( Action<DBConnection> method ) => executeMethodWithDbExceptionHandling(
-			() => {
-				var connection = new DBConnection( new MySqlInfo( info.ConnectionString ) );
-				connection.ExecuteWithConnectionOpen( () => method( connection ) );
-			} );
+		public void ExecuteDbMethod( Action<DBConnection> method ) =>
+			executeMethodWithDbExceptionHandling(
+				() => {
+					var connection = new DBConnection( new MySqlInfo( info.ConnectionString ) );
+					connection.ExecuteWithConnectionOpen( () => method( connection ) );
+				} );
 
 		private void executeMethodWithDbExceptionHandling( Action method ) {
 			try {
