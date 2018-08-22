@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Text;
 using JetBrains.Annotations;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
@@ -32,10 +33,17 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 		}
 
 		private static void runDatabaseScript( string connectionString, string script ) {
+			var fullScript = new StringBuilder();
+			fullScript.AppendLine( "BEGIN TRAN" );
+			fullScript.AppendLine( "GO" );
+			fullScript.AppendLine( script );
+			fullScript.AppendLine( "COMMIT TRAN" );
+			fullScript.AppendLine( "GO" );
+
 			using( var sqlConnection = new SqlConnection( connectionString ) ) {
 				var svrConnection = new ServerConnection( sqlConnection );
 				var server = new Server( svrConnection );
-				server.ConnectionContext.ExecuteNonQuery( script );
+				server.ConnectionContext.ExecuteNonQuery( fullScript.ToString() );
 			}
 		}
 
