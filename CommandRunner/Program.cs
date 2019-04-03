@@ -26,23 +26,21 @@ namespace CommandRunner {
 			log.Debug( "TypedDataLayer version " + Assembly.GetExecutingAssembly().GetName().Version );
 
 			log.Debug( "args: " + string.Join( " ", args ) );
-
-			var solutionPath = Path.GetFullPath( args[ 0 ] );
-			var command = args[ 1 ];
+			
+			var command = args[ 0 ];
+			var workingDirectory = Environment.CurrentDirectory;
 
 			log.Debug( "Executing directory: " + AppDomain.CurrentDomain.BaseDirectory );
-			log.Debug( "Current working directory: " + Environment.CurrentDirectory );
-			log.Debug( "Solution path: " + solutionPath );
-			log.Debug( "Command: " + command );
+			log.Info( "Current working directory: " + workingDirectory );
 			log.Info( "Running " + command );
 
 			try {
-				var configurationFiles = findConfigFiles( solutionPath );
+				var configurationFiles = findConfigFiles( workingDirectory );
 				if( configurationFiles.Any() ) {
 					foreach( var config in configurationFiles ) {
 						log.Debug( "Found config file: " + config );
-						var projectFolderName = getFirstFolder( config, solutionPath );
-						var projectFolderPath = Path.Combine( solutionPath, projectFolderName );
+						var projectFolderName = getFirstFolder( config, workingDirectory );
+						var projectFolderPath = Path.Combine( workingDirectory, projectFolderName );
 						log.Debug( "Project folder path: " + projectFolderPath );
 
 						log.Debug( "Deserializing config." );
@@ -54,7 +52,7 @@ namespace CommandRunner {
 				}
 				else {
 					log.Info( "Unable to find any configuration files." );
-					log.Info( $"Searched {solutionPath} for {FileNames.ConfigurationFileName} recursively." );
+					log.Info( $"Searched {workingDirectory} for {FileNames.ConfigurationFileName} recursively." );
 				}
 			}
 			catch( UserCorrectableException e ) {

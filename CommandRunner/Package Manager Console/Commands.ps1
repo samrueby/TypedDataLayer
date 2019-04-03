@@ -12,7 +12,7 @@ function Update-DataLayer {
 	[CmdletBinding()]
 	Param()
 	Process {
-		& "$installPath\CommandRunner\CommandRunner.exe" $installPath\..\.. UpdateAllDependentLogic
+		& "$installPath\CommandRunner\CommandRunner.exe" UpdateAllDependentLogic
 	}
 }
 
@@ -20,7 +20,7 @@ function Update-DataLayerDebug {
 	[CmdletBinding()]
 	Param()
 	Process {
-		& "$installPath\CommandRunner\CommandRunner.exe" $installPath\..\.. UpdateAllDependentLogic -debug
+		& "$installPath\CommandRunner\CommandRunner.exe" UpdateAllDependentLogic -debug
 	}
 }
 
@@ -28,7 +28,7 @@ function Update-DataLayerAttach {
 	[CmdletBinding()]
 	Param()
 	Process {
-		& "$installPath\CommandRunner\CommandRunner.exe" $installPath\..\.. UpdateAllDependentLogic -attachDebugger
+		& "$installPath\CommandRunner\CommandRunner.exe" UpdateAllDependentLogic -attachDebugger
 	}
 }
 
