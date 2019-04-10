@@ -1,1 +1,1 @@
-﻿nuget.exe pack TypedDataLayer.csproj -Prop Configuration=Release
+﻿nuget.exe pack TypedDataLayer.nuspec -Prop Configuration=Release

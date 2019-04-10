@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>TypedDataLayer</id>
-    <version>$version$</version>
+    <version>0.0.0.0</version>
 	  <title>TypedDataLayer</title>
 	  <authors>Sam Rueby, William Gross, Greg Smalter</authors>
 	  <owners>Sam Rueby</owners>
@@ -15,8 +15,8 @@
   </metadata>
   <files>
     <file src="readme.txt" target="Examples\readme.txt" />
-    <file src="bin\$configuration$\$id$.pdb" target="lib\net451\" />
-    <file src="bin\$configuration$\$id$.xml" target="lib\net451\" />
+    <file src="bin\$configuration$\TypedDataLayer.pdb" target="lib\net451\" />
+    <file src="bin\$configuration$\TypedDataLayer.xml" target="lib\net451\" />
     <file src="..\CommandRunner\bin\$configuration$\*" target="CommandRunner\" />
     <file src="..\CommandRunner\XML Schemas\TypedDataLayerConfig.xsd" target="content\TypedDataLayerConfig.xsd" />
     <file src="..\CommandRunner\XML Schemas\Examples\TypedDataLayerConfig.xml" target="Examples\TypedDataLayerConfig.xml" />
