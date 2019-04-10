@@ -1,20 +1,19 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>$id$</id>
+    <id>TypedDataLayer</id>
     <version>$version$</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
-    <releaseNotes></releaseNotes>
-    <copyright>Copyright 2017</copyright>
-    <tags>Typed Data Layer EWL</tags>
+	  <title>TypedDataLayer</title>
+	  <authors>Sam Rueby, William Gross, Greg Smalter</authors>
+	  <owners>Sam Rueby</owners>
+	  <license type="expression">MIT</license>
+	  <projectUrl>https://github.com/samrueby/TypedDataLayer</projectUrl>
+	  <requireLicenseAcceptance>false</requireLicenseAcceptance>
+	  <description>TypedDataLayer is data layer using statically-typed generated classes.</description>
+	  <tags>DAL Database Data SQL O/RM ORM ADO.NET Typed EWL</tags>
+	  <language>en-US</language>
   </metadata>
   <files>
-    <!--Files are considered immutable-->
-    <!--https://docs.nuget.org/ndocs/schema/nuspec#including-content-files-->
     <file src="readme.txt" target="Examples\readme.txt" />
     <file src="bin\$configuration$\$id$.pdb" target="lib\net451\" />
     <file src="bin\$configuration$\$id$.xml" target="lib\net451\" />

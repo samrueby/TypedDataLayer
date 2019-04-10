@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [ assembly: AssemblyTitle( "TypedDataLayer" ) ]
-[ assembly: AssemblyDescription( "A simple strongly-typed DAL." ) ]
+[ assembly: AssemblyDescription( "A simple statically-typed DAL." ) ]
 [ assembly: AssemblyConfiguration( "" ) ]
-[ assembly: AssemblyCompany( "Red Stapler Software, LLC" ) ]
+[ assembly: AssemblyCompany( "Sam Rueby, William Gross, Greg Smalter" ) ]
 [ assembly: AssemblyProduct( "TypedDataLayer" ) ]
-[ assembly: AssemblyCopyright( "Copyright © Sam Rueby  2016" ) ]
+[ assembly: AssemblyCopyright( "Copyright © Sam Rueby, William Gross, Greg Smalter 2019" ) ]
 [ assembly: AssemblyTrademark( "" ) ]
 [ assembly: AssemblyCulture( "" ) ]
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -34,5 +34,5 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[ assembly: AssemblyVersion("5.0.*")]
+[ assembly: AssemblyVersion("5.0")]
 [ assembly: AssemblyFileVersion("5.0")]
