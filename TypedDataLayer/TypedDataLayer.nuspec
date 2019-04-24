@@ -10,7 +10,7 @@
 	  <projectUrl>https://github.com/samrueby/TypedDataLayer</projectUrl>
 	  <requireLicenseAcceptance>false</requireLicenseAcceptance>
 	  <description>TypedDataLayer is data layer using statically-typed generated classes.</description>
-	  <tags>DAL Database Data SQL O/RM ORM ADO.NET Typed EWL</tags>
+	  <tags>DAL Database Data SQL O/RM ORM ADO.NET Typed EWL TypeDataLayer</tags>
 	  <language>en-US</language>
 	  <dependencies>
 		  <group targetFramework=".NETFramework4.5.1">
@@ -21,6 +21,7 @@
   </metadata>
   <files>
     <file src="readme.txt" target="Examples\readme.txt" />
+    <file src="bin\$configuration$\TypedDataLayer.dll" target="lib\net451\" />
     <file src="bin\$configuration$\TypedDataLayer.pdb" target="lib\net451\" />
     <file src="bin\$configuration$\TypedDataLayer.xml" target="lib\net451\" />
     <file src="..\CommandRunner\bin\$configuration$\*" target="CommandRunner\" />
