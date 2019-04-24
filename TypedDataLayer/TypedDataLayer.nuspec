@@ -12,6 +12,12 @@
 	  <description>TypedDataLayer is data layer using statically-typed generated classes.</description>
 	  <tags>DAL Database Data SQL O/RM ORM ADO.NET Typed EWL</tags>
 	  <language>en-US</language>
+	  <dependencies>
+		  <group targetFramework=".NETFramework4.5.1">
+			  <dependency id="JetBrains.Annotations" version="10.3.0" exclude="Build,Analyzers" />
+			  <dependency id="MiniProfiler" version="3.2.0.157" exclude="Build,Analyzers" />
+		  </group>
+	  </dependencies>
   </metadata>
   <files>
     <file src="readme.txt" target="Examples\readme.txt" />
