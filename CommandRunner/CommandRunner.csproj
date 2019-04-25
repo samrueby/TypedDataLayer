@@ -215,7 +215,7 @@
   <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\TypedDataLayer\TypedDataLayer.csproj">
-      <Project>{bdc551c5-8840-4c4f-88da-093aeb6ef611}</Project>
+      <Project>{86a9c472-70ea-4dd1-b36e-5276c754e720}</Project>
       <Name>TypedDataLayer</Name>
     </ProjectReference>
   </ItemGroup>

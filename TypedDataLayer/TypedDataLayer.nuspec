@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>TypedDataLayer</id>
-    <version>0.0.0.0</version>
+	  <version>0.0.0.0</version>
 	  <title>TypedDataLayer</title>
 	  <authors>Sam Rueby, William Gross, Greg Smalter</authors>
 	  <owners>Sam Rueby</owners>
@@ -13,20 +13,29 @@
 	  <tags>DAL Database Data SQL O/RM ORM ADO.NET Typed EWL TypeDataLayer</tags>
 	  <language>en-US</language>
 	  <dependencies>
-		  <group targetFramework=".NETFramework4.5.1">
+		  <group targetFramework=".NETFramework4.6.1">
 			  <dependency id="JetBrains.Annotations" version="10.3.0" exclude="Build,Analyzers" />
-			  <dependency id="MiniProfiler" version="3.2.0.157" exclude="Build,Analyzers" />
+			  <dependency id="MiniProfiler.AspNetCore.Mvc" version="4.0.0" exclude="Build,Analyzers" />
+			  <dependency id="System.Configuration.ConfigurationManager" version="4.5.0" exclude="Build,Analyzers" />
+			  <dependency id="System.Data.SqlClient" version="4.4.0" exclude="Build,Analyzers" />
+		  </group>
+		  <group targetFramework=".netcoreapp2.1">
+			  <dependency id="JetBrains.Annotations" version="10.3.0" exclude="Build,Analyzers" />
+			  <dependency id="MiniProfiler.AspNetCore.Mvc" version="4.0.0" exclude="Build,Analyzers" />
+			  <dependency id="System.Configuration.ConfigurationManager" version="4.5.0" exclude="Build,Analyzers" />
+			  <dependency id="System.Data.SqlClient" version="4.4.0" exclude="Build,Analyzers" />
 		  </group>
 	  </dependencies>
   </metadata>
   <files>
-    <file src="bin\$configuration$\TypedDataLayer.dll" target="lib\net451\" />
-    <file src="bin\$configuration$\TypedDataLayer.pdb" target="lib\net451\" />
-    <file src="bin\$configuration$\TypedDataLayer.xml" target="lib\net451\" />
+    <file src="bin\$configuration$\net461\TypedDataLayer.dll" target="lib\net461\" />
+    <file src="bin\$configuration$\net461\TypedDataLayer.pdb" target="lib\net461\" />
+    <file src="bin\$configuration$\net461\TypedDataLayer.xml" target="lib\net461\" />
+    <file src="bin\$configuration$\netcoreapp2.1\TypedDataLayer.dll" target="lib\netcoreapp2.1\" />
+    <file src="bin\$configuration$\netcoreapp2.1\TypedDataLayer.pdb" target="lib\netcoreapp2.1\" />
+    <file src="bin\$configuration$\netcoreapp2.1\TypedDataLayer.xml" target="lib\netcoreapp2.1\" />
     <file src="..\CommandRunner\bin\$configuration$\*" target="CommandRunner\" />
     <file src="readme.txt" target="" />
-    <file src="..\CommandRunner\XML Schemas\TypedDataLayerConfig.xsd" target="content\TypedDataLayerConfig.xsd" />
-    <file src="..\CommandRunner\XML Schemas\Examples\TypedDataLayerConfig.xml" target="Examples\TypedDataLayerConfig.xml" />
     <file src="..\CommandRunner\Package Manager Console\Commands.ps1" target="tools\Init.ps1" />
   </files>
 </package>
