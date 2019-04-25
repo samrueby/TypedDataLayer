@@ -9,15 +9,17 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 	/// </summary>
 	public class InlineInsert: InlineDbModificationCommand {
 		private readonly string table;
-		private readonly int? timeout;
+        private readonly bool tableIsAutoIncrement;
+        private readonly int? timeout;
 		private readonly List<InlineDbCommandColumnValue> columnModifications = new List<InlineDbCommandColumnValue>();
 
 		/// <summary>
 		/// Create a command to insert a row in the given table.
 		/// </summary>
-		public InlineInsert( string table, int? timeout ) {
+		public InlineInsert( string table, bool tableIsAutoIncrement, int? timeout ) {
 			this.table = table;
-			this.timeout = timeout;
+            this.tableIsAutoIncrement = tableIsAutoIncrement;
+            this.timeout = timeout;
 		}
 
 		/// <summary>
@@ -59,7 +61,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 				cmd.CommandTimeout = timeout.Value;
 			cn.ExecuteNonQueryCommand( cmd );
 
-			if( !cn.DatabaseInfo.LastAutoIncrementValueExpression.Any() )
+			if( !tableIsAutoIncrement || !cn.DatabaseInfo.LastAutoIncrementValueExpression.Any() )
 				return null;
 
 			var autoIncrementRetriever = cn.DatabaseInfo.CreateCommand( timeout );
