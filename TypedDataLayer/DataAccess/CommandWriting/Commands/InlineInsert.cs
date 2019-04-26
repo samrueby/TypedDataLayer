@@ -9,8 +9,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 	/// </summary>
 	public class InlineInsert: InlineDbModificationCommand {
 		private readonly string table;
-        private readonly bool tableIsAutoIncrement;
-        private readonly int? timeout;
+		private readonly bool tableIsAutoIncrement;
+		private readonly int? timeout;
 		private readonly List<InlineDbCommandColumnValue> columnModifications = new List<InlineDbCommandColumnValue>();
 
 		/// <summary>
@@ -18,8 +18,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		/// </summary>
 		public InlineInsert( string table, bool tableIsAutoIncrement, int? timeout ) {
 			this.table = table;
-            this.tableIsAutoIncrement = tableIsAutoIncrement;
-            this.timeout = timeout;
+			this.tableIsAutoIncrement = tableIsAutoIncrement;
+			this.timeout = timeout;
 		}
 
 		/// <summary>
