@@ -25,6 +25,7 @@ Global
 		{A81039DF-DEF4-40B8-A770-6DD3450E0961}.Debug-TypedDataLayer|Any CPU.ActiveCfg = Debug-TypedDataLayer|Any CPU
 		{A81039DF-DEF4-40B8-A770-6DD3450E0961}.Debug-TypedDataLayer|Any CPU.Build.0 = Debug-TypedDataLayer|Any CPU
 		{A81039DF-DEF4-40B8-A770-6DD3450E0961}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A81039DF-DEF4-40B8-A770-6DD3450E0961}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
