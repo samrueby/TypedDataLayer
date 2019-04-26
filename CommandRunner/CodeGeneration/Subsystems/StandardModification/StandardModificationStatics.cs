@@ -454,7 +454,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 					DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".GetUserTransactionId() );" );
 			}
 
-			writer.WriteLine( $@"var insert = new {TypeNames.InlineInsert}( ""{tableName}"", {identityColumn != null}, {commandTimeoutSeconds?.ToString() ?? "null"} );" );
+			writer.WriteLine( $@"var insert = new {TypeNames.InlineInsert}( ""{tableName}"", {( identityColumn != null ).ToString().ToLower()}, {commandTimeoutSeconds?.ToString() ?? "null"} );" );
 			writer.WriteLine( "addColumnModifications( insert );" );
 			if( identityColumn != null ) {
 				// One reason the ChangeType call is necessary: SQL Server identities always come back as decimal, and you can't cast a boxed decimal to an int.
