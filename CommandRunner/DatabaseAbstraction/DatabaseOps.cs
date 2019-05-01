@@ -23,6 +23,6 @@ namespace CommandRunner.DatabaseAbstraction {
 		/// <summary>
 		/// Gets the tables in the specified database, ordered by name.
 		/// </summary>
-		public static IEnumerable<string> GetDatabaseTables( IDatabase database ) => database.GetTables().OrderBy( i => i );
+		public static IEnumerable<Table> GetDatabaseTables( IDatabase database ) => database.GetTables().OrderBy( i => i.Schema ).ThenBy( i => i.Name );
 	}
 }

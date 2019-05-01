@@ -68,17 +68,17 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 				} );
 		}
 
-		List<string> IDatabase.GetTables() {
-			var tables = new List<string>();
+		List<Table> IDatabase.GetTables() {
+			var tables = new List<Table>();
 			ExecuteDbMethod(
 				cn => {
 					var command = cn.DatabaseInfo.CreateCommand( null );
-					command.CommandText = "SELECT ( CASE TABLE_SCHEMA WHEN 'dbo' THEN '' ELSE TABLE_SCHEMA + '.' END ) + TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE Table_Type = 'Base Table'";
+					command.CommandText = "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE Table_Type = 'Base Table'";
 					cn.ExecuteReaderCommand(
 						command,
 						reader => {
 							while( reader.Read() )
-								tables.Add( reader.GetString( 0 ) );
+								tables.Add( new Table( reader.GetString( 0 ), reader.GetString( 1 ) ) );
 						} );
 				} );
 			return tables;

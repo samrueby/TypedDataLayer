@@ -63,8 +63,8 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 				} );
 		}
 
-		List<string> IDatabase.GetTables() {
-			var tables = new List<string>();
+		List<Table> IDatabase.GetTables() {
+			var tables = new List<Table>();
 			ExecuteDbMethod(
 				cn => {
 					var command = cn.DatabaseInfo.CreateCommand( null );
@@ -73,7 +73,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 						command,
 						reader => {
 							while( reader.Read() )
-								tables.Add( reader.GetString( 0 ) );
+								tables.Add( new Table( "", reader.GetString( 0 ) ) );
 						} );
 				} );
 			return tables;

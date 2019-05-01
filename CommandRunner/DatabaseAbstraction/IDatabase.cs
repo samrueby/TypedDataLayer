@@ -15,7 +15,7 @@ namespace CommandRunner.DatabaseAbstraction {
 		void UpdateLineMarker( int value );
 
 		// Other
-		List<string> GetTables();
+		List<Table> GetTables();
 
 		List<string> GetProcedures();
 		List<ProcedureParameter> GetProcedureParameters( string procedure );
