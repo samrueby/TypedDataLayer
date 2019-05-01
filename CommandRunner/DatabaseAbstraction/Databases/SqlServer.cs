@@ -73,7 +73,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			ExecuteDbMethod(
 				cn => {
 					var command = cn.DatabaseInfo.CreateCommand( null );
-					command.CommandText = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE Table_Type = 'Base Table'";
+					command.CommandText = "SELECT ( CASE TABLE_SCHEMA WHEN 'dbo' THEN '' ELSE TABLE_SCHEMA + '.' END ) + TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE Table_Type = 'Base Table'";
 					cn.ExecuteReaderCommand(
 						command,
 						reader => {
