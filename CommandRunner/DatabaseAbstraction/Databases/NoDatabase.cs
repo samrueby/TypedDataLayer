@@ -16,7 +16,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			throw new NotSupportedException();
 		}
 
-		List<string> IDatabase.GetTables() {
+		List<Table> IDatabase.GetTables() {
 			throw new NotSupportedException();
 		}
 

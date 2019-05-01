@@ -87,6 +87,7 @@
     <Compile Include="DatabaseAbstraction\Databases\Oracle.cs" />
     <Compile Include="DatabaseAbstraction\Databases\SqlServer.cs" />
     <Compile Include="DatabaseAbstraction\ProcedureParameter.cs" />
+    <Compile Include="DatabaseAbstraction\Table.cs" />
     <Compile Include="DatabaseAbstraction\ValueContainer.cs" />
     <Compile Include="Exceptions\UserCorrectableException.cs" />
     <Compile Include="Operations\ExecuteDatabaseUpdatesScript.cs" />

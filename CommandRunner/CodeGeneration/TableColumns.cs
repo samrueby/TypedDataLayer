@@ -33,16 +33,13 @@ namespace CommandRunner.CodeGeneration {
 		/// </summary>
 		internal IEnumerable<Column> DataColumns => dataColumns;
 
-		internal TableColumns( DBConnection cn, string table, bool forRevisionHistoryLogic ) {
+		internal TableColumns( DBConnection cn, string tableIdentifier, bool forRevisionHistoryLogic ) {
 			try {
 				// NOTE: Cache this result.
-				AllColumns = Column.GetColumnsInQueryResults( cn, "SELECT * FROM " + table, true );
+				AllColumns = Column.GetColumnsInQueryResults( cn, "SELECT * FROM " + tableIdentifier, true );
 
 				foreach( var col in AllColumns ) {
-					// This hack allows code to be generated against a database that is configured for ASP.NET Application Services.
-					var isAspNetApplicationServicesTable = table.StartsWith( "aspnet_" );
-
-					if( !( cn.DatabaseInfo is OracleInfo ) && col.DataTypeName == typeof( string ).ToString() && col.AllowsNull && !isAspNetApplicationServicesTable )
+					if( !( cn.DatabaseInfo is OracleInfo ) && col.DataTypeName == typeof( string ).ToString() && col.AllowsNull )
 						throw new UserCorrectableException( $"String column {col.Name} allows null, which is not allowed." );
 				}
 
@@ -60,6 +57,7 @@ namespace CommandRunner.CodeGeneration {
 						nonIdentityColumns.Add( col );
 					}
 				}
+
 				if( !keyColumns.Any() )
 					throw new ApplicationException( "The table must contain a primary key or other means of uniquely identifying a row." );
 
@@ -85,10 +83,10 @@ namespace CommandRunner.CodeGeneration {
 				dataColumns = AllColumns.Where( col => !col.IsIdentity && !col.IsRowVersion && col != primaryKeyAndRevisionIdColumn ).ToArray();
 			}
 			catch( UserCorrectableException e ) {
-				throw new UserCorrectableException( $"There was a problem getting columns for table {table}.", e );
+				throw new UserCorrectableException( $"There was a problem getting columns for table {tableIdentifier}.", e );
 			}
 			catch( Exception e ) {
-				throw new ApplicationException( $"An exception occurred while getting columns for table {table}.", e );
+				throw new ApplicationException( $"An exception occurred while getting columns for table {tableIdentifier}.", e );
 			}
 		}
 	}

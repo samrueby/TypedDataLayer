@@ -57,21 +57,21 @@ namespace CommandRunner.Operations {
 
 		private static void generateDataAccessCodeForDatabase(
 			Logger log, IDatabase database, string libraryBasePath, TextWriter writer, string baseNamespace, SystemDevelopmentConfiguration configuration ) {
-			var tableNames = DatabaseOps.GetDatabaseTables( database );
+			var tables = DatabaseOps.GetDatabaseTables( database );
 
 			if( configuration.database == null ) {
 				log.Info( $"Configuration is missing the <{nameof( configuration.database )}> element." );
 				return;
 			}
 
-			ensureTablesExist( tableNames, configuration.database.SmallTables, "small" );
-			ensureTablesExist( tableNames, configuration.database.TablesUsingRowVersionedDataCaching, "row-versioned data caching" );
-			ensureTablesExist( tableNames, configuration.database.revisionHistoryTables, "revision history" );
+			ensureTablesExist( tables, configuration.database.SmallTables, "small" );
+			ensureTablesExist( tables, configuration.database.TablesUsingRowVersionedDataCaching, "row-versioned data caching" );
+			ensureTablesExist( tables, configuration.database.revisionHistoryTables, "revision history" );
 
-			ensureTablesExist( tableNames, configuration.database.WhitelistedTables, "whitelisted" );
-			tableNames =
-				tableNames.Where(
-					table => configuration.database.WhitelistedTables == null || configuration.database.WhitelistedTables.Any( i => i.EqualsIgnoreCase( table ) ) );
+			ensureTablesExist( tables, configuration.database.WhitelistedTables, "whitelisted" );
+			tables =
+				tables.Where(
+					table => configuration.database.WhitelistedTables == null || configuration.database.WhitelistedTables.Any( i => i.EqualsIgnoreCase( table.ObjectIdentifier ) ) );
 
 			database.ExecuteDbMethod(
 				cn => {
@@ -80,7 +80,7 @@ namespace CommandRunner.Operations {
 
 					// database logic access - standard
 					writer.WriteLine();
-					TableConstantStatics.Generate( cn, writer, baseNamespace, database, tableNames );
+					TableConstantStatics.Generate( cn, writer, baseNamespace, database, tables );
 
 					// database logic access - custom
 					writer.WriteLine();
@@ -88,25 +88,25 @@ namespace CommandRunner.Operations {
 
 					// retrieval and modification commands - standard
 					writer.WriteLine();
-					CommandConditionStatics.Generate( cn, writer, baseNamespace, database, tableNames );
+					CommandConditionStatics.Generate( cn, writer, baseNamespace, database, tables );
 
 					writer.WriteLine();
 					var tableRetrievalNamespaceDeclaration = TableRetrievalStatics.GetNamespaceDeclaration( baseNamespace, database );
-					TableRetrievalStatics.Generate( cn, writer, tableRetrievalNamespaceDeclaration, database, tableNames, configuration.database );
+					TableRetrievalStatics.Generate( cn, writer, tableRetrievalNamespaceDeclaration, database, tables, configuration.database );
 
 					writer.WriteLine();
 					var modNamespaceDeclaration = StandardModificationStatics.GetNamespaceDeclaration( baseNamespace, database );
-					StandardModificationStatics.Generate( cn, writer, modNamespaceDeclaration, database, tableNames, configuration.database );
+					StandardModificationStatics.Generate( cn, writer, modNamespaceDeclaration, database, tables, configuration.database );
 
-					foreach( var tableName in tableNames ) {
-						TableRetrievalStatics.WritePartialClass( cn, libraryBasePath, tableRetrievalNamespaceDeclaration, database, tableName );
+					foreach( var table in tables ) {
+						TableRetrievalStatics.WritePartialClass( cn, libraryBasePath, tableRetrievalNamespaceDeclaration, database, table );
 						StandardModificationStatics.WritePartialClass(
 							cn,
 							libraryBasePath,
 							modNamespaceDeclaration,
 							database,
-							tableName,
-							DataAccessStatics.IsRevisionHistoryTable( tableName, configuration.database ) );
+							table,
+							DataAccessStatics.IsRevisionHistoryTable( table.Name, configuration.database ) );
 					}
 
 					// retrieval and modification commands - custom
@@ -125,10 +125,10 @@ namespace CommandRunner.Operations {
 				} );
 		}
 
-		private static void ensureTablesExist( IEnumerable<string> databaseTables, IEnumerable<string> specifiedTables, string tableAdjective ) {
+		private static void ensureTablesExist( IEnumerable<Table> databaseTables, IEnumerable<string> specifiedTables, string tableAdjective ) {
 			if( specifiedTables == null )
 				return;
-			var nonexistentTables = specifiedTables.Where( specifiedTable => databaseTables.All( i => !i.EqualsIgnoreCase( specifiedTable ) ) ).ToList();
+			var nonexistentTables = specifiedTables.Where( specifiedTable => databaseTables.All( i => !i.ObjectIdentifier.EqualsIgnoreCase( specifiedTable ) ) ).ToList();
 			if( nonexistentTables.Any() )
 				throw new UserCorrectableException(
 					$"{tableAdjective.CapitalizeString()} {( nonexistentTables.Count > 1 ? "tables" : "table" )} {StringTools.GetEnglishListPhrase( nonexistentTables.Select( i => "'" + i + "'" ), true )} {( nonexistentTables.Count > 1 ? "do" : "does" )} not exist." );

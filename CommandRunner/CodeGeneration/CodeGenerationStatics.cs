@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using CommandRunner.DatabaseAbstraction;
 
 namespace CommandRunner.CodeGeneration {
 	internal static class CodeGenerationStatics {
@@ -30,6 +32,13 @@ namespace CommandRunner.CodeGeneration {
 			writer.WriteLine( begin );
 			a();
 			writer.WriteLine( "}" );
+		}
+
+		internal static void WrapInTableNamespaceIfNecessary( this TextWriter writer, Table table, Action a ) {
+			if( table.Schema.Any() )
+				CodeBlock( writer, $"namespace {table.Schema} {{", a );
+			else
+				a();
 		}
 	}
 }
