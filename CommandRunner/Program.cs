@@ -34,7 +34,9 @@ namespace CommandRunner {
 			log.Info( "Current working directory: " + workingDirectory );
 			log.Info( "Running " + command );
 
+			var sw = new Stopwatch();
 			try {
+				sw.Start();
 				var configurationFiles = findConfigFiles( workingDirectory );
 				if( configurationFiles.Any() ) {
 					foreach( var config in configurationFiles ) {
@@ -69,7 +71,7 @@ namespace CommandRunner {
 				return 2;
 			}
 			finally {
-				log.Info( "Done." );
+				log.Info( $"Done in {sw.Elapsed.TotalSeconds:G0} seconds." );
 			}
 			return 0;
 		}

@@ -13,7 +13,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			foreach( var table in tableNames ) {
 				writer.WrapInTableNamespaceIfNecessary( table, () => {
 					// Write the interface for all of the table's conditions.
-					writer.WriteLine( $"public interface {table.GetTableConditionInterfaceDeclaration( cn )}: TableCondition {{}}" );
+					writer.WriteLine( $"public interface {table.GetTableConditionInterfaceDeclaration()}: TableCondition {{}}" );
 
 					writeEqualityConditionClasses( cn, writer, table );
 					writeInequalityConditionClasses( cn, writer, table );
@@ -25,10 +25,10 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		}
 
 		private static void writeEqualityConditionClasses( DBConnection cn, TextWriter writer, Table table ) {
-			writer.WriteLine( $"public static class {table.GetTableEqualityConditionsClassDeclaration( cn )} {{" );
+			writer.WriteLine( $"public static class {table.GetTableEqualityConditionsClassDeclaration()} {{" );
 			foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
-				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference( cn )} {{" );
+				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference()} {{" );
 				writer.WriteLine( "private readonly " + column.DataTypeName + " value;" );
 
 				CodeGenerationStatics.AddSummaryDocComment( writer, "Creates a condition to narrow the scope of a command." );
@@ -49,7 +49,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.Name.TableNameToPascal( cn ) + "TableInequalityConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
-				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference( cn )} {{" );
+				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference()} {{" );
 				writer.WriteLine( "private readonly InequalityCondition.Operator op; " );
 				writer.WriteLine( "private readonly " + column.DataTypeName + " value;" );
 
@@ -72,7 +72,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.Name.TableNameToPascal( cn ) + "TableInConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
-				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference( cn )} {{" );
+				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference()} {{" );
 				writer.WriteLine( "private readonly string subQuery;" );
 
 				CodeGenerationStatics.AddSummaryDocComment( writer, "Creates a condition to narrow the scope of a command." );
@@ -91,7 +91,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.Name.TableNameToPascal( cn ) + "TableLikeConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
-				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference( cn )} {{" );
+				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference()} {{" );
 				writer.WriteLine( "private readonly LikeCondition.Behavior behavior; " );
 				writer.WriteLine( "private readonly string value;" );
 

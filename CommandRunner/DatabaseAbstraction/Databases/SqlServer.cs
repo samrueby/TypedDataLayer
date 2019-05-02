@@ -78,7 +78,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 						command,
 						reader => {
 							while( reader.Read() )
-								tables.Add( new Table( reader.GetString( 0 ), reader.GetString( 1 ) ) );
+								tables.Add( new Table( cn, reader.GetString( 0 ), reader.GetString( 1 ) ) );
 						} );
 				} );
 			return tables;

@@ -9,6 +9,8 @@ namespace CommandRunner.DatabaseAbstraction {
 	/// Represents a table and, optionally, its schema.
 	/// </summary>
 	public class Table {
+		private readonly DBConnection cn;
+
 		/// <summary>
 		/// Maybe be blank.
 		/// </summary>
@@ -27,7 +29,8 @@ namespace CommandRunner.DatabaseAbstraction {
 		/// <summary>
 		/// Create a table representation with the given schema and name. Schema may be blank.
 		/// </summary>
-		public Table( string schema, string name ) {
+		public Table( DBConnection cn, string schema, string name ) {
+			this.cn = cn;
 			Schema = schema;
 			Name = name;
 		}
@@ -35,40 +38,52 @@ namespace CommandRunner.DatabaseAbstraction {
 		/// <summary>
 		/// Simply the name of the standard modification class, to be used in class declarations. Not to be used to refer to the class, as when declaring a variable of its type.
 		/// </summary>
-		public string GetStandardModificationClassDeclaration( DBConnection cn ) {
+		public string GetStandardModificationClassDeclaration() {
 			return Utility.GetCSharpIdentifier( Name.TableNameToPascal( cn ) + "Modification" );
 		}
 
 		/// <summary>
 		/// A qualified reference to the class, including necessary namespaces prefixes. To be used when declaring a variable of this type.
 		/// </summary>
-		public string GetStandardModificationClassReference( DBConnection cn ) {
-			if( Schema.Any() )
-				return Utility.GetCSharpIdentifier( $"{Schema.TableNameToPascal( cn )}.{Name.TableNameToPascal( cn )}Modification" );
-			return GetStandardModificationClassDeclaration( cn );
+		public string GetStandardModificationClassReference() {
+			return getSchemaNamespacePrefix() + GetStandardModificationClassDeclaration();
 		}
 
 		/// <summary>
 		/// A qualified reference to the class, including necessary namespaces prefixes. To be used when declaring a variable of this type.
 		/// </summary>
-		internal string GetTableConditionInterfaceReference( DBConnection cn ) =>
-			$"{CommandConditionStatics.CommandConditionsNamespace}.{GetTableConditionInterfaceDeclaration( cn )}";
+		internal string GetTableConditionInterfaceReference() =>
+			$"{CommandConditionStatics.CommandConditionsNamespace}.{getSchemaNamespacePrefix()}{GetTableConditionInterfaceDeclaration()}";
 
 		/// <summary>
 		/// A qualified reference to the class, including necessary namespaces prefixes. To be used when declaring a variable of this type.
 		/// </summary>
-		internal string GetEqualityConditionClassReference( DBConnection cn,  Column column ) =>
-			$"{CommandConditionStatics.CommandConditionsNamespace}.{GetTableEqualityConditionsClassDeclaration( cn )}.{CommandConditionStatics.GetConditionClassName( column )}";
+		internal string GetEqualityConditionClassReference( DBConnection cn, Column column ) =>
+			$"{CommandConditionStatics.CommandConditionsNamespace}.{getSchemaNamespacePrefix()}{GetTableEqualityConditionsClassDeclaration()}.{CommandConditionStatics.GetConditionClassName( column )}";
+
+		private string getSchemaNamespacePrefix() {
+			return Schema.Any() ? Schema.TableNameToPascal( cn ) + "." : "";
+		}
 
 		/// <summary>
 		/// Simply the name of the table condition interface, to be used in interface declaration. Not to be used to refer to the interface, as when declaring a variable of its type.
 		/// </summary>
-		internal string GetTableConditionInterfaceDeclaration( DBConnection cn ) => Name.TableNameToPascal( cn ) + "TableCondition";
+		internal string GetTableConditionInterfaceDeclaration() => Name.TableNameToPascal( cn ) + "TableCondition";
 
 		/// <summary>
 		/// Simply the name of the equality conditions class, to be used in class declarations. Not to be used to refer to the class, as when declaring a variable of its type.
 		/// </summary>
-		internal string GetTableEqualityConditionsClassDeclaration( DBConnection cn ) =>
+		internal string GetTableEqualityConditionsClassDeclaration() =>
 			Utility.GetCSharpIdentifier( Name.TableNameToPascal( cn ) + "TableEqualityConditions" );
+
+		/// <summary>
+		/// A qualified reference to the class, including necessary namespaces prefixes. To be used when declaring a variable of this type.
+		/// </summary>
+		internal string GetTableRetrievalClassReference() => getSchemaNamespacePrefix() + Utility.GetCSharpIdentifier( Name.TableNameToPascal( cn ) + "TableRetrieval" );
+
+		/// <summary>
+		/// Simply the name of the table retrieval class, to be used in class declaration. Not to be used to refer to the class, as when declaring a variable of its type.
+		/// </summary>
+		internal string GetTableRetrievalClassDeclaration() => Utility.GetCSharpIdentifier( Name.TableNameToPascal( cn ) + "TableRetrieval" );
 	}
 }

@@ -23,7 +23,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				try {
 					CodeGenerationStatics.AddSummaryDocComment( writer, "Contains logic that retrieves rows from the " + table + " table." );
 					writer.WrapInTableNamespaceIfNecessary( table, () => {
-					writer.WriteLine( "public static partial class " + GetClassName( cn, table.Name ) + " {" );
+					writer.WriteLine( $"public static partial class {table.GetTableRetrievalClassDeclaration()} {{" );
 
 					var isRevisionHistoryTable = DataAccessStatics.IsRevisionHistoryTable( table.Name, configuration );
 					var columns = new TableColumns( cn, table.ObjectIdentifier, isRevisionHistoryTable );
@@ -43,7 +43,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 							if( !columns.DataColumns.Any() )
 								return;
 
-							var modClass = "Modification." + table.GetStandardModificationClassReference( cn );
+							var modClass = "Modification." + table.GetStandardModificationClassReference();
 							var revisionHistorySuffix = StandardModificationStatics.GetRevisionHistorySuffix( isRevisionHistoryTable );
 							writer.WriteLine( "public " + modClass + " ToModification" + revisionHistorySuffix + "() {" );
 							writer.WriteLine(
@@ -135,13 +135,18 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "}" ); // namespace
 		}
 
+		private static string getClassFileNameWithoutExtension( Table table ) {
+			return table.GetTableRetrievalClassReference();
+		}
+
+
 		internal static void WritePartialClass( DBConnection cn, string libraryBasePath, string namespaceDeclaration, IDatabase database, Table table ) {
 			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "TableRetrieval" );
-			var templateFilePath = Utility.CombinePaths( folderPath, GetClassName( cn, table.Name ) + DataAccessStatics.CSharpTemplateFileExtension );
+			var templateFilePath = Utility.CombinePaths( folderPath, getClassFileNameWithoutExtension( table ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
 
 			// If a real file exists, don't create a template.
-			if( File.Exists( Utility.CombinePaths( folderPath, GetClassName( cn, table.Name ) + ".cs" ) ) )
+			if( File.Exists( Utility.CombinePaths( folderPath, getClassFileNameWithoutExtension( table ) + ".cs" ) ) )
 				return;
 
 			using( var writer = IoMethods.GetTextWriterForWrite( templateFilePath ) ) {
@@ -149,7 +154,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WrapInTableNamespaceIfNecessary(
 					table,
 					() => {
-						writer.WriteLine( "	partial class " + GetClassName( cn, table.Name ) + " {" );
+						writer.WriteLine( $"\tpartial class {table.GetTableRetrievalClassDeclaration()} {{" );
 						writer.WriteLine(
 							"		// IMPORTANT: Change extension from \"{0}\" to \".cs\" before including in project and editing.".FormatWith(
 								DataAccessStatics.CSharpTemplateFileExtension ) );
@@ -158,8 +163,6 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "}" ); // table retrieval namespace
 			}
 		}
-
-		internal static string GetClassName( DBConnection cn, string table ) => Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableRetrieval" );
 
 		private static void writeCacheClass(
 			DBConnection cn, TextWriter writer, IDatabase database, Table table, TableColumns tableColumns, bool isRevisionHistoryTable ) {
@@ -201,7 +204,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer,
 				"Retrieves the rows from the table that match the specified conditions, ordered in a stable way." +
 				( isSmallTable ? " Since the table is specified as small, you should only use this method if you cannot filter the rows in code." : "" ) );
-			writer.WriteLine( $"public static IEnumerable<Row> {methodName}( params {table.GetTableConditionInterfaceReference( cn )}[] conditions ) {{" );
+			writer.WriteLine( $"public static IEnumerable<Row> {methodName}( params {table.GetTableConditionInterfaceReference()}[] conditions ) {{" );
 
 
 			// body
@@ -335,7 +338,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 						writer.WriteLine( "var singleRowCommand = {0};".FormatWith( getInlineSelectExpression( table, tableColumns, "\"*\"", "false", commandTimeoutSeconds ) ) );
 						foreach( var i in tableColumns.KeyColumns.Select( ( c, i ) => new { column = c, index = i } ) ) {
 							writer.WriteLine(
-								$"singleRowCommand.AddCondition( ( ({table.GetTableConditionInterfaceReference(cn)})new {table.GetEqualityConditionClassReference(cn,i.column)}( key.Item{i.index + 1} ) ).CommandCondition );" );
+								$"singleRowCommand.AddCondition( ( ({table.GetTableConditionInterfaceReference()})new {table.GetEqualityConditionClassReference(cn,i.column)}( key.Item{i.index + 1} ) ).CommandCondition );" );
 						}
 						writer.WriteLine( "var singleRowResults = new List<BasicRow>();" );
 						writer.WriteLine(

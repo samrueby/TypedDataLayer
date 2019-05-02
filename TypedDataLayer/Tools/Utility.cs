@@ -54,6 +54,7 @@ namespace TypedDataLayer.Tools {
 			if( Regex.IsMatch( s, @"^[^\p{L}\p{Nl}_]" ) )
 				s = "_" + s;
 
+			// The @ prefix tells the compiler to interpret the following string as an identifier instead of as a keyword. This is important if there is a table called 'new', for example.
 			return "@" + s;
 		}
 

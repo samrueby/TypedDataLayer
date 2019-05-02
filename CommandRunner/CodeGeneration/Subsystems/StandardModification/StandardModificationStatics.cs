@@ -53,7 +53,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				templateWriter.WrapInTableNamespaceIfNecessary(
 					table,
 					() => {
-						templateWriter.WriteLine( $"\tpartial class {table.GetStandardModificationClassDeclaration( cn )} {{" );
+						templateWriter.WriteLine( $"\tpartial class {table.GetStandardModificationClassDeclaration()} {{" );
 						templateWriter.WriteLine(
 							"		// IMPORTANT: Change extension from \"{0}\" to \".cs\" before including in project and editing.".FormatWith(
 								DataAccessStatics.CSharpTemplateFileExtension ) );
@@ -66,7 +66,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 		private static void writeClass( DBConnection cn, Table table, bool isRevisionHistoryTable, bool isRevisionHistoryClass, int? commandTimeoutSeconds ) {
 			columns = new TableColumns( cn, table.ObjectIdentifier, isRevisionHistoryClass );
 
-			writer.WriteLine( $"public partial class {table.GetStandardModificationClassDeclaration( cn )} {{" );
+			writer.WriteLine( $"public partial class {table.GetStandardModificationClassDeclaration()} {{" );
 
 			var revisionHistorySuffix = GetRevisionHistorySuffix( isRevisionHistoryClass );
 
@@ -79,10 +79,10 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writeDeleteRowsMethod( cn, table, revisionHistorySuffix + "WithoutAdditionalLogic", false );
 			writePrivateDeleteRowsMethod( cn, table, isRevisionHistoryClass, commandTimeoutSeconds );
 			writer.WriteLine(
-				$"static partial void preDelete( List<{table.GetTableConditionInterfaceReference( cn )}> conditions, ref {getPostDeleteCallClassName( cn, table )} postDeleteCall );" );
+				$"static partial void preDelete( List<{table.GetTableConditionInterfaceReference()}> conditions, ref {getPostDeleteCallClassName( cn, table )} postDeleteCall );" );
 
 			writer.WriteLine( "private ModificationType modType;" );
-			writer.WriteLine( $"private List<{table.GetTableConditionInterfaceReference( cn )}> conditions;" );
+			writer.WriteLine( $"private List<{table.GetTableConditionInterfaceReference()}> conditions;" );
 
 			foreach( var column in columns.AllColumnsExceptRowVersion )
 				writeFieldsAndPropertiesForColumn( column );
@@ -96,7 +96,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			if( columns.DataColumns.Any() )
 				writeCreateForSingleRowUpdateMethod( cn, table, isRevisionHistoryTable, isRevisionHistoryClass, revisionHistorySuffix );
 			writeGetConditionListMethod( cn, table );
-			writer.WriteLine( $"private {table.GetStandardModificationClassReference( cn )}() {{}}" );
+			writer.WriteLine( $"private {table.GetStandardModificationClassDeclaration()}() {{}}" );
 
 			if( columns.DataColumns.Any() )
 				writeSetAllDataMethod();
@@ -204,7 +204,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 		private static void writePrivateDeleteRowsMethod( DBConnection cn, Table table, bool isRevisionHistoryClass, int? commandTimeoutSeconds ) {
 			// NOTE: For revision history tables, we should have the delete method automatically clean up the revisions table (but not user transactions) for us when doing direct-with-revision-bypass deletions.
 
-			writer.WriteLine( $"private static int deleteRows( List<{table.GetTableConditionInterfaceReference( cn )}> conditions ) {{" );
+			writer.WriteLine( $"private static int deleteRows( List<{table.GetTableConditionInterfaceReference()}> conditions ) {{" );
 			if( isRevisionHistoryClass )
 				writer.WriteLine( "return " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".ExecuteInTransaction( () => {" );
 
@@ -231,7 +231,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 		}
 
 		private static string getPostDeleteCallClassName( DBConnection cn, Table table )
-			=> "PostDeleteCall<IEnumerable<TableRetrieval." + TableRetrievalStatics.GetClassName( cn, table.Name ) + ".Row>>";
+			=> "PostDeleteCall<IEnumerable<TableRetrieval." + table.GetTableRetrievalClassReference() + ".Row>>";
 
 		private static void writeFieldsAndPropertiesForColumn( Column column ) {
 			var columnIsReadOnly = !columns.DataColumns.Contains( column );
@@ -264,7 +264,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			CodeGenerationStatics.AddSummaryDocComment(
 				writer,
 				"Creates a modification object in insert mode, which can be used to do a piecemeal insert of a new row in the " + table + " table." );
-			var className = table.GetStandardModificationClassReference( cn );
+			var className = table.GetStandardModificationClassReference();
 			writer.WriteLine( $"public static {className} CreateForInsert{methodNameSuffix}() {{" );
 			writer.WriteLine( $"return new {className} {{ modType = ModificationType.Insert }};" );
 			writer.WriteLine( "}" );
@@ -277,13 +277,13 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer,
 				"Creates a modification object in update mode with the specified conditions, which can be used to do a piecemeal update of the " + table.ObjectIdentifier + " table." );
 			writer.WriteLine(
-				$"public static {table.GetStandardModificationClassReference( cn )} CreateForUpdate{methodNameSuffix}( {getConditionParameterDeclarations( cn, table )} ) {{" );
+				$"public static {table.GetStandardModificationClassReference()} CreateForUpdate{methodNameSuffix}( {getConditionParameterDeclarations( cn, table )} ) {{" );
 
 
 			// body
 
 			writer.WriteLine(
-				$"var mod = new {table.GetStandardModificationClassReference( cn )} {{ modType = ModificationType.Update, conditions = getConditionList( requiredCondition, additionalConditions ) }};" );
+				$"var mod = new {table.GetStandardModificationClassReference()} {{ modType = ModificationType.Update, conditions = getConditionList( requiredCondition, additionalConditions ) }};" );
 
 			// Set column values that correspond to modification conditions to the values of those conditions. One reason this is important is so the primary
 			// key can be retrieved in a consistent way regardless of whether the modification object is an insert or an update.
@@ -308,17 +308,17 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer,
 				"Creates a modification object in single-row update mode with the specified current data. All column values in this object will have HasChanged = false, despite being initialized. This object can then be used to do a piecemeal update of the " +
 				table.ObjectIdentifier + " table." );
-			writer.Write( $"public static {table.GetStandardModificationClassReference( cn )} CreateForSingleRowUpdate{methodNameSuffix}( " );
+			writer.Write( $"public static {table.GetStandardModificationClassReference()} CreateForSingleRowUpdate{methodNameSuffix}( " );
 			writeColumnParameterDeclarations( columns.AllColumnsExceptRowVersion );
 			writer.WriteLine( " ) {" );
 
 
 			// body
 
-			writer.WriteLine( $"var mod = new {table.GetStandardModificationClassReference( cn )} {{ modType = ModificationType.Update }};" );
+			writer.WriteLine( $"var mod = new {table.GetStandardModificationClassReference()} {{ modType = ModificationType.Update }};" );
 
 			// Use the values of key columns as conditions.
-			writer.WriteLine( $"mod.conditions = new List<{table.GetTableConditionInterfaceReference( cn )}>();" );
+			writer.WriteLine( $"mod.conditions = new List<{table.GetTableConditionInterfaceReference()}>();" );
 			foreach( var column in columns.KeyColumns ) {
 				writer.WriteLine(
 					$"mod.conditions.Add( new {table.GetEqualityConditionClassReference( cn, column )}( {Utility.GetCSharpIdentifier( column.CamelCasedName )} ) );" );
@@ -332,8 +332,8 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 		private static void writeGetConditionListMethod( DBConnection cn, Table table ) {
 			writer.WriteLine(
-				$"private static List<{table.GetTableConditionInterfaceReference( cn )}> getConditionList( {getConditionParameterDeclarations( cn, table )} ) {{" );
-			writer.WriteLine( $"var conditions = new List<{table.GetTableConditionInterfaceReference( cn )}>();" );
+				$"private static List<{table.GetTableConditionInterfaceReference()}> getConditionList( {getConditionParameterDeclarations( cn, table )} ) {{" );
+			writer.WriteLine( $"var conditions = new List<{table.GetTableConditionInterfaceReference()}>();" );
 			writer.WriteLine( "conditions.Add( requiredCondition );" );
 			writer.WriteLine( "foreach( var condition in additionalConditions )" );
 			writer.WriteLine( "conditions.Add( condition );" );
@@ -343,7 +343,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 		private static string getConditionParameterDeclarations( DBConnection cn, Table table )
 			=>
-				$"{table.GetTableConditionInterfaceReference( cn )} requiredCondition, params {table.GetTableConditionInterfaceReference( cn )}[] additionalConditions";
+				$"{table.GetTableConditionInterfaceReference()} requiredCondition, params {table.GetTableConditionInterfaceReference()}[] additionalConditions";
 
 		internal static string GetClassFilePath( DBConnection cn, Table table ) {
 			var fileName = table.Name.TableNameToPascal( cn ) + "Modification";
@@ -463,7 +463,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 			// Future calls to Execute should perform updates, not inserts. Use the values of key columns as conditions.
 			writer.WriteLine( "modType = ModificationType.Update;" );
-			writer.WriteLine( $"conditions = new List<{table.GetTableConditionInterfaceReference( cn )}>();" );
+			writer.WriteLine( $"conditions = new List<{table.GetTableConditionInterfaceReference()}>();" );
 			foreach( var column in keyColumns ) {
 				writer.WriteLine(
 					$"conditions.Add( new {table.GetEqualityConditionClassReference( cn, column )}( {Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle )} ) );" );
@@ -507,7 +507,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 		}
 
 		private static void writeCopyLatestRevisionsMethod( DBConnection cn, Table table, IEnumerable<Column> nonIdentityColumns, int? commandTimeoutSeconds ) {
-			writer.WriteLine( $"private static void copyLatestRevisions( List<{table.GetTableConditionInterfaceReference( cn )}> conditions ) {{" );
+			writer.WriteLine( $"private static void copyLatestRevisions( List<{table.GetTableConditionInterfaceReference()}> conditions ) {{" );
 
 			writer.WriteLine( "var revisionHistorySetup = RevisionHistoryStatics.SystemProvider;" );
 
