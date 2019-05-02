@@ -135,18 +135,21 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "}" ); // namespace
 		}
 
-		private static string getClassFileNameWithoutExtension( Table table ) {
-			return table.GetTableRetrievalClassReference();
-		}
+		private static string getClassFilePath( DBConnection cn, Table table ) {
+			var fileName = table.Name.TableNameToPascal( cn ) + "TableRetrieval";
+			if( table.Schema.Any() )
+				return Path.Combine( table.Schema.TableNameToPascal( cn ), fileName );
 
+			return fileName;
+		}
 
 		internal static void WritePartialClass( DBConnection cn, string libraryBasePath, string namespaceDeclaration, IDatabase database, Table table ) {
 			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "TableRetrieval" );
-			var templateFilePath = Utility.CombinePaths( folderPath, getClassFileNameWithoutExtension( table ) + DataAccessStatics.CSharpTemplateFileExtension );
+			var templateFilePath = Utility.CombinePaths( folderPath, getClassFilePath( cn, table ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
 
 			// If a real file exists, don't create a template.
-			if( File.Exists( Utility.CombinePaths( folderPath, getClassFileNameWithoutExtension( table ) + ".cs" ) ) )
+			if( File.Exists( Utility.CombinePaths( folderPath, getClassFilePath( cn, table ) + ".cs" ) ) )
 				return;
 
 			using( var writer = IoMethods.GetTextWriterForWrite( templateFilePath ) ) {
