@@ -6,12 +6,14 @@ using TypedDataLayer.Tools;
 
 namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class CommandConditionStatics {
+		public const string CommandConditionsNamespace = "CommandConditions";
+
 		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, IEnumerable<Table> tableNames ) {
-			writer.WriteLine( "namespace " + baseNamespace + ".CommandConditions {" );
+			writer.WriteLine( $"namespace {baseNamespace}.{CommandConditionsNamespace} {{" );
 			foreach( var table in tableNames ) {
 				writer.WrapInTableNamespaceIfNecessary( table, () => {
 					// Write the interface for all of the table's conditions.
-					writer.WriteLine( "public interface " + GetTableConditionInterfaceName( cn, table.Name ) + ": TableCondition {}" );
+					writer.WriteLine( $"public interface {table.GetTableConditionInterfaceDeclaration( cn )}: TableCondition {{}}" );
 
 					writeEqualityConditionClasses( cn, writer, table );
 					writeInequalityConditionClasses( cn, writer, table );
@@ -23,10 +25,10 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		}
 
 		private static void writeEqualityConditionClasses( DBConnection cn, TextWriter writer, Table table ) {
-			writer.WriteLine( "public static class " + GetTableEqualityConditionsClassName( cn, table.Name ) + " {" );
+			writer.WriteLine( $"public static class {table.GetTableEqualityConditionsClassDeclaration( cn )} {{" );
 			foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
-				writer.WriteLine( "public class " + GetConditionClassName( column ) + ": " + GetTableConditionInterfaceName( cn, table.Name ) + " {" );
+				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference( cn )} {{" );
 				writer.WriteLine( "private readonly " + column.DataTypeName + " value;" );
 
 				CodeGenerationStatics.AddSummaryDocComment( writer, "Creates a condition to narrow the scope of a command." );
@@ -42,15 +44,12 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "}" ); // class
 		}
 
-		internal static string GetTableEqualityConditionsClassName( DBConnection cn, string table )
-			=> Utility.GetCSharpIdentifier( table.TableNameToPascal( cn ) + "TableEqualityConditions" );
-
 		private static void writeInequalityConditionClasses( DBConnection cn, TextWriter writer, Table table ) {
 			// NOTE: This kind of sucks. It seems like we could use generics to not have to write N of these methods into ISU.cs.
 			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.Name.TableNameToPascal( cn ) + "TableInequalityConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
-				writer.WriteLine( "public class " + GetConditionClassName( column ) + ": " + GetTableConditionInterfaceName( cn, table.Name ) + " {" );
+				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference( cn )} {{" );
 				writer.WriteLine( "private readonly InequalityCondition.Operator op; " );
 				writer.WriteLine( "private readonly " + column.DataTypeName + " value;" );
 
@@ -73,7 +72,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.Name.TableNameToPascal( cn ) + "TableInConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
-				writer.WriteLine( "public class " + GetConditionClassName( column ) + ": " + GetTableConditionInterfaceName( cn, table.Name ) + " {" );
+				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference( cn )} {{" );
 				writer.WriteLine( "private readonly string subQuery;" );
 
 				CodeGenerationStatics.AddSummaryDocComment( writer, "Creates a condition to narrow the scope of a command." );
@@ -92,7 +91,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "public static class " + Utility.GetCSharpIdentifier( table.Name.TableNameToPascal( cn ) + "TableLikeConditions" ) + " {" );
 			foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 				CodeGenerationStatics.AddSummaryDocComment( writer, "A condition that narrows the scope of a command." );
-				writer.WriteLine( "public class " + GetConditionClassName( column ) + ": " + GetTableConditionInterfaceName( cn, table.Name ) + " {" );
+				writer.WriteLine( $"public class {GetConditionClassName( column )}: {table.GetTableConditionInterfaceReference( cn )} {{" );
 				writer.WriteLine( "private readonly LikeCondition.Behavior behavior; " );
 				writer.WriteLine( "private readonly string value;" );
 
@@ -109,9 +108,6 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			}
 			writer.WriteLine( "}" ); // class
 		}
-
-		// GMS NOTE: Now that table is an object, these methods could be on the Table object.
-		internal static string GetTableConditionInterfaceName( DBConnection cn, string tableName ) => tableName.TableNameToPascal( cn ) + "TableCondition";
 
 		internal static string GetConditionClassName( Column column )
 			=> Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle == "Value" ? "_Value" : column.PascalCasedNameExceptForOracle );

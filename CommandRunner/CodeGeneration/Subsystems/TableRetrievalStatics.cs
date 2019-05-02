@@ -43,7 +43,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 							if( !columns.DataColumns.Any() )
 								return;
 
-							var modClass = "Modification." + StandardModificationStatics.GetClassName( cn, table.Name, isRevisionHistoryTable, isRevisionHistoryTable );
+							var modClass = "Modification." + table.GetStandardModificationClassReference( cn );
 							var revisionHistorySuffix = StandardModificationStatics.GetRevisionHistorySuffix( isRevisionHistoryTable );
 							writer.WriteLine( "public " + modClass + " ToModification" + revisionHistorySuffix + "() {" );
 							writer.WriteLine(
@@ -201,16 +201,15 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer,
 				"Retrieves the rows from the table that match the specified conditions, ordered in a stable way." +
 				( isSmallTable ? " Since the table is specified as small, you should only use this method if you cannot filter the rows in code." : "" ) );
-			writer.WriteLine(
-				"public static IEnumerable<Row> " + methodName + "( params " + DataAccessStatics.GetTableConditionInterfaceName( cn, database, table.Name ) + "[] conditions ) {" );
+			writer.WriteLine( $"public static IEnumerable<Row> {methodName}( params {table.GetTableConditionInterfaceReference( cn )}[] conditions ) {{" );
 
 
 			// body
 
 			// If it's a primary key query, use RowsByPk if possible.
 			foreach( var i in tableColumns.KeyColumns ) {
-				var equalityConditionClassName = DataAccessStatics.GetEqualityConditionClassName( cn, database, table.Name, i );
-				writer.WriteLine( "var {0}Condition = conditions.OfType<{1}>().FirstOrDefault();".FormatWith( i.CamelCasedName, equalityConditionClassName ) );
+				var equalityConditionClassName = table.GetEqualityConditionClassReference( cn, i );
+				writer.WriteLine( $"var {i.CamelCasedName}Condition = conditions.OfType<{equalityConditionClassName}>().FirstOrDefault();" );
 			}
 			writer.WriteLine( "var cache = Cache.Current;" );
 			var pkConditionVariableNames = tableColumns.KeyColumns.Select( i => i.CamelCasedName + "Condition" );
@@ -285,9 +284,9 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 					}
 					else {
 						var condition = pkIsId
-							                ? $"new {DataAccessStatics.GetEqualityConditionClassName( cn, database, table.Name, tableColumns.KeyColumns.Single() )}( {id} )"
+							                ? $"new { table.GetEqualityConditionClassReference( cn, tableColumns.KeyColumns.Single() ) }( {id} )"
 							                : ( from keyColumn in tableColumns.KeyColumns
-							                    let className = DataAccessStatics.GetEqualityConditionClassName( cn, database, table.Name, keyColumn )
+							                    let className = table.GetEqualityConditionClassReference( cn, keyColumn )
 							                    select $"new {className}( {keyColumn.CamelCasedName} )" ).GetCommaDelimitedList();
 						writer.WriteLine( $"return GetRows( {condition} ).PrimaryKeySingle({returnNullIfNoMatch});" );
 					}
@@ -336,10 +335,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 						writer.WriteLine( "var singleRowCommand = {0};".FormatWith( getInlineSelectExpression( table, tableColumns, "\"*\"", "false", commandTimeoutSeconds ) ) );
 						foreach( var i in tableColumns.KeyColumns.Select( ( c, i ) => new { column = c, index = i } ) ) {
 							writer.WriteLine(
-								"singleRowCommand.AddCondition( ( ({0})new {1}( key.Item{2} ) ).CommandCondition );".FormatWith(
-									DataAccessStatics.GetTableConditionInterfaceName( cn, database, table.Name ),
-									DataAccessStatics.GetEqualityConditionClassName( cn, database, table.Name, i.column ),
-									i.index + 1 ) );
+								$"singleRowCommand.AddCondition( ( ({table.GetTableConditionInterfaceReference(cn)})new {table.GetEqualityConditionClassReference(cn,i.column)}( key.Item{i.index + 1} ) ).CommandCondition );" );
 						}
 						writer.WriteLine( "var singleRowResults = new List<BasicRow>();" );
 						writer.WriteLine(
