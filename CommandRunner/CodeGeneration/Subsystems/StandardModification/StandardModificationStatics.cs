@@ -41,11 +41,11 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "Modification" );
 			var templateFilePath = Utility.CombinePaths(
 				folderPath,
-				GetClassFilePath( cn, table ) + DataAccessStatics.CSharpTemplateFileExtension );
+				getClassFilePath( cn, table ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
 
 			// If a real file exists, don't create a template.
-			if( File.Exists( Utility.CombinePaths( folderPath, GetClassFilePath( cn, table ) + ".cs" ) ) )
+			if( File.Exists( Utility.CombinePaths( folderPath, getClassFilePath( cn, table ) + ".cs" ) ) )
 				return;
 
 			using( var templateWriter = IoMethods.GetTextWriterForWrite( templateFilePath ) ) {
@@ -345,7 +345,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			=>
 				$"{table.GetTableConditionInterfaceReference()} requiredCondition, params {table.GetTableConditionInterfaceReference()}[] additionalConditions";
 
-		internal static string GetClassFilePath( DBConnection cn, Table table ) {
+		private static string getClassFilePath( DBConnection cn, Table table ) {
 			var fileName = table.Name.TableNameToPascal( cn ) + "Modification";
 			if( table.Schema.Any() )
 				return Path.Combine( table.Schema.TableNameToPascal( cn ), fileName );
