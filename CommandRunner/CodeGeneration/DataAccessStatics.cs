@@ -146,14 +146,6 @@ namespace CommandRunner.CodeGeneration {
 				configuration.revisionHistoryTables != null &&
 				configuration.revisionHistoryTables.Any( revisionHistoryTable => revisionHistoryTable.EqualsIgnoreCase( table ) );
 
-		internal static string GetTableConditionInterfaceName( DBConnection cn, IDatabase database, string table )
-			=> "CommandConditions." + CommandConditionStatics.GetTableConditionInterfaceName( cn, table );
-
-		internal static string GetEqualityConditionClassName( DBConnection cn, IDatabase database, string tableName, Column column )
-			=>
-				"CommandConditions." + CommandConditionStatics.GetTableEqualityConditionsClassName( cn, tableName ) + "." +
-				CommandConditionStatics.GetConditionClassName( column );
-
 		internal static void WriteGetLatestRevisionsConditionMethod( TextWriter writer, string revisionIdColumn ) {
 			writer.WriteLine( "private static InlineDbCommandCondition getLatestRevisionsCondition() {" );
 			writer.WriteLine( "var provider = RevisionHistoryStatics.SystemProvider;" );
