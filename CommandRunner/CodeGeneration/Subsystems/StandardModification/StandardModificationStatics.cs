@@ -461,6 +461,14 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer.WriteLine( "insert.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + " );" );
 
 			// Future calls to Execute should perform updates, not inserts. Use the values of key columns as conditions.
+
+			// We have to abort turning it into an update if doing so would result in an exception from trying to retrieve a key value that hasn't been set or retrieved (as in the case where the primary key is set by a default constraint, for example).
+			if( identityColumn == null ) {
+				foreach( var column in keyColumns ) {
+					writer.WriteLine( $"if( !{ Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) }HasChanged ) return;" );
+				}
+			}
+
 			writer.WriteLine( "modType = ModificationType.Update;" );
 			writer.WriteLine( $"conditions = new List<{table.GetTableConditionInterfaceReference()}>();" );
 			foreach( var column in keyColumns ) {
