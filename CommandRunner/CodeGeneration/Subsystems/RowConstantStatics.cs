@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CommandRunner.DatabaseAbstraction;
+using CommandRunner.Exceptions;
 using TypedDataLayer.DataAccess;
 using TypedDataLayer.DataAccess.CommandWriting.Commands;
 using TypedDataLayer.Tools;
@@ -11,77 +12,82 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 	internal static class RowConstantStatics {
 		private const string dictionaryName = "valuesAndNames";
 
-		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, Database configuration ) {
+		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, Database configuration,  IEnumerable<Table> tables ) {
 			if( configuration.rowConstantTables == null )
 				return;
 
 			writer.WriteLine( "namespace " + baseNamespace + ".RowConstants {" );
 			foreach( var table in configuration.rowConstantTables ) {
-				Column valueColumn;
-				var orderIsSpecified = !table.orderByColumn.IsNullOrWhiteSpace();
-				var values = new List<string>();
-				var names = new List<string>();
-				try {
-					var columns = new TableColumns( cn, table.tableName, false );
-					valueColumn =
-						columns.AllColumnsExceptRowVersion.Single( column => string.Equals( column.Name, table.valueColumn, StringComparison.CurrentCultureIgnoreCase ) );
-					var nameColumn =
-						columns.AllColumnsExceptRowVersion.Single( column => string.Equals( column.Name, table.nameColumn, StringComparison.CurrentCultureIgnoreCase ) );
+				var tableObject = tables.SingleOrDefault( t=>t.ObjectIdentifier == table.tableName );
+				if( tableObject == null )
+					throw new UserCorrectableException( $"{table.tableName} does not match a known table. Ensure you have fully qualified it with the schema." );
+				writer.WrapInTableNamespaceIfNecessary( tableObject, () => {
+					Column valueColumn;
+					var orderIsSpecified = !table.orderByColumn.IsNullOrWhiteSpace();
+					var values = new List<string>();
+					var names = new List<string>();
+					try {
+						var columns = new TableColumns( cn, table.tableName, false );
+						valueColumn =
+							columns.AllColumnsExceptRowVersion.Single( column => string.Equals( column.Name, table.valueColumn, StringComparison.CurrentCultureIgnoreCase ) );
+						var nameColumn =
+							columns.AllColumnsExceptRowVersion.Single( column => string.Equals( column.Name, table.nameColumn, StringComparison.CurrentCultureIgnoreCase ) );
 
-					var cmd = new InlineSelect(
-						new[] { valueColumn.Name, nameColumn.Name },
-						"FROM " + table.tableName,
-						false,
-						configuration.CommandTimeoutSecondsTyped,
-						orderByClause: orderIsSpecified ? "ORDER BY " + table.orderByColumn : "" );
-					cmd.Execute(
-						cn,
-						reader => {
-							while( reader.Read() ) {
-								if( reader.IsDBNull( reader.GetOrdinal( valueColumn.Name ) ) ) {
-									values.Add( valueColumn.NullValueExpression.Any() ? valueColumn.NullValueExpression : "null" );
+						var cmd = new InlineSelect(
+							new[] { valueColumn.Name, nameColumn.Name },
+							"FROM " + table.tableName,
+							false,
+							configuration.CommandTimeoutSecondsTyped,
+							orderByClause: orderIsSpecified ? "ORDER BY " + table.orderByColumn : "" );
+						cmd.Execute(
+							cn,
+							reader => {
+								while( reader.Read() ) {
+									if( reader.IsDBNull( reader.GetOrdinal( valueColumn.Name ) ) ) {
+										values.Add( valueColumn.NullValueExpression.Any() ? valueColumn.NullValueExpression : "null" );
+									}
+									else {
+										var valueString = valueColumn.ConvertIncomingValue( reader[ valueColumn.Name ] ).ToString();
+										values.Add( valueColumn.DataTypeName == typeof( string ).ToString() ? "\"{0}\"".FormatWith( valueString ) : valueString );
+									}
+									names.Add( nameColumn.ConvertIncomingValue( reader[ nameColumn.Name ] ).ToString() );
 								}
-								else {
-									var valueString = valueColumn.ConvertIncomingValue( reader[ valueColumn.Name ] ).ToString();
-									values.Add( valueColumn.DataTypeName == typeof( string ).ToString() ? "\"{0}\"".FormatWith( valueString ) : valueString );
-								}
-								names.Add( nameColumn.ConvertIncomingValue( reader[ nameColumn.Name ] ).ToString() );
-							}
-						} );
-				}
-				catch( Exception e ) {
-					throw new ApplicationException(
-						"Column or data retrieval failed for the " + table.tableName + " row constant table. Make sure the table and the value, name, and order by columns exist.",
-						e );
-				}
+							} );
+					}
+					catch( Exception e ) {
+						throw new ApplicationException(
+							"Column or data retrieval failed for the " + table.tableName + " row constant table. Make sure the table and the value, name, and order by columns exist.",
+							e );
+					}
 
-				CodeGenerationStatics.AddSummaryDocComment( writer, "Provides constants copied from the " + table.tableName + " table." );
-				var className = table.tableName.TableNameToPascal( cn ) + "Rows";
-				writer.WriteLine( "public class " + className + " {" );
+					CodeGenerationStatics.AddSummaryDocComment( writer, "Provides constants copied from the " + table.tableName + " table." );
+					var className = tableObject.Name.TableNameToPascal( cn ) + "Rows";
+					writer.WriteLine( $"public class {className} {{" );
 
-				// constants
-				for( var i = 0; i < values.Count; i++ ) {
-					CodeGenerationStatics.AddSummaryDocComment( writer, "Constant generated from row in database table." );
+					// constants
+					for( var i = 0; i < values.Count; i++ ) {
+						CodeGenerationStatics.AddSummaryDocComment( writer, "Constant generated from row in database table." );
 
-					// It's important that row constants actually *be* constants (instead of static readonly) so they can be used in switch statements.
-					writer.WriteLine(
-						$"public const {valueColumn.DataTypeName} {Utility.GetCSharpIdentifier( names[ i ].CamelToEnglish().EnglishToPascal() )} = {values[ i ]};" );
-				}
+						// It's important that row constants actually *be* constants (instead of static readonly) so they can be used in switch statements.
+						writer.WriteLine(
+							$"public const {valueColumn.DataTypeName} {Utility.GetCSharpIdentifier( names[ i ].CamelToEnglish().EnglishToPascal() )} = {values[ i ]};" );
+					}
 
-				// one to one map
-				var dictionaryType = "OneToOneMap<" + valueColumn.DataTypeName + ", string>";
-				writer.WriteLine( "private static readonly " + dictionaryType + " " + dictionaryName + " = new " + dictionaryType + "();" );
+					// one to one map
+					var dictionaryType = "OneToOneMap<" + valueColumn.DataTypeName + ", string>";
+					writer.WriteLine( "private static readonly " + dictionaryType + " " + dictionaryName + " = new " + dictionaryType + "();" );
 
-				writeStaticConstructor( writer, className, names, values, valueColumn.DataTypeName );
+					writeStaticConstructor( writer, className, names, values, valueColumn.DataTypeName );
 
-				// methods
-				writeGetNameFromValueMethod( writer, valueColumn.DataTypeName );
-				writeGetValueFromNameMethod( writer, valueColumn.DataTypeName );
-				if( orderIsSpecified ) {
-					writeGetValuesToNamesMethod( writer, valueColumn.DataTypeName );
-				}
+					// methods
+					writeGetNameFromValueMethod( writer, valueColumn.DataTypeName );
+					writeGetValueFromNameMethod( writer, valueColumn.DataTypeName );
+					if( orderIsSpecified ) {
+						writeGetValuesToNamesMethod( writer, valueColumn.DataTypeName );
+					}
 
-				writer.WriteLine( "}" ); // class
+					writer.WriteLine( "}" ); // class
+				} );
 			}
 			writer.WriteLine( "}" ); // namespace
 		}
