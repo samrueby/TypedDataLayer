@@ -84,7 +84,7 @@ namespace CommandRunner.Operations {
 
 					// database logic access - custom
 					writer.WriteLine();
-					RowConstantStatics.Generate( cn, writer, baseNamespace, database, configuration.database );
+					RowConstantStatics.Generate( cn, writer, baseNamespace, database, configuration.database, tables );
 
 					// retrieval and modification commands - standard
 					writer.WriteLine();
