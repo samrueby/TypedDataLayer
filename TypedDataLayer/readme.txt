@@ -3,6 +3,11 @@
 - Create a Configuration.xml in that folder.
 - Copy the XML from the bottom of this file into Configuration.xml and replace the connection string and database type if neccesary.
 
+Add this to your appsettings:
+<add key="TypedDataLayer.SupportedDatabaseType" value="SqlServer" />
+		<add key="TypedDataLayer.ConnectionString" value="Server=(local);Database=[database name];Trusted_Connection=True;" />
+		these are used at runtime. the other configuration is only used at code-generation time.
+
 In your Package Manager Console, you now have the Update-DataLayer command. This command does two things:
 - If Database Updates.sql file is in the root of your project your project, Update-DataLayer will query the GlobalInts table in your database for 'LineMarker'. All of the lines after 
 	LineMarker in the Database Updates.sql file will be executed against your database.
