@@ -18,6 +18,7 @@ namespace CommandRunner.Operations {
 				log.Info( dbUpdatesPath + " was not found. No database updates will be performed." );
 				return;
 			}
+
 			log.Debug( "Line number: " + lineNumber );
 
 			int lineMarker;

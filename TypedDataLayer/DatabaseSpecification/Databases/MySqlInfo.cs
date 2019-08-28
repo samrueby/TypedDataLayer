@@ -41,8 +41,8 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 
 		DbParameter DatabaseInfo.CreateParameter() => factory.CreateParameter();
 
-		string DatabaseInfo.GetDbTypeString( object databaseSpecificType )
-			=> Enum.GetName( factory.GetType().Assembly.GetType( "MySql.Data.MySqlClient.MySqlDbType" ), databaseSpecificType );
+		string DatabaseInfo.GetDbTypeString( object databaseSpecificType ) =>
+			Enum.GetName( factory.GetType().Assembly.GetType( "MySql.Data.MySqlClient.MySqlDbType" ), databaseSpecificType );
 
 		void DatabaseInfo.SetParameterType( DbParameter parameter, string dbTypeString ) {
 			var mySqlDbTypeProperty = parameter.GetType().GetProperty( "MySqlDbType" );

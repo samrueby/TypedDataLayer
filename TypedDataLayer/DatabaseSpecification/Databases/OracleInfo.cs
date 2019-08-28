@@ -34,7 +34,8 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 
 
 		/// <summary>
-		/// Gets whether the database supports linguistic indexes, which impacts whether or not it can enable case-insensitive comparisons.
+		/// Gets whether the database supports linguistic indexes, which impacts whether or not it can enable case-insensitive
+		/// comparisons.
 		/// </summary>
 		public bool SupportsLinguisticIndexes { get; }
 
@@ -65,8 +66,8 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 
 		DbParameter DatabaseInfo.CreateParameter() => factory.CreateParameter();
 
-		string DatabaseInfo.GetDbTypeString( object databaseSpecificType )
-			=> Enum.GetName( factory.GetType().Assembly.GetType( "Oracle.DataAccess.Client.OracleDbType" ), databaseSpecificType );
+		string DatabaseInfo.GetDbTypeString( object databaseSpecificType ) =>
+			Enum.GetName( factory.GetType().Assembly.GetType( "Oracle.DataAccess.Client.OracleDbType" ), databaseSpecificType );
 
 		void DatabaseInfo.SetParameterType( DbParameter parameter, string dbTypeString ) {
 			var oracleDbTypeProperty = parameter.GetType().GetProperty( "OracleDbType" );

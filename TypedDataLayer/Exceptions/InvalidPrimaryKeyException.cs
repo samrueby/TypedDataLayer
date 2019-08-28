@@ -15,9 +15,7 @@ namespace TypedDataLayer.Exceptions {
 		/// <summary>
 		/// Thrown when an ID should have returned a row, but instead returned none.
 		/// </summary>
-		public InvalidPrimaryKeyException( string primaryKey, Exception innerException )
-			: base( $"The primary key '{primaryKey}' did not return any results.", innerException ) {
+		public InvalidPrimaryKeyException( string primaryKey, Exception innerException ): base( $"The primary key '{primaryKey}' did not return any results.", innerException ) =>
 			PrimaryKey = primaryKey;
-		}
 	}
 }

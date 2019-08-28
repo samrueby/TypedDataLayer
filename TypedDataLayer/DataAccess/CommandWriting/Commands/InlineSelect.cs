@@ -35,7 +35,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		public void AddCondition( InlineDbCommandCondition condition ) => conditions.Add( condition );
 
 		/// <summary>
-		/// Executes this command using the specified database connection to get a data reader and then executes the specified method with the reader.
+		/// Executes this command using the specified database connection to get a data reader and then executes the specified
+		/// method with the reader.
 		/// </summary>
 		public void Execute( DBConnection cn, Action<DbDataReader> readerMethod ) {
 			// NOTE SJR: Say a single insert statement gets executed 1000 times. This will generate the same 
@@ -51,6 +52,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 				sb.Append( " " );
 				sb.Append( cn.DatabaseInfo.QueryCacheHint );
 			}
+
 			sb.Append( " " );
 			sb.Append( StringTools.ConcatenateWithDelimiter( ", ", selectExpressions ) );
 			sb.Append( " " );

@@ -112,7 +112,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return parameters;
 		}
 
-		private ParameterDirection getParameterDirection( string direction ) {
+		private static ParameterDirection getParameterDirection( string direction ) {
 			switch( direction ) {
 				case "IN":
 					return ParameterDirection.Input;
@@ -121,6 +121,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 				case "IN/OUT":
 					return ParameterDirection.InputOutput;
 			}
+
 			throw new ApplicationException( "Unknown parameter direction string." );
 		}
 

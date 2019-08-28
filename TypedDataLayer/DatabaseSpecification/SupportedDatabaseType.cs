@@ -16,6 +16,6 @@
 		/// <summary>
 		/// MySQL.
 		/// </summary>
-		MySql,
+		MySql
 	}
 }

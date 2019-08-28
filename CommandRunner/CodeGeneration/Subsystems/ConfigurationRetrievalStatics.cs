@@ -9,13 +9,9 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			// NOTE SJR: Nothing is using this but they should be.
 			writer.CodeBlock(
 				$"namespace {baseNamespace} {{",
-				() => {
-					writer.CodeBlock(
-						$"public static class {className} {{",
-						() => {
-							writer.WriteLine( $@"public const int {commandTimeoutSecondsPropertyName} = {configuration.CommandTimeoutSecondsTyped?.ToString() ?? "null"};" );
-						} );
-				} );
+				() => writer.CodeBlock(
+					$"public static class {className} {{",
+					() => writer.WriteLine( $@"public const int {commandTimeoutSecondsPropertyName} = {configuration.CommandTimeoutSecondsTyped?.ToString() ?? "null"};" ) ) );
 		}
 
 		internal static string GetCommandTimeoutSecondsExpression = $"{className}.{commandTimeoutSecondsPropertyName}";

@@ -27,12 +27,17 @@ namespace CommandRunner.Operations {
 			using( var writer = new StreamWriter( outputFilePath ) ) {
 				writeUsingStatements( writer );
 
-				var databaseInfo =
-					DatabaseOps.CreateDatabase(
-						DatabaseFactory.CreateDatabaseInfo( configuration.databaseConfiguration.DatabaseType, configuration.databaseConfiguration.ConnectionString ) );
+				var databaseInfo = DatabaseOps.CreateDatabase(
+					DatabaseFactory.CreateDatabaseInfo( configuration.databaseConfiguration.DatabaseType, configuration.databaseConfiguration.ConnectionString ) );
 
 				ExecuteDatabaseUpdatesScript.Run( projectFolder, databaseInfo, log );
-				generateDataAccessCodeForDatabase( log, databaseInfo, projectFolder, writer, baseNamespace, configuration );
+				generateDataAccessCodeForDatabase(
+					log,
+					databaseInfo,
+					projectFolder,
+					writer,
+					baseNamespace,
+					configuration );
 			}
 		}
 
@@ -48,10 +53,8 @@ namespace CommandRunner.Operations {
 			writer.WriteLine( "using System.Linq;" );
 
 			// Include every namespace in our TypedDataLayer assembly.
-			foreach( var @namespace in
-				Assembly.GetAssembly( typeof( DBConnection ) ).GetTypes().Select( t => t.Namespace ).Distinct().Where( n => !string.IsNullOrEmpty( n ) ) ) {
+			foreach( var @namespace in Assembly.GetAssembly( typeof( DBConnection ) ).GetTypes().Select( t => t.Namespace ).Distinct().Where( n => !string.IsNullOrEmpty( n ) ) )
 				writer.WriteLine( "using " + @namespace + ";" );
-			}
 		}
 
 
@@ -60,7 +63,7 @@ namespace CommandRunner.Operations {
 			var tables = DatabaseOps.GetDatabaseTables( database );
 
 			if( configuration.database == null ) {
-				log.Info( $"Configuration is missing the <{nameof( configuration.database )}> element." );
+				log.Info( $"Configuration is missing the <{nameof(configuration.database)}> element." );
 				return;
 			}
 
@@ -69,9 +72,8 @@ namespace CommandRunner.Operations {
 			ensureTablesExist( tables, configuration.database.revisionHistoryTables, "revision history" );
 
 			ensureTablesExist( tables, configuration.database.WhitelistedTables, "whitelisted" );
-			tables =
-				tables.Where(
-					table => configuration.database.WhitelistedTables == null || configuration.database.WhitelistedTables.Any( i => i.EqualsIgnoreCase( table.ObjectIdentifier ) ) );
+			tables = tables.Where(
+				table => configuration.database.WhitelistedTables == null || configuration.database.WhitelistedTables.Any( i => i.EqualsIgnoreCase( table.ObjectIdentifier ) ) );
 
 			database.ExecuteDbMethod(
 				cn => {
@@ -84,7 +86,13 @@ namespace CommandRunner.Operations {
 
 					// database logic access - custom
 					writer.WriteLine();
-					RowConstantStatics.Generate( cn, writer, baseNamespace, database, configuration.database, tables );
+					RowConstantStatics.Generate(
+						cn,
+						writer,
+						baseNamespace,
+						database,
+						configuration.database,
+						tables );
 
 					// retrieval and modification commands - standard
 					writer.WriteLine();
@@ -92,11 +100,23 @@ namespace CommandRunner.Operations {
 
 					writer.WriteLine();
 					var tableRetrievalNamespaceDeclaration = TableRetrievalStatics.GetNamespaceDeclaration( baseNamespace, database );
-					TableRetrievalStatics.Generate( cn, writer, tableRetrievalNamespaceDeclaration, database, tables, configuration.database );
+					TableRetrievalStatics.Generate(
+						cn,
+						writer,
+						tableRetrievalNamespaceDeclaration,
+						database,
+						tables,
+						configuration.database );
 
 					writer.WriteLine();
 					var modNamespaceDeclaration = StandardModificationStatics.GetNamespaceDeclaration( baseNamespace, database );
-					StandardModificationStatics.Generate( cn, writer, modNamespaceDeclaration, database, tables, configuration.database );
+					StandardModificationStatics.Generate(
+						cn,
+						writer,
+						modNamespaceDeclaration,
+						database,
+						tables,
+						configuration.database );
 
 					foreach( var table in tables ) {
 						TableRetrievalStatics.WritePartialClass( cn, libraryBasePath, tableRetrievalNamespaceDeclaration, database, table );
@@ -129,9 +149,10 @@ namespace CommandRunner.Operations {
 			if( specifiedTables == null )
 				return;
 			var nonexistentTables = specifiedTables.Where( specifiedTable => databaseTables.All( i => !i.ObjectIdentifier.EqualsIgnoreCase( specifiedTable ) ) ).ToList();
-			if( nonexistentTables.Any() )
+			if( nonexistentTables.Any() ) {
 				throw new UserCorrectableException(
 					$"{tableAdjective.CapitalizeString()} {( nonexistentTables.Count > 1 ? "tables" : "table" )} {StringTools.GetEnglishListPhrase( nonexistentTables.Select( i => "'" + i + "'" ), true )} {( nonexistentTables.Count > 1 ? "do" : "does" )} not exist." );
+			}
 		}
 	}
 }

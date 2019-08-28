@@ -26,16 +26,14 @@ namespace TypedDataLayer {
 		/// </summary>
 		public static void ExecuteInDbConnectionWithTransaction( [ InstantHandle ] Action method ) =>
 			dataAccessState.ExecuteWithThis(
-				() => DataAccessState.Current.DatabaseConnection.ExecuteWithConnectionOpen(
-					() => DataAccessState.Current.DatabaseConnection.ExecuteInTransaction( method ) ) );
+				() => DataAccessState.Current.DatabaseConnection.ExecuteWithConnectionOpen( () => DataAccessState.Current.DatabaseConnection.ExecuteInTransaction( method ) ) );
 
 		/// <summary>
 		/// Executes a query in Snapshot isolation.
 		/// </summary>
 		public static T ExecuteInDbConnectionWithTransaction<T>( [ InstantHandle ] Func<T> method ) =>
 			dataAccessState.ExecuteWithThis(
-				() => DataAccessState.Current.DatabaseConnection.ExecuteWithConnectionOpen(
-					() => DataAccessState.Current.DatabaseConnection.ExecuteInTransaction( method ) ) );
+				() => DataAccessState.Current.DatabaseConnection.ExecuteWithConnectionOpen( () => DataAccessState.Current.DatabaseConnection.ExecuteInTransaction( method ) ) );
 
 		/// <summary>
 		/// Executes a query in Snapshot isolation with caching. Not safe to use when modifying data.

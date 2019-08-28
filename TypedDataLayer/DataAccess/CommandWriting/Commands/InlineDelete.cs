@@ -44,6 +44,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 				condition.AddToCommand( cmd, sb, cn.DatabaseInfo, InlineUpdate.GetParamNameFromNumber( paramNumber++ ) );
 				sb.Append( and );
 			}
+
 			sb.Remove( sb.Length - and.Length, and.Length );
 
 			cmd.CommandText = sb.ToString();

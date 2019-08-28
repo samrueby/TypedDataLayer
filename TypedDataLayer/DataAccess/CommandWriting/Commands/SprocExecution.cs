@@ -27,7 +27,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		public void AddParameter( DbCommandParameter parameter ) => parameters.Add( parameter );
 
 		/// <summary>
-		/// Executes this procedure against the specified database connection to get a data reader and then executes the specified method with the reader.
+		/// Executes this procedure against the specified database connection to get a data reader and then executes the specified
+		/// method with the reader.
 		/// </summary>
 		public void ExecuteReader( DBConnection cn, Action<DbDataReader> readerMethod ) {
 			var cmd = getCommand( cn );

@@ -26,7 +26,7 @@ namespace CommandRunner {
 			log.Debug( "TypedDataLayer version " + Assembly.GetExecutingAssembly().GetName().Version );
 
 			log.Debug( "args: " + string.Join( " ", args ) );
-			
+
 			var command = args[ 0 ];
 			var workingDirectory = Environment.CurrentDirectory;
 
@@ -73,6 +73,7 @@ namespace CommandRunner {
 			finally {
 				log.Info( $"Done in {sw.Elapsed.TotalSeconds:G0} seconds." );
 			}
+
 			return 0;
 		}
 
@@ -83,9 +84,8 @@ namespace CommandRunner {
 		}
 
 		private static IEnumerable<string> findConfigFiles( string basePath ) {
-			return
-				Directory.EnumerateFiles( basePath, FileNames.ConfigurationFileName, SearchOption.AllDirectories )
-					.Where( p => p.Contains( @"TypedDataLayer\" + FileNames.ConfigurationFileName ) );
+			return Directory.EnumerateFiles( basePath, FileNames.ConfigurationFileName, SearchOption.AllDirectories )
+				.Where( p => p.Contains( @"TypedDataLayer\" + FileNames.ConfigurationFileName ) );
 		}
 	}
 }

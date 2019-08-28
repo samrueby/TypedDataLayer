@@ -33,8 +33,6 @@ namespace CommandRunner.CodeGeneration {
 
 		private readonly int ordinal;
 		private readonly ValueContainer valueContainer;
-		private readonly bool isIdentity;
-		private readonly bool isRowVersion;
 		private readonly bool? isKey;
 
 		private Column( DataRow schemaTableRow, bool includeKeyInfo, DatabaseInfo databaseInfo ) {
@@ -51,8 +49,8 @@ namespace CommandRunner.CodeGeneration {
 				(int)schemaTableRow[ "ColumnSize" ],
 				(bool)schemaTableRow[ "AllowDBNull" ],
 				databaseInfo );
-			isIdentity = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsIdentity" ] || databaseInfo is MySqlInfo && (bool)schemaTableRow[ "IsAutoIncrement" ];
-			isRowVersion = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsRowVersion" ];
+			IsIdentity = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsIdentity" ] || databaseInfo is MySqlInfo && (bool)schemaTableRow[ "IsAutoIncrement" ];
+			IsRowVersion = databaseInfo is SqlServerInfo && (bool)schemaTableRow[ "IsRowVersion" ];
 			if( includeKeyInfo )
 				isKey = (bool)schemaTableRow[ "IsKey" ];
 		}
@@ -68,7 +66,8 @@ namespace CommandRunner.CodeGeneration {
 		internal string DataTypeName => valueContainer.DataTypeName;
 
 		/// <summary>
-		/// Gets the name of the nullable data type for this column, regardless of whether the column allows null. The nullable data type is equivalent to the data
+		/// Gets the name of the nullable data type for this column, regardless of whether the column allows null. The nullable
+		/// data type is equivalent to the data
 		/// type if the latter is a reference type or if the null value is represented with an expression other than "null".
 		/// </summary>
 		internal string NullableDataTypeName => valueContainer.NullableDataTypeName;
@@ -82,8 +81,8 @@ namespace CommandRunner.CodeGeneration {
 
 		internal int Size => valueContainer.Size;
 		internal bool AllowsNull => valueContainer.AllowsNull;
-		internal bool IsIdentity => isIdentity;
-		internal bool IsRowVersion => isRowVersion;
+		internal bool IsIdentity { get; }
+		internal bool IsRowVersion { get; }
 		internal bool IsKey => isKey.Value;
 
 		// NOTE: It would be best to use primary keys here, but unfortunately we don't always have that information.
@@ -91,10 +90,10 @@ namespace CommandRunner.CodeGeneration {
 		// Right now we assume that at least one column in table (or query) returns true for UseToUniquelyIdentifyRow. This might not always be the case, for example if you have a query
 		// that selects file contents only. If we re-implement this in a way that makes our assumption false, we'll need to modify DataAccessStatics to detect the case where no
 		// columns return true for this and provide a useful exception.
-		internal bool UseToUniquelyIdentifyRow => !valueContainer.DataType.IsArray && !isRowVersion;
+		internal bool UseToUniquelyIdentifyRow => !valueContainer.DataType.IsArray && !IsRowVersion;
 
-		internal string GetCommandColumnValueExpression( string valueExpression )
-			=> "new InlineDbCommandColumnValue( \"{0}\", {1} )".FormatWith( valueContainer.Name, valueContainer.GetParameterValueExpression( valueExpression ) );
+		internal string GetCommandColumnValueExpression( string valueExpression ) =>
+			"new InlineDbCommandColumnValue( \"{0}\", {1} )".FormatWith( valueContainer.Name, valueContainer.GetParameterValueExpression( valueExpression ) );
 
 		internal string GetDataReaderValueExpression( string readerName, int? ordinalOverride = null ) {
 			var getValueExpression = valueContainer.GetIncomingValueConversionExpression( $"{readerName}.GetValue( {ordinalOverride ?? ordinal} )" );

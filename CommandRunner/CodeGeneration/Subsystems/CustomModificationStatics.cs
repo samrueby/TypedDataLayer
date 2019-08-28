@@ -57,12 +57,12 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			var cnt = 0;
 			foreach( var command in mod.commands ) {
 				var commandVariableName = "cmd" + cnt++;
-				writer.WriteLine(
-					$"{TypeNames.DbCommand} {commandVariableName} = {DataAccessStatics.DataAccessStateCurrentDatabaseConnectionCreateCommandExpression( commandTimeout )};" );
+				writer.WriteLine( $"{TypeNames.DbCommand} {commandVariableName} = {DataAccessStatics.DataAccessStateCurrentDatabaseConnectionCreateCommandExpression( commandTimeout )};" );
 				writer.WriteLine( commandVariableName + ".CommandText = @\"" + command + "\";" );
 				DataAccessStatics.WriteAddParamBlockFromCommandText( writer, commandVariableName, info, command, database );
 				writer.WriteLine( $"{DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression}.ExecuteNonQueryCommand( {commandVariableName} );" );
 			}
+
 			writer.WriteLine( "} );" ); // execute in transaction call
 
 			writer.WriteLine( "}" ); // method

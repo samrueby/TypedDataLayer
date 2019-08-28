@@ -12,7 +12,7 @@ namespace TypedDataLayer.DatabaseSpecification.Databases {
 	/// </summary>
 	public class SqlServerInfo: DatabaseInfo {
 		/// <summary>
-		/// Creates a new SQL Server information object. 
+		/// Creates a new SQL Server information object.
 		/// </summary>
 		public SqlServerInfo( string connectionString ) {
 			if( connectionString.IsNullOrWhiteSpace() )

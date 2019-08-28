@@ -11,9 +11,7 @@ namespace TypedDataLayer.DataAccess.RetrievalCaching {
 		private readonly Cache<object[], IEnumerable<RowType>> cache;
 
 		//[ EditorBrowsable( EditorBrowsableState.Never ) ]
-		public QueryRetrievalQueryCache() {
-			cache = new Cache<object[], IEnumerable<RowType>>( false, comparer: new StructuralEqualityComparer<object[]>() );
-		}
+		public QueryRetrievalQueryCache() => cache = new Cache<object[], IEnumerable<RowType>>( false, comparer: new StructuralEqualityComparer<object[]>() );
 
 		//[ EditorBrowsable( EditorBrowsableState.Never ) ]
 		public IEnumerable<RowType> GetResultSet( object[] parameterValues, Func<IEnumerable<RowType>> resultSetCreator ) => cache.GetOrAdd( parameterValues, resultSetCreator );

@@ -41,6 +41,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "static partial void updateSingleRowCaches( Row row );" );
 				writer.WriteLine( "}" ); // class
 			}
+
 			writer.WriteLine( "}" ); // namespace
 		}
 
@@ -48,9 +49,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			// Attempt to query with every postSelectFromClause to ensure validity.
 			foreach( var postSelectFromClause in query.postSelectFromClauses ) {
 				try {
-					cn.ExecuteReaderCommandWithSchemaOnlyBehavior(
-						DataAccessStatics.GetCommandFromRawQueryText( cn, query.selectFromClause + " " + postSelectFromClause.Value ),
-						r => { } );
+					cn.ExecuteReaderCommandWithSchemaOnlyBehavior( DataAccessStatics.GetCommandFromRawQueryText( cn, query.selectFromClause + " " + postSelectFromClause.Value ), r => { } );
 				}
 				catch( Exception e ) {
 					throw new UserCorrectableException( $"Column retrieval failed for the {postSelectFromClause.name} postSelectFromClause.", e );
@@ -62,28 +61,27 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 		private static void writeCacheClass( TextWriter writer, IDatabase database, Query query ) {
 			writer.WriteLine( "private partial class Cache {" );
-			writer.WriteLine(
-				"internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( \"" + query.name + "QueryRetrieval\", () => new Cache() ); } }" );
+			writer.WriteLine( "internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( \"" + query.name + "QueryRetrieval\", () => new Cache() ); } }" );
 			foreach( var i in query.postSelectFromClauses ) {
 				var type = getQueryCacheType( query, i );
 				writer.WriteLine( "private readonly " + type + " " + getQueryCacheName( query, i, true ) + " = new " + type + "();" );
 			}
+
 			writer.WriteLine( "private Cache() {}" );
 			foreach( var i in query.postSelectFromClauses ) {
 				var type = getQueryCacheType( query, i );
 				writer.WriteLine( "internal " + type + " " + getQueryCacheName( query, i, false ) + " { get { return " + getQueryCacheName( query, i, true ) + "; } }" );
 			}
+
 			writer.WriteLine( "}" );
 		}
 
-		private static string getQueryCacheType( Query query, QueryPostSelectFromClause postSelectFromClause )
-			=>
-				DataAccessStatics.GetNamedParamList( info, query.selectFromClause + " " + postSelectFromClause.Value ).Any()
-					? "QueryRetrievalQueryCache<Row>"
-					: "ParameterlessQueryCache<Row>";
+		private static string getQueryCacheType( Query query, QueryPostSelectFromClause postSelectFromClause ) =>
+			DataAccessStatics.GetNamedParamList( info, query.selectFromClause + " " + postSelectFromClause.Value ).Any()
+				? "QueryRetrievalQueryCache<Row>"
+				: "ParameterlessQueryCache<Row>";
 
-		private static void writeQueryMethod(
-			TextWriter writer, IDatabase database, Query query, QueryPostSelectFromClause postSelectFromClause, int? commandTimeout ) {
+		private static void writeQueryMethod( TextWriter writer, IDatabase database, Query query, QueryPostSelectFromClause postSelectFromClause, int? commandTimeout ) {
 			// header
 			CodeGenerationStatics.AddSummaryDocComment( writer, "Queries the database and returns the full results collection immediately." );
 			writer.WriteLine(
@@ -99,9 +97,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 			writer.WriteLine( $"var cmd = {DataAccessStatics.DataAccessStateCurrentDatabaseConnectionCreateCommandExpression( commandTimeout )};" );
 			writer.WriteLine( "cmd.CommandText = selectFromClause" );
-			if( !postSelectFromClause.Value.IsNullOrWhiteSpace() ) {
+			if( !postSelectFromClause.Value.IsNullOrWhiteSpace() )
 				writer.Write( $@"+ @""{postSelectFromClause.Value}""" );
-			}
 			writer.Write( ";" );
 			DataAccessStatics.WriteAddParamBlockFromCommandText( writer, "cmd", info, query.selectFromClause + " " + postSelectFromClause.Value, database );
 			writer.WriteLine( "var results = new List<Row>();" );
@@ -119,9 +116,8 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getQueryCacheName( Query query, QueryPostSelectFromClause postSelectFromClause, bool getFieldName )
-			=>
-				( getFieldName ? "rows" : "Rows" ) + postSelectFromClause.name +
-				( DataAccessStatics.GetNamedParamList( info, query.selectFromClause + " " + postSelectFromClause.Value ).Any() ? "Queries" : "Query" );
+		private static string getQueryCacheName( Query query, QueryPostSelectFromClause postSelectFromClause, bool getFieldName ) =>
+			( getFieldName ? "rows" : "Rows" ) + postSelectFromClause.name +
+			( DataAccessStatics.GetNamedParamList( info, query.selectFromClause + " " + postSelectFromClause.Value ).Any() ? "Queries" : "Query" );
 	}
 }

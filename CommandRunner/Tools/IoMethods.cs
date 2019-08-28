@@ -8,7 +8,8 @@ namespace CommandRunner.Tools {
 	/// </summary>
 	public static class IoMethods {
 		/// <summary>
-		/// Deletes the file at the given path, or does nothing if it does not exist. Supports deletion of partially or fully read-only files.
+		/// Deletes the file at the given path, or does nothing if it does not exist. Supports deletion of partially or fully
+		/// read-only files.
 		/// </summary>
 		public static void DeleteFile( string path ) {
 			var numberOfFailures = 0;
@@ -40,9 +41,10 @@ namespace CommandRunner.Tools {
 			var attributes = File.GetAttributes( path );
 			if( ( attributes & FileAttributes.ReadOnly ) == FileAttributes.ReadOnly )
 				File.SetAttributes( path, attributes & ~FileAttributes.ReadOnly );
-			if( Directory.Exists( path ) )
+			if( Directory.Exists( path ) ) {
 				foreach( var childPath in Directory.GetFileSystemEntries( path ) )
 					RecursivelyRemoveReadOnlyAttributeFromItem( childPath );
+			}
 		}
 
 

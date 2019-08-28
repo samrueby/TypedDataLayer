@@ -11,16 +11,19 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 		internal static void Generate( DBConnection cn, TextWriter writer, string baseNamespace, IDatabase database, IEnumerable<Table> tableNames ) {
 			writer.WriteLine( $"namespace {baseNamespace}.{CommandConditionsNamespace} {{" );
 			foreach( var table in tableNames ) {
-				writer.WrapInTableNamespaceIfNecessary( table, () => {
-					// Write the interface for all of the table's conditions.
-					writer.WriteLine( $"public interface {table.GetTableConditionInterfaceDeclaration()}: TableCondition {{}}" );
+				writer.WrapInTableNamespaceIfNecessary(
+					table,
+					() => {
+						// Write the interface for all of the table's conditions.
+						writer.WriteLine( $"public interface {table.GetTableConditionInterfaceDeclaration()}: TableCondition {{}}" );
 
-					writeEqualityConditionClasses( cn, writer, table );
-					writeInequalityConditionClasses( cn, writer, table );
-					writeInConditionClasses( cn, writer, table );
-					writeLikeConditionClasses( cn, writer, table );
-				} );
+						writeEqualityConditionClasses( cn, writer, table );
+						writeInequalityConditionClasses( cn, writer, table );
+						writeInConditionClasses( cn, writer, table );
+						writeLikeConditionClasses( cn, writer, table );
+					} );
 			}
+
 			writer.WriteLine( "}" ); // CommandConditions namespace
 		}
 
@@ -41,6 +44,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "InlineDbCommandCondition TableCondition.CommandCondition { get { return new EqualityCondition( " + colVal + " ); } }" );
 				writer.WriteLine( "}" );
 			}
+
 			writer.WriteLine( "}" ); // class
 		}
 
@@ -65,6 +69,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "InlineDbCommandCondition TableCondition.CommandCondition { get { return new InequalityCondition( op, " + colVal + " ); } }" );
 				writer.WriteLine( "}" );
 			}
+
 			writer.WriteLine( "}" ); // class
 		}
 
@@ -84,6 +89,7 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 				writer.WriteLine( "}" );
 			}
+
 			writer.WriteLine( "}" );
 		}
 
@@ -101,15 +107,15 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 				writer.WriteLine( "this.value = value;" );
 				writer.WriteLine( "}" );
 
-				writer.WriteLine(
-					"InlineDbCommandCondition TableCondition.CommandCondition { get { return new LikeCondition( behavior, \"" + column.Name + "\", value ); } }" );
+				writer.WriteLine( "InlineDbCommandCondition TableCondition.CommandCondition { get { return new LikeCondition( behavior, \"" + column.Name + "\", value ); } }" );
 
 				writer.WriteLine( "}" ); // class
 			}
+
 			writer.WriteLine( "}" ); // class
 		}
 
-		internal static string GetConditionClassName( Column column )
-			=> Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle == "Value" ? "_Value" : column.PascalCasedNameExceptForOracle );
+		internal static string GetConditionClassName( Column column ) =>
+			Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle == "Value" ? "_Value" : column.PascalCasedNameExceptForOracle );
 	}
 }

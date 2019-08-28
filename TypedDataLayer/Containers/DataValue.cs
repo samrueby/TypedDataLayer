@@ -11,7 +11,7 @@ namespace TypedDataLayer.Containers {
 		public bool Changed { get; private set; }
 
 		public T Value {
-			get { return val.Value; }
+			get => val.Value;
 			set {
 				if( val.Initialized && Utility.AreEqual( val.Value, value ) )
 					return;

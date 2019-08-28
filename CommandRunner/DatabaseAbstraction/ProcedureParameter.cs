@@ -9,7 +9,6 @@ namespace CommandRunner.DatabaseAbstraction {
 	/// </summary>
 	public class ProcedureParameter {
 		private readonly ValueContainer valueContainer;
-		private readonly ParameterDirection direction;
 
 		internal ProcedureParameter( DBConnection cn, string name, string dataTypeFromGetSchema, int size, ParameterDirection direction ) {
 			var table = cn.GetSchema( "DataTypes" );
@@ -18,6 +17,7 @@ namespace CommandRunner.DatabaseAbstraction {
 				if( (string)r[ "TypeName" ] == dataTypeFromGetSchema )
 					rows.Add( r );
 			}
+
 			if( rows.Count != 1 )
 				throw new ApplicationException( "There must be exactly one data type row matching the specified data type name." );
 			var row = rows[ 0 ];
@@ -25,8 +25,14 @@ namespace CommandRunner.DatabaseAbstraction {
 			var dbTypeString = cn.DatabaseInfo.GetDbTypeString( row[ "ProviderDbType" ] );
 			var allowsNull = (bool)row[ "IsNullable" ];
 
-			valueContainer = new ValueContainer( name, dataType, dbTypeString, size, allowsNull, cn.DatabaseInfo );
-			this.direction = direction;
+			valueContainer = new ValueContainer(
+				name,
+				dataType,
+				dbTypeString,
+				size,
+				allowsNull,
+				cn.DatabaseInfo );
+			Direction = direction;
 		}
 
 		public string Name => valueContainer.Name;
@@ -35,7 +41,7 @@ namespace CommandRunner.DatabaseAbstraction {
 
 		public string GetIncomingValueConversionExpression( string valueExpression ) => valueContainer.GetIncomingValueConversionExpression( valueExpression );
 
-		public ParameterDirection Direction => direction;
+		public ParameterDirection Direction { get; }
 
 		public string GetParameterValueExpression( string valueExpression ) => valueContainer.GetParameterValueExpression( valueExpression );
 	}

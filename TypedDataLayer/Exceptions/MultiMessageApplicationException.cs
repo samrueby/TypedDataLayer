@@ -12,9 +12,7 @@ namespace TypedDataLayer.Exceptions {
 		/// <summary>
 		/// Creates an exception with the specified messages.
 		/// </summary>
-		public MultiMessageApplicationException( params string[] messages ): base( StringTools.ConcatenateWithDelimiter( Environment.NewLine, messages ) ) {
-			this.messages = messages;
-		}
+		public MultiMessageApplicationException( params string[] messages ): base( StringTools.ConcatenateWithDelimiter( Environment.NewLine, messages ) ) => this.messages = messages;
 
 		/// <summary>
 		/// Gets the messages that describe the exception.

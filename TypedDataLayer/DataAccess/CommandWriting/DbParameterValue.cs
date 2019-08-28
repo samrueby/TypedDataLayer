@@ -6,34 +6,30 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 	/// A value used in a database command parameter.
 	/// </summary>
 	public class DbParameterValue: IEquatable<DbParameterValue>, IComparable, IComparable<DbParameterValue> {
-		private readonly object value;
-		private readonly string dbTypeString;
-
 		/// <summary>
-		/// Creates a value with an unspecified type. This is not recommended since it forces the database type to be inferred from the .NET type of the value, and
+		/// Creates a value with an unspecified type. This is not recommended since it forces the database type to be inferred from
+		/// the .NET type of the value, and
 		/// this process is imperfect and has lead to problems in the past with blobs.
 		/// </summary>
-		public DbParameterValue( object value ) {
-			this.value = value;
-		}
+		public DbParameterValue( object value ) => Value = value;
 
 		/// <summary>
 		/// Creates a value with the specified type.
 		/// </summary>
 		public DbParameterValue( object value, string dbTypeString ) {
-			this.value = value;
-			this.dbTypeString = dbTypeString;
+			Value = value;
+			DbTypeString = dbTypeString;
 		}
 
-		internal object Value => value;
+		internal object Value { get; }
 
-		internal string DbTypeString => dbTypeString;
+		internal string DbTypeString { get; }
 
 		public override bool Equals( object obj ) => Equals( obj as DbParameterValue );
 
-		public bool Equals( DbParameterValue other ) => other != null && Utility.AreEqual( value, other.value ) && dbTypeString == other.dbTypeString;
+		public bool Equals( DbParameterValue other ) => other != null && Utility.AreEqual( Value, other.Value ) && DbTypeString == other.DbTypeString;
 
-		public override int GetHashCode() => value != null ? value.GetHashCode() : -1;
+		public override int GetHashCode() => Value != null ? Value.GetHashCode() : -1;
 
 		int IComparable.CompareTo( object obj ) {
 			var otherCondition = obj as DbParameterValue;
@@ -45,8 +41,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 		public int CompareTo( DbParameterValue other ) {
 			if( other == null )
 				return 1;
-			var valueResult = Utility.Compare( value, other.value );
-			return valueResult != 0 ? valueResult : Utility.Compare( dbTypeString, other.dbTypeString, comparer: StringComparer.InvariantCulture );
+			var valueResult = Utility.Compare( Value, other.Value );
+			return valueResult != 0 ? valueResult : Utility.Compare( DbTypeString, other.DbTypeString, comparer: StringComparer.InvariantCulture );
 		}
 	}
 }

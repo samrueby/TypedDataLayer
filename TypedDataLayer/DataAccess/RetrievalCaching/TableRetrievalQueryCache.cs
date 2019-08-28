@@ -14,9 +14,8 @@ namespace TypedDataLayer.DataAccess.RetrievalCaching {
 		private readonly Cache<InlineDbCommandCondition[], IEnumerable<RowType>> cache;
 
 		[ EditorBrowsable( EditorBrowsableState.Never ) ]
-		public TableRetrievalQueryCache() {
+		public TableRetrievalQueryCache() =>
 			cache = new Cache<InlineDbCommandCondition[], IEnumerable<RowType>>( false, comparer: new StructuralEqualityComparer<InlineDbCommandCondition[]>() );
-		}
 
 		[ EditorBrowsable( EditorBrowsableState.Never ) ]
 		public IEnumerable<RowType> GetResultSet(

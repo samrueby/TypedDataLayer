@@ -22,8 +22,8 @@ namespace TypedDataLayer.Tools {
 		/// <summary>
 		/// Returns the given string with its first letter-or-digit character lowercased. Do not pass null.
 		/// </summary>
-		public static string LowercaseString( this string text )
-			=> new string( text.ToCharArray().Select( ( c, index ) => index == getIndexOfFirstLetterOrDigit( text ) ? char.ToLower( c ) : c ).ToArray() );
+		public static string LowercaseString( this string text ) =>
+			new string( text.ToCharArray().Select( ( c, index ) => index == getIndexOfFirstLetterOrDigit( text ) ? char.ToLower( c ) : c ).ToArray() );
 
 		private static int getIndexOfFirstLetterOrDigit( string text ) => text.IndexOfAny( text.ToCharArray().Where( char.IsLetterOrDigit ).ToArray() );
 
@@ -57,6 +57,7 @@ namespace TypedDataLayer.Tools {
 				    currentChar.IsLower && previousChar.IsDigit )
 					newText += " ";
 			}
+
 			return newText + text[ text.Length - 1 ];
 		}
 
@@ -64,19 +65,19 @@ namespace TypedDataLayer.Tools {
 		/// Returns the given string with underscores replaced by spaces and capitalization at the beginning of every word.
 		/// Example: "FIRST_NAME" becomes "First Name".
 		/// </summary>
-		public static string OracleToEnglish( this string text )
-			=> ConcatenateWithDelimiter( " ", text.Separate( "_", true ).Select( s => s.ToLower().CapitalizeString() ).ToArray() );
+		public static string OracleToEnglish( this string text ) => ConcatenateWithDelimiter( " ", text.Separate( "_", true ).Select( s => s.ToLower().CapitalizeString() ).ToArray() );
 
 		/// <summary>
-		/// Removes whitespace from between words, capitalizes the first letter of each word, and lowercases the remainder of each word (ex: "one two" becomes "OneTwo").
+		/// Removes whitespace from between words, capitalizes the first letter of each word, and lowercases the remainder of each
+		/// word (ex: "one two" becomes "OneTwo").
 		/// Trims the resulting string.
 		/// Do not call this on the null string.
 		/// </summary>
-		public static string EnglishToPascal( this string text )
-			=> ConcatenateWithDelimiter( "", text.Separate().Select( t => t.ToLower().CapitalizeString() ).ToArray() );
+		public static string EnglishToPascal( this string text ) => ConcatenateWithDelimiter( "", text.Separate().Select( t => t.ToLower().CapitalizeString() ).ToArray() );
 
 		/// <summary>
-		/// Returns true if the given string is null or contains only whitespace (is empty after being trimmed). Do not call this unless you understand its
+		/// Returns true if the given string is null or contains only whitespace (is empty after being trimmed). Do not call this
+		/// unless you understand its
 		/// appropriate and inappropriate uses as documented in coding standards.
 		/// </summary>
 		public static bool IsNullOrWhiteSpace( this string text ) => text == null || text.IsWhitespace();
@@ -88,10 +89,10 @@ namespace TypedDataLayer.Tools {
 		public static bool IsWhitespace( this string text ) => text.Trim().Length == 0;
 
 		/// <summary>
-		/// Concatenates two strings together with a space between them. If either string is empty or if both strings are empty, there will be no space added.
+		/// Concatenates two strings together with a space between them. If either string is empty or if both strings are empty,
+		/// there will be no space added.
 		/// Null strings are treated as empty strings.
 		/// Whitespace is trimmed from the given strings before concatenation.
-		/// 
 		/// </summary>
 		public static string ConcatenateWithSpace( this string s1, string s2 ) => ConcatenateWithDelimiter( " ", s1, s2 );
 
@@ -101,8 +102,7 @@ namespace TypedDataLayer.Tools {
 		/// Whitespace is trimmed from the given strings before concatenation.
 		/// Null strings are treated as empty strings.
 		/// </summary>
-		internal static string ConcatenateWithDelimiter( string delimiter, params string[] strings )
-			=> ConcatenateWithDelimiter( delimiter, (IEnumerable<string>)strings );
+		internal static string ConcatenateWithDelimiter( string delimiter, params string[] strings ) => ConcatenateWithDelimiter( delimiter, (IEnumerable<string>)strings );
 
 		/// <summary>
 		/// Creates a single string consisting of each string in the given list, delimited by the given delimiter.  Empty strings
@@ -137,6 +137,7 @@ namespace TypedDataLayer.Tools {
 				sb.Append( delimiter );
 				sb.Append( token );
 			}
+
 			return sb;
 		}
 
@@ -147,9 +148,8 @@ namespace TypedDataLayer.Tools {
 		/// Null strings are treated as empty strings.
 		/// Returns the StringBuilder that is passed to this function.
 		/// </summary>
-		internal static StringBuilder ConcatenateWithDelimiter( StringBuilder sb, string delimiter, params string[] strings ) {
-			return ConcatenateWithDelimiter( sb, delimiter, (IEnumerable<string>)strings );
-		}
+		internal static StringBuilder ConcatenateWithDelimiter( StringBuilder sb, string delimiter, params string[] strings ) =>
+			ConcatenateWithDelimiter( sb, delimiter, (IEnumerable<string>)strings );
 
 		/// <summary>
 		/// Performs ConcatenateWithDelimiter with characters instead of strings.
@@ -177,15 +177,17 @@ namespace TypedDataLayer.Tools {
 		/// Removes all characters that are between the begin string and the end string, not including the begin and end strings.
 		/// For example, "This 'quoted text'.".RemoveTextBetweenStrings( "'", "'" ) returns "This ''.";
 		/// </summary>
-		public static string RemoveTextBetweenStrings( this string s, string beginString, string endString )
-			=> Regex.Replace( s, getRegexSafeString( beginString ) + @"(.*?\s*)*" + getRegexSafeString( endString ), beginString + endString, RegexOptions.Multiline );
+		public static string RemoveTextBetweenStrings( this string s, string beginString, string endString ) =>
+			Regex.Replace( s, getRegexSafeString( beginString ) + @"(.*?\s*)*" + getRegexSafeString( endString ), beginString + endString, RegexOptions.Multiline );
 
 		private static string getRegexSafeString( string s ) => @"\" + ConcatenateWithDelimiter( @"\", s.ToCharArray() );
 
 		/// <summary>
-		/// Splits this non null string into a list of non null substrings using white space characters as separators. Empty substrings will be excluded from the
+		/// Splits this non null string into a list of non null substrings using white space characters as separators. Empty
+		/// substrings will be excluded from the
 		/// list, and therefore, if this string is empty or contains only white space characters, the list will be empty.
-		/// All strings in the resulting list are trimmed, not explicitly, but by definition because any surrounding whitespace would have counted as part of the delimiter.
+		/// All strings in the resulting list are trimmed, not explicitly, but by definition because any surrounding whitespace
+		/// would have counted as part of the delimiter.
 		/// </summary>
 		public static List<string> Separate( this string s ) {
 			// Impossible to respond to R# warning because if you replace inline separators, the compiler can't figure out what method to call.
@@ -194,7 +196,8 @@ namespace TypedDataLayer.Tools {
 		}
 
 		/// <summary>
-		/// Splits this non null string into a list of non null substrings using the specified separator. If substrings are trimmed and empties excluded, and this
+		/// Splits this non null string into a list of non null substrings using the specified separator. If substrings are trimmed
+		/// and empties excluded, and this
 		/// string is empty or contains only separators and white space characters, the list will be empty.
 		/// </summary>
 		public static List<string> Separate( this string s, string separator, bool trimSubStringsAndExcludeEmpties ) {

@@ -3,11 +3,11 @@ using TypedDataLayer.DatabaseSpecification.Databases;
 
 namespace TypedDataLayer.DatabaseSpecification {
 	/// <summary>
-	/// Factory methods for <see cref="DatabaseInfo"/>s.
+	/// Factory methods for <see cref="DatabaseInfo" />s.
 	/// </summary>
 	public static class DatabaseFactory {
 		/// <summary>
-		/// Creates a <see cref="DatabaseInfo"/>
+		/// Creates a <see cref="DatabaseInfo" />
 		/// </summary>
 		public static DatabaseInfo CreateDatabaseInfo( SupportedDatabaseType type, string connectionString ) {
 			switch( type ) {

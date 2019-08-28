@@ -15,25 +15,24 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 				// header
 				CodeGenerationStatics.AddSummaryDocComment( writer, "Executes the " + procedure + " procedure." );
-				var parameterDeclarations =
-					parameters.Select(
-						i => ( i.Direction == ParameterDirection.Output ? "out " : i.Direction == ParameterDirection.InputOutput ? "ref " : "" ) + i.DataTypeName + " " + i.Name );
+				var parameterDeclarations = parameters.Select(
+					i => ( i.Direction == ParameterDirection.Output ? "out " : i.Direction == ParameterDirection.InputOutput ? "ref " : "" ) + i.DataTypeName + " " + i.Name );
 				writer.WriteLine( "public static void " + procedure + "( " + StringTools.ConcatenateWithDelimiter( ", ", parameterDeclarations.ToArray() ) + " ) {" );
 
 				// body
 				writer.WriteLine( $@"var cmd = new {TypeNames.SprocExecution}( ""{procedure}"" );" );
 				foreach( var parameter in parameters ) {
-					if( parameter.Direction == ParameterDirection.Input ) {
+					if( parameter.Direction == ParameterDirection.Input )
 						writer.WriteLine( "cmd.AddParameter( " + getDbCommandParameterCreationExpression( parameter ) + " );" );
-					}
 					else {
 						writer.WriteLine( "var " + parameter.Name + "Parameter = " + getDbCommandParameterCreationExpression( parameter ) + ";" );
 						writer.WriteLine(
-							parameter.Name + "Parameter.GetAdoDotNetParameter( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".DatabaseInfo ).Direction = ParameterDirection." +
-							parameter.Direction + ";" );
+							parameter.Name + "Parameter.GetAdoDotNetParameter( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
+							".DatabaseInfo ).Direction = ParameterDirection." + parameter.Direction + ";" );
 						writer.WriteLine( "cmd.AddParameter( " + parameter.Name + "Parameter );" );
 					}
 				}
+
 				foreach( var parameter in parameters.Where( parameter => parameter.Direction != ParameterDirection.Input ) )
 					writer.WriteLine( parameter.DataTypeName + " " + parameter.Name + "Local = default( " + parameter.DataTypeName + " );" );
 				writer.WriteLine( "cmd.ExecuteReader( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ", r => {" );
@@ -55,11 +54,13 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 								"Utility.ChangeType( {0}.ToString(), typeof( {1} ) )".FormatWith( adoDotNetParameterValueExpression, parameter.UnconvertedDataTypeName ) ) ) );
 					//writer.WriteLine( "{0}Local = {1};".FormatWith( parameter.Name, parameter.GetIncomingValueConversionExpression( adoDotNetParameterValueExpression ) ) );
 				}
+
 				writer.WriteLine( "} );" );
 				foreach( var parameter in parameters.Where( parameter => parameter.Direction != ParameterDirection.Input ) )
 					writer.WriteLine( parameter.Name + " = " + parameter.Name + "Local;" );
 				writer.WriteLine( "}" );
 			}
+
 			writer.WriteLine( "}" );
 			writer.WriteLine( "}" );
 		}

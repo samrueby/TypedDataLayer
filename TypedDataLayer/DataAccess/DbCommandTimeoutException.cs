@@ -8,6 +8,6 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Creates a DB command timeout exception.
 		/// </summary>
-		public DbCommandTimeoutException( string message, Exception innerException ): base( message, innerException ) {}
+		public DbCommandTimeoutException( string message, Exception innerException ): base( message, innerException ) { }
 	}
 }

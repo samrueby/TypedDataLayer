@@ -4,7 +4,6 @@
 
 namespace CommandRunner {
 	partial class SqlServerDatabase {
-
 		/// <summary>
 		/// The database type.
 		/// </summary>

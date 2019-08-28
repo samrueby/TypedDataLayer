@@ -17,9 +17,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 		/// <summary>
 		/// Use at your own risk.
 		/// </summary>
-		public EqualityCondition( InlineDbCommandColumnValue columnValue ) {
-			this.columnValue = columnValue;
-		}
+		public EqualityCondition( InlineDbCommandColumnValue columnValue ) => this.columnValue = columnValue;
 
 		void InlineDbCommandCondition.AddToCommand( IDbCommand command, StringBuilder commandText, DatabaseInfo databaseInfo, string parameterName ) {
 			var parameter = columnValue.GetParameter( name: parameterName );
@@ -38,10 +36,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 
 		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandCondition );
 
-		public bool Equals( InlineDbCommandCondition other ) {
-			var otherEqualityCondition = other as EqualityCondition;
-			return otherEqualityCondition != null && Utility.AreEqual( columnValue, otherEqualityCondition.columnValue );
-		}
+		public bool Equals( InlineDbCommandCondition other ) =>
+			other is EqualityCondition otherEqualityCondition && Utility.AreEqual( columnValue, otherEqualityCondition.columnValue );
 
 		public override int GetHashCode() => columnValue.GetHashCode();
 
@@ -55,8 +51,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 		public int CompareTo( InlineDbCommandCondition other ) {
 			if( other == null )
 				return 1;
-			var otherEqualityCondition = other as EqualityCondition;
-			if( otherEqualityCondition == null )
+			if( !( other is EqualityCondition otherEqualityCondition ) )
 				return DataAccessMethods.CompareCommandConditionTypes( this, other );
 
 			return Utility.Compare( columnValue, otherEqualityCondition.columnValue );

@@ -6,11 +6,11 @@
 		/// <summary>
 		/// Creates a new exception with the specified message.
 		/// </summary>
-		public DataModificationException( string message ): base( new[] { message } ) {}
+		public DataModificationException( string message ): base( message ) { }
 
 		/// <summary>
 		/// Creates a new exception with the specified messages.
 		/// </summary>
-		public DataModificationException( params string[] messages ): base( messages ) {}
+		public DataModificationException( params string[] messages ): base( messages ) { }
 	}
 }

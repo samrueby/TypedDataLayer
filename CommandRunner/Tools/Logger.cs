@@ -4,9 +4,7 @@ namespace CommandRunner.Tools {
 	internal class Logger {
 		private readonly bool debug;
 
-		public Logger( bool debug ) {
-			this.debug = debug;
-		}
+		public Logger( bool debug ) => this.debug = debug;
 
 		/// <summary>
 		/// Writes to the log regardless.
@@ -19,11 +17,10 @@ namespace CommandRunner.Tools {
 		/// Writes to the log if we're in Debug mode.
 		/// </summary>
 		public void Debug( string s ) {
-			if( debug ) {
+			if( debug )
 				log( s );
-			}
 		}
 
-		private static void log( string s ) => Console.WriteLine( DateTime.Now + ": " +s );
+		private static void log( string s ) => Console.WriteLine( DateTime.Now + ": " + s );
 	}
 }

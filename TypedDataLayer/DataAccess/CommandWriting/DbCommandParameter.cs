@@ -28,7 +28,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting {
 		public string GetNameForCommandText( DatabaseInfo databaseInfo ) => databaseInfo.ParameterPrefix + name;
 
 		/// <summary>
-		/// Returns the ADO.NET parameter object for this parameter. The ADO.NET parameter object is created on the first call to this method.
+		/// Returns the ADO.NET parameter object for this parameter. The ADO.NET parameter object is created on the first call to
+		/// this method.
 		/// </summary>
 		public DbParameter GetAdoDotNetParameter( DatabaseInfo databaseInfo ) {
 			if( parameter != null )

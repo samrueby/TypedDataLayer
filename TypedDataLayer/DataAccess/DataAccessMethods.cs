@@ -16,11 +16,14 @@ namespace TypedDataLayer.DataAccess {
 		/// Retries the given operation in the case of a deadlock (when using pessimistic concurrency) or snapshot isolation error
 		/// (when using optimistic concurrency) until it succeeds.
 		/// NEVER EVER use this inside a transaction because SQL will automatically kill the transaction in the case
-		/// of a deadlock, and it's unusable after that point.  In the case of Snapshots, the same snapshot from the beginning of the transaction
-		/// will be used every single time, and so the operation will fail every single time.  So, again, DO NOT use this inside a transaction.
+		/// of a deadlock, and it's unusable after that point.  In the case of Snapshots, the same snapshot from the beginning of
+		/// the transaction
+		/// will be used every single time, and so the operation will fail every single time.  So, again, DO NOT use this inside a
+		/// transaction.
 		/// When using this method, it is important that DeadLockableMethod does not produce any side effects
 		/// (changing state, sending an email, etc.).  Undoing/resetting side effects at the beginning of the block of code
-		/// to be retried is an acceptable approach here (there is no way to undo certain operations, such as sending an email, obviously).
+		/// to be retried is an acceptable approach here (there is no way to undo certain operations, such as sending an email,
+		/// obviously).
 		/// </summary>
 		public static void RetryOnDeadlock( Action method ) {
 			while( true ) {
@@ -38,13 +41,11 @@ namespace TypedDataLayer.DataAccess {
 			var generalMessage = "An exception occurred while " + action + " the " + GetDbName( databaseInfo ) + " database.";
 			var customMessage = "";
 
-			var sqlServerInfo = databaseInfo as SqlServerInfo;
-			if( sqlServerInfo != null ) {
+			if( databaseInfo is SqlServerInfo sqlServerInfo ) {
 				var sqlException = innerException as SqlException;
 				int? errorNumber = null;
-				if( sqlException != null ) {
+				if( sqlException != null )
 					errorNumber = sqlException.Number;
-				}
 				else {
 					if( innerException.Message.Contains( "Could not open a connection to SQL Server [2]" ) )
 						errorNumber = 2;
@@ -70,18 +71,19 @@ namespace TypedDataLayer.DataAccess {
 					if( errorNumber.Value == -2 )
 						customMessage = "Failed to connect to SQL Server because of a connection timeout.";
 
-					if( errorNumber.Value == 258 )
+					if( errorNumber.Value == 258 ) {
 						customMessage =
 							"Failed to connect to SQL Server because of a connection timeout. SQL Server may be in the process of doing something else that is preventing the connection for some reason. Please try again.";
+					}
 
 					if( errorNumber.Value == 4060 )
-						customMessage = "The " + new SqlConnectionStringBuilder( sqlServerInfo.ConnectionString ).InitialCatalog +
-						                " database does not exist.";
+						customMessage = "The " + new SqlConnectionStringBuilder( sqlServerInfo.ConnectionString ).InitialCatalog + " database does not exist.";
 
 					// We also handle this error at the command level.
-					if( errorNumber.Value == 233 )
+					if( errorNumber.Value == 233 ) {
 						customMessage =
 							"The connection with the server has probably been severed. This likely happened because we did not disable connection pooling and a connection was taken from the pool that was no longer valid.";
+					}
 
 					if( !customMessage.Any() )
 						generalMessage += " Error number: {0}.".FormatWith( errorNumber.Value );
@@ -92,14 +94,13 @@ namespace TypedDataLayer.DataAccess {
 				if( new[] { "ERROR 2003", "Unable to connect to any of the specified MySQL hosts" }.Any( i => innerException.Message.Contains( i ) ) )
 					customMessage = "Failed to connect to MySQL. Make sure the service is running.";
 				if( innerException.Message.Contains( "ERROR 2013" ) )
-					customMessage =
-						"Failed to connect to MySQL. MySQL may be in the process of doing something else that is preventing the connection for some reason. Please try again.";
+					customMessage = "Failed to connect to MySQL. MySQL may be in the process of doing something else that is preventing the connection for some reason. Please try again.";
+
 				if( innerException.Message.Contains( "Timeout expired" ) )
 					customMessage = "Failed to connect to MySQL because of a connection timeout.";
 			}
 
-			var oracleInfo = databaseInfo as OracleInfo;
-			if( oracleInfo != null ) {
+			if( databaseInfo is OracleInfo oracleInfo ) {
 				if( innerException.Message.Contains( "ORA-12154" ) )
 					customMessage = "Failed to connect to Oracle. There may be a problem with your network connection to the server.";
 				if( innerException.Message.Contains( "ORA-12541" ) )
@@ -119,9 +120,10 @@ namespace TypedDataLayer.DataAccess {
 					customMessage = "Failed to connect to Oracle because of a connection timeout. Check the Oracle configuration on the machine and in this system.";
 				if( new[] { "ORA-01017", "ORA-1017" }.Any( i => innerException.Message.Contains( i ) ) )
 					customMessage = "Failed to connect to Oracle. You may need to execute an Update Data operation.";
-				if( new[] { "ORA-03114", "ORA-12571" }.Any( i => innerException.Message.Contains( i ) ) )
+				if( new[] { "ORA-03114", "ORA-12571" }.Any( i => innerException.Message.Contains( i ) ) ) {
 					customMessage =
 						"Failed to connect to Oracle or connection to Oracle was lost. This should not happen often and may be caused by a bug in the data access components or the database.";
+				}
 
 				// This error only happens when using tnsnames and only MIT servers do this.
 				if( innerException.Message.Contains( "ORA-12504" ) )
@@ -137,7 +139,7 @@ namespace TypedDataLayer.DataAccess {
 
 		internal static string GetDbName( DatabaseInfo databaseInfo ) => "primary";
 
-		internal static int CompareCommandConditionTypes( InlineDbCommandCondition x, InlineDbCommandCondition y )
-			=> Utility.Compare( x.GetType().Name, y.GetType().Name, comparer: StringComparer.InvariantCulture );
+		internal static int CompareCommandConditionTypes( InlineDbCommandCondition x, InlineDbCommandCondition y ) =>
+			Utility.Compare( x.GetType().Name, y.GetType().Name, comparer: StringComparer.InvariantCulture );
 	}
 }

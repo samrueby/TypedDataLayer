@@ -59,6 +59,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 				sb.Append( ", " );
 				cmd.Parameters.Add( parameter.GetAdoDotNetParameter( cn.DatabaseInfo ) );
 			}
+
 			sb.Remove( sb.Length - 2, 2 );
 			sb.Append( " WHERE " );
 
@@ -66,6 +67,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 				condition.AddToCommand( cmd, sb, cn.DatabaseInfo, GetParamNameFromNumber( paramNumber++ ) );
 				sb.Append( " AND " );
 			}
+
 			sb.Remove( sb.Length - 5, 5 );
 
 			cmd.CommandText = sb.ToString();

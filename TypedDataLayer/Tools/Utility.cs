@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
@@ -12,8 +11,6 @@ namespace TypedDataLayer.Tools {
 	/// A collection of miscellaneous statics that may be useful.
 	/// </summary>
 	public static class Utility {
-		
-
 		/// <summary>
 		/// Recursively calls Path.Combine on the given paths.  Path is returned without a trailing slash.
 		/// </summary>
@@ -64,8 +61,10 @@ namespace TypedDataLayer.Tools {
 		public static bool AreEqual<T>( T x, T y ) => EqualityComparer<T>.Default.Equals( x, y );
 
 		/// <summary>
-		/// Returns an integer indicating whether the first specified object precedes (negative value), follows (positive value), or occurs in the same position in
-		/// the sort order (zero) as the second specified object, according to the default sort-order comparer. If you are comparing strings, Microsoft recommends
+		/// Returns an integer indicating whether the first specified object precedes (negative value), follows (positive value),
+		/// or occurs in the same position in
+		/// the sort order (zero) as the second specified object, according to the default sort-order comparer. If you are
+		/// comparing strings, Microsoft recommends
 		/// that you use a StringComparer instead of the default comparer.
 		/// </summary>
 		public static int Compare<T>( T x, T y, IComparer<T> comparer = null ) => ( comparer ?? Comparer<T>.Default ).Compare( x, y );
@@ -75,9 +74,11 @@ namespace TypedDataLayer.Tools {
 		/// </summary>
 		/// <param name="value">An Object that implements the IConvertible interface.</param>
 		/// <param name="conversionType">The Type to which value is to be converted.</param>
-		/// <returns>An object whose Type is conversionType (or conversionType's underlying type if conversionType
+		/// <returns>
+		/// An object whose Type is conversionType (or conversionType's underlying type if conversionType
 		/// is Nullable&lt;&gt;) and whose value is equivalent to value. -or- a null reference, if value is a null
-		/// reference and conversionType is not a value type.</returns>
+		/// reference and conversionType is not a value type.
+		/// </returns>
 		/// <remarks>
 		/// This method exists as a workaround to System.Convert.ChangeType(Object, Type) which does not handle
 		/// nullables as of version 2.0 (2.0.50727.42) of the .NET Framework. The idea is that this method will
@@ -90,7 +91,7 @@ namespace TypedDataLayer.Tools {
 			// This if block was taken from Convert.ChangeType as is, and is needed here since we're
 			// checking properties on conversionType below.
 			if( conversionType == null )
-				throw new ArgumentNullException( nameof( conversionType ) );
+				throw new ArgumentNullException( nameof(conversionType) );
 
 			// If it's not a nullable type, just pass through the parameters to Convert.ChangeType
 
@@ -123,9 +124,12 @@ namespace TypedDataLayer.Tools {
 		}
 
 		/// <summary>
-		/// Runs the specified program with the specified arguments and passes in the specified input. Optionally waits for the program to exit, and throws an
-		/// exception if this is specified and a nonzero exit code is returned. If the program is in a folder that is included in the Path environment variable,
-		/// specify its name only. Otherwise, specify a path to the program. In either case, you do NOT need ".exe" at the end. Specify the empty string for input
+		/// Runs the specified program with the specified arguments and passes in the specified input. Optionally waits for the
+		/// program to exit, and throws an
+		/// exception if this is specified and a nonzero exit code is returned. If the program is in a folder that is included in
+		/// the Path environment variable,
+		/// specify its name only. Otherwise, specify a path to the program. In either case, you do NOT need ".exe" at the end.
+		/// Specify the empty string for input
 		/// if you do not wish to pass any input to the program.
 		/// Returns the output of the program if waitForExit is true.  Otherwise, returns the empty string.
 		/// </summary>
@@ -184,6 +188,7 @@ namespace TypedDataLayer.Tools {
 						p.StandardInput.Flush();
 					}
 				}
+
 				return outputResult;
 			}
 		}

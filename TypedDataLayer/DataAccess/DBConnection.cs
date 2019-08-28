@@ -20,7 +20,6 @@ namespace TypedDataLayer.DataAccess {
 	public class DBConnection {
 		private const string saveName = "child";
 
-		private readonly DatabaseInfo databaseInfo;
 		private readonly ProfiledDbConnection cn;
 
 		// transaction-related fields
@@ -38,17 +37,17 @@ namespace TypedDataLayer.DataAccess {
 		/// Creates a database connection based on the specified database information object.
 		/// </summary>
 		internal DBConnection( DatabaseInfo databaseInfo /*, int? timeout */ ) {
-			this.databaseInfo = databaseInfo;
+			DatabaseInfo = databaseInfo;
 
 			// NOTE SJR: We're going to have to generate code to retrieve this value.
-			this.timeout = timeout;
+			timeout = timeout;
 			cn = new ProfiledDbConnection( databaseInfo.CreateConnection(), MiniProfiler.Current );
 		}
 
 		/// <summary>
 		/// This should only be used by internal tools.
 		/// </summary>
-		public DatabaseInfo DatabaseInfo => databaseInfo;
+		public DatabaseInfo DatabaseInfo { get; }
 
 		/// <summary>
 		/// Opens the connection, executes the specified method, and closes the connection.
@@ -88,7 +87,7 @@ namespace TypedDataLayer.DataAccess {
 				// to abort this line ourselves if it hangs.
 				cn.Open();
 
-				if( databaseInfo is OracleInfo  odi ) {
+				if( DatabaseInfo is OracleInfo odi ) {
 					// Make Oracle case-insensitive, like SQL Server.
 					if( odi.SupportsLinguisticIndexes ) {
 						executeText( "ALTER SESSION SET NLS_COMP = LINGUISTIC" );
@@ -166,9 +165,9 @@ namespace TypedDataLayer.DataAccess {
 				if( nestLevel == 0 ) {
 					transactionDead = false;
 
-					if( databaseInfo is SqlServerInfo )
+					if( DatabaseInfo is SqlServerInfo )
 						innerTx = cn.WrappedConnection.BeginTransaction( IsolationLevel.Snapshot );
-					else if( databaseInfo is OracleInfo )
+					else if( DatabaseInfo is OracleInfo )
 						innerTx = cn.WrappedConnection.BeginTransaction( IsolationLevel.Serializable );
 					else
 						innerTx = cn.WrappedConnection.BeginTransaction();
@@ -176,9 +175,9 @@ namespace TypedDataLayer.DataAccess {
 
 					commitTimeValidationMethods = new List<Func<string>>();
 				}
-				else {
+				else
 					saveTransaction();
-				}
+
 				nestLevel++;
 			}
 			catch( Exception e ) {
@@ -187,12 +186,10 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		private void saveTransaction() {
-			if( databaseInfo is SqlServerInfo ) {
+			if( DatabaseInfo is SqlServerInfo )
 				( (SqlTransaction)innerTx ).Save( saveName + nestLevel );
-			}
-			else if( databaseInfo is MySqlInfo ) {
+			else if( DatabaseInfo is MySqlInfo )
 				executeText( "SAVEPOINT {0}".FormatWith( saveName + nestLevel ) );
-			}
 			else {
 				var saveMethod = innerTx.GetType().GetMethod( "Save" );
 				saveMethod.Invoke( innerTx, new object[] { saveName + nestLevel } );
@@ -215,17 +212,16 @@ namespace TypedDataLayer.DataAccess {
 						resetTransactionFields();
 					}
 					else {
-						if( !transactionDead )
-							if( databaseInfo is SqlServerInfo ) {
+						if( !transactionDead ) {
+							if( DatabaseInfo is SqlServerInfo )
 								( (SqlTransaction)innerTx ).Rollback( saveName + nestLevel );
-							}
-							else if( databaseInfo is MySqlInfo ) {
+							else if( DatabaseInfo is MySqlInfo )
 								executeText( "ROLLBACK TO SAVEPOINT {0}".FormatWith( saveName + nestLevel ) );
-							}
 							else {
 								var rollbackMethod = innerTx.GetType().GetMethod( "Rollback", new[] { typeof( string ) } );
 								rollbackMethod.Invoke( innerTx, new object[] { saveName + nestLevel } );
 							}
+						}
 					}
 				}
 				catch( SqlException e ) {
@@ -256,7 +252,7 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		private void executeText( string commandText ) {
-			var cmd = databaseInfo.CreateCommand( null );
+			var cmd = DatabaseInfo.CreateCommand( null );
 			cmd.CommandText = commandText;
 			if( timeout.HasValue )
 				cmd.CommandTimeout = timeout.Value;
@@ -264,8 +260,10 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		/// <summary>
-		/// Executes all commit-time validation methods that are currently in the connection. They will not be executed again when the transaction is committed. Do
-		/// not call this method when the transaction is in a state such that additional modifications may need to execute before all validation methods can be
+		/// Executes all commit-time validation methods that are currently in the connection. They will not be executed again when
+		/// the transaction is committed. Do
+		/// not call this method when the transaction is in a state such that additional modifications may need to execute before
+		/// all validation methods can be
 		/// successful.
 		/// </summary>
 		internal void PreExecuteCommitTimeValidationMethods() {
@@ -285,6 +283,7 @@ namespace TypedDataLayer.DataAccess {
 					tx.Commit();
 					resetTransactionFields();
 				}
+
 				nestLevel--;
 			}
 			catch( Exception e ) {
@@ -293,7 +292,8 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		/// <summary>
-		/// Throws an exception if any commit-time validation methods return error messages. This usually means business rules were violated.
+		/// Throws an exception if any commit-time validation methods return error messages. This usually means business rules were
+		/// violated.
 		/// </summary>
 		private void executeCommitTimeValidationMethods() {
 			var errors = new List<string>();
@@ -302,6 +302,7 @@ namespace TypedDataLayer.DataAccess {
 				if( result.Length > 0 )
 					errors.Add( result );
 			}
+
 			if( errors.Any() )
 				throw new DataModificationException( errors.ToArray() );
 		}
@@ -313,8 +314,7 @@ namespace TypedDataLayer.DataAccess {
 			innerTx = null;
 		}
 
-		private Exception createConnectionException( string action, Exception innerException )
-			=> DataAccessMethods.CreateDbConnectionException( databaseInfo, action, innerException );
+		private Exception createConnectionException( string action, Exception innerException ) => DataAccessMethods.CreateDbConnectionException( DatabaseInfo, action, innerException );
 
 		/// <summary>
 		/// Execute a command and return number of rows affected.
@@ -357,16 +357,18 @@ namespace TypedDataLayer.DataAccess {
 		public void ExecuteReaderCommand( DbCommand cmd, Action<DbDataReader> readerMethod ) => executeReaderCommand( cmd, CommandBehavior.Default, readerMethod );
 
 		/// <summary>
-		/// Executes the specified command with SchemaOnly behavior to get a data reader and then executes the specified method with the reader.
+		/// Executes the specified command with SchemaOnly behavior to get a data reader and then executes the specified method
+		/// with the reader.
 		/// </summary>
-		public void ExecuteReaderCommandWithSchemaOnlyBehavior( DbCommand cmd, Action<DbDataReader> readerMethod )
-			=> executeReaderCommand( cmd, CommandBehavior.SchemaOnly, readerMethod );
+		public void ExecuteReaderCommandWithSchemaOnlyBehavior( DbCommand cmd, Action<DbDataReader> readerMethod ) =>
+			executeReaderCommand( cmd, CommandBehavior.SchemaOnly, readerMethod );
 
 		/// <summary>
-		/// Executes the specified command with SchemaOnly and KeyInfo behavior to get a data reader and then executes the specified method with the reader.
+		/// Executes the specified command with SchemaOnly and KeyInfo behavior to get a data reader and then executes the
+		/// specified method with the reader.
 		/// </summary>
-		public void ExecuteReaderCommandWithKeyInfoBehavior( DbCommand cmd, Action<DbDataReader> readerMethod )
-			=> executeReaderCommand( cmd, CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo, readerMethod );
+		public void ExecuteReaderCommandWithKeyInfoBehavior( DbCommand cmd, Action<DbDataReader> readerMethod ) =>
+			executeReaderCommand( cmd, CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo, readerMethod );
 
 		private void executeReaderCommand( DbCommand command, CommandBehavior behavior, Action<DbDataReader> readerMethod ) {
 			try {
@@ -382,7 +384,7 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		private Exception createCommandException( DbCommand command, Exception innerException ) {
-			if( databaseInfo is SqlServerInfo && innerException is SqlException ) {
+			if( DatabaseInfo is SqlServerInfo && innerException is SqlException ) {
 				var errorNumber = ( (SqlException)innerException ).Number;
 
 				// 1205 is the code for deadlock; 3960 is the code for a snapshot optimistic concurrency error; 3961 is the code for a snapshot concurrency error due to
@@ -408,7 +410,7 @@ namespace TypedDataLayer.DataAccess {
 				return new ApplicationException( getCommandExceptionMessage( command, "Error number: " + errorNumber + "." ), innerException );
 			}
 
-			if( databaseInfo is OracleInfo ) {
+			if( DatabaseInfo is OracleInfo ) {
 				// ORA-00060 is the code for deadlock. ORA-08177 happens when we attempt to update a row that has changed since the transaction began.
 				if( new[] { "ORA-00060", "ORA-08177" }.Any( i => innerException.Message.Contains( i ) ) )
 					return new DbConcurrencyException( getCommandExceptionMessage( command, "A concurrency error occurred." ), innerException );
@@ -423,8 +425,7 @@ namespace TypedDataLayer.DataAccess {
 
 		private string getCommandExceptionMessage( DbCommand command, string customMessage ) {
 			using( var sw = new StringWriter() ) {
-				sw.WriteLine(
-					"Failed to execute a command against the " + DataAccessMethods.GetDbName( databaseInfo ) + " database. " + customMessage + " Command details:" );
+				sw.WriteLine( "Failed to execute a command against the " + DataAccessMethods.GetDbName( DatabaseInfo ) + " database. " + customMessage + " Command details:" );
 				sw.WriteLine();
 				sw.WriteLine( "Type: " + command.CommandType );
 				sw.WriteLine( "Text: " + command.CommandText );
@@ -437,7 +438,8 @@ namespace TypedDataLayer.DataAccess {
 		}
 
 		/// <summary>
-		/// Adds a commit-time validation method to the connection. These will be executed immediately before the transaction is committed, in the order they were
+		/// Adds a commit-time validation method to the connection. These will be executed immediately before the transaction is
+		/// committed, in the order they were
 		/// added.
 		/// </summary>
 		public void AddCommitTimeValidationMethod( Func<string> method ) {

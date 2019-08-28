@@ -4,7 +4,6 @@ using TypedDataLayer.DataAccess;
 
 namespace CommandRunner.DatabaseAbstraction {
 	public interface IDatabase {
-
 		/// <summary>
 		/// The specified script is expected to either be the empty string or end with the line terminator string.
 		/// </summary>

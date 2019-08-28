@@ -16,9 +16,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 	public class SqlServer: IDatabase {
 		private readonly SqlServerInfo info;
 
-		public SqlServer( SqlServerInfo info ) {
-			this.info = info;
-		}
+		public SqlServer( SqlServerInfo info ) => this.info = info;
 
 		void IDatabase.ExecuteSqlScriptInTransaction( string script ) {
 			executeMethodWithDbExceptionHandling(
@@ -84,13 +82,9 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			return tables;
 		}
 
-		List<string> IDatabase.GetProcedures() {
-			throw new NotSupportedException();
-		}
+		List<string> IDatabase.GetProcedures() => throw new NotSupportedException();
 
-		List<ProcedureParameter> IDatabase.GetProcedureParameters( string procedure ) {
-			throw new NotSupportedException();
-		}
+		List<ProcedureParameter> IDatabase.GetProcedureParameters( string procedure ) => throw new NotSupportedException();
 
 
 		public void ExecuteDbMethod( Action<DBConnection> method ) => executeDbMethodWithSpecifiedDatabaseInfo( info, method );

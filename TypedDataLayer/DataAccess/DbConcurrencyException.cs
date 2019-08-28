@@ -8,6 +8,6 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Creates a DB concurrency exception.
 		/// </summary>
-		public DbConcurrencyException( string message, Exception innerException ): base( message, innerException ) {}
+		public DbConcurrencyException( string message, Exception innerException ): base( message, innerException ) { }
 	}
 }

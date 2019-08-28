@@ -28,22 +28,23 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 		public void AddColumnModification( InlineDbCommandColumnValue columnModification ) => columnModifications.Add( columnModification );
 
 		/// <summary>
-		/// Executes this command against the specified database connection and returns the auto-increment value of the inserted row, or null if it is not an
+		/// Executes this command against the specified database connection and returns the auto-increment value of the inserted
+		/// row, or null if it is not an
 		/// auto-increment table.
 		/// </summary>
 		public object Execute( DBConnection cn ) {
 			var cmd = cn.DatabaseInfo.CreateCommand( timeout );
 			var sb = new StringBuilder( "INSERT INTO " );
 			sb.Append( table );
-			if( columnModifications.Count == 0 ) {
+			if( columnModifications.Count == 0 )
 				sb.Append( " DEFAULT VALUES" );
-			}
 			else {
 				sb.Append( "(" );
 				foreach( var columnMod in columnModifications ) {
 					sb.Append( columnMod.ColumnName );
 					sb.Append( ", " );
 				}
+
 				sb.Remove( sb.Length - 2, 2 );
 
 				sb.Append( ") VALUES (" );
@@ -53,9 +54,11 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 					sb.Append( "," );
 					cmd.Parameters.Add( parameter.GetAdoDotNetParameter( cn.DatabaseInfo ) );
 				}
+
 				sb.Remove( sb.Length - 1, 1 );
 				sb.Append( ")" );
 			}
+
 			cmd.CommandText = sb.ToString();
 			if( timeout.HasValue )
 				cmd.CommandTimeout = timeout.Value;

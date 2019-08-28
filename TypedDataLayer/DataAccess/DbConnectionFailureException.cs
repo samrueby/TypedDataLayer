@@ -8,6 +8,6 @@ namespace TypedDataLayer.DataAccess {
 		/// <summary>
 		/// Creates a DB connection failure exception.
 		/// </summary>
-		public DbConnectionFailureException( string message, Exception innerException ): base( message, innerException ) {}
+		public DbConnectionFailureException( string message, Exception innerException ): base( message, innerException ) { }
 	}
 }

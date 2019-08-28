@@ -70,8 +70,7 @@ namespace CommandRunner.DatabaseAbstraction.Databases {
 			ExecuteDbMethod(
 				delegate( DBConnection cn ) {
 					var command = cn.DatabaseInfo.CreateCommand( null );
-					command.CommandText =
-						$"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{connectionString.Database}' AND TABLE_TYPE = 'BASE TABLE'";
+					command.CommandText = $"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '{connectionString.Database}' AND TABLE_TYPE = 'BASE TABLE'";
 					cn.ExecuteReaderCommand(
 						command,
 						reader => {

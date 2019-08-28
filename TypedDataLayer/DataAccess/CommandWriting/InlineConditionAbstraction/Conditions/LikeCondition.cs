@@ -17,7 +17,8 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 		/// </summary>
 		public enum Behavior {
 			/// <summary>
-			/// Treats the entire search term as though it were in quotes. Equivalent to 'table.Column LIKE '%' + @columnValue + '%' in SQL Server.
+			/// Treats the entire search term as though it were in quotes. Equivalent to 'table.Column LIKE '%' + @columnValue + '%' in
+			/// SQL Server.
 			/// </summary>
 			SingleTerm,
 
@@ -59,9 +60,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 				" AND ",
 				tokens.Take( 20 /*Google allows many more tokens than this.*/ ).Select(
 					t => {
-						var parameter = new DbCommandParameter(
-							parameterName + "L" + parameterNumber++,
-							new DbParameterValue( t.Truncate( 128 /*This is Google's cap on word length.*/ ) ) );
+						var parameter = new DbCommandParameter( parameterName + "L" + parameterNumber++, new DbParameterValue( t.Truncate( 128 /*This is Google's cap on word length.*/ ) ) );
 						command.Parameters.Add( parameter.GetAdoDotNetParameter( databaseInfo ) );
 						return $@"{columnName} LIKE '%' {concatCharacter} {parameter.GetNameForCommandText( databaseInfo )} {concatCharacter} '%'";
 					} ) );
@@ -69,11 +68,9 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 
 		public override bool Equals( object obj ) => Equals( obj as InlineDbCommandCondition );
 
-		public bool Equals( InlineDbCommandCondition other ) {
-			var otherLikeCondition = other as LikeCondition;
-			return otherLikeCondition != null && behavior == otherLikeCondition.behavior && columnName == otherLikeCondition.columnName &&
-			       searchTerm == otherLikeCondition.searchTerm;
-		}
+		public bool Equals( InlineDbCommandCondition other ) =>
+			other is LikeCondition otherLikeCondition && behavior == otherLikeCondition.behavior && columnName == otherLikeCondition.columnName &&
+			searchTerm == otherLikeCondition.searchTerm;
 
 		public override int GetHashCode() => new { behavior, columnName, searchTerm }.GetHashCode();
 
@@ -87,8 +84,7 @@ namespace TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction.Co
 		public int CompareTo( InlineDbCommandCondition other ) {
 			if( other == null )
 				return 1;
-			var otherLikeCondition = other as LikeCondition;
-			if( otherLikeCondition == null )
+			if( !( other is LikeCondition otherLikeCondition ) )
 				return DataAccessMethods.CompareCommandConditionTypes( this, other );
 
 			var behaviorResult = Utility.Compare( behavior, otherLikeCondition.behavior );

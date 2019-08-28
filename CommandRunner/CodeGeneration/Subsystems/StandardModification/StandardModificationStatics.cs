@@ -15,8 +15,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 		public static string GetNamespaceDeclaration( string baseNamespace, IDatabase database ) => "namespace " + baseNamespace + ".Modification {";
 
-		internal static void Generate(
-			DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<Table> tables, Database configuration ) {
+		internal static void Generate( DBConnection cn, TextWriter writer, string namespaceDeclaration, IDatabase database, IEnumerable<Table> tables, Database configuration ) {
 			StandardModificationStatics.writer = writer;
 			StandardModificationStatics.database = database;
 
@@ -32,16 +31,14 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 							writeClass( cn, table, true, true, configuration.CommandTimeoutSecondsTyped );
 					} );
 			}
+
 			writer.WriteLine( "}" ); // Standard modification namespace.
 		}
 
-		internal static void WritePartialClass(
-			DBConnection cn, string libraryBasePath, string namespaceDeclaration, IDatabase database, Table table, bool isRevisionHistoryTable ) {
+		internal static void WritePartialClass( DBConnection cn, string libraryBasePath, string namespaceDeclaration, IDatabase database, Table table, bool isRevisionHistoryTable ) {
 			// We do not create templates for direct modification classes.
 			var folderPath = Utility.CombinePaths( libraryBasePath, "DataAccess", "Modification" );
-			var templateFilePath = Utility.CombinePaths(
-				folderPath,
-				getClassFilePath( cn, table ) + DataAccessStatics.CSharpTemplateFileExtension );
+			var templateFilePath = Utility.CombinePaths( folderPath, getClassFilePath( cn, table ) + DataAccessStatics.CSharpTemplateFileExtension );
 			IoMethods.DeleteFile( templateFilePath );
 
 			// If a real file exists, don't create a template.
@@ -55,8 +52,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 					() => {
 						templateWriter.WriteLine( $"\tpartial class {table.GetStandardModificationClassDeclaration()} {{" );
 						templateWriter.WriteLine(
-							"		// IMPORTANT: Change extension from \"{0}\" to \".cs\" before including in project and editing.".FormatWith(
-								DataAccessStatics.CSharpTemplateFileExtension ) );
+							"		// IMPORTANT: Change extension from \"{0}\" to \".cs\" before including in project and editing.".FormatWith( DataAccessStatics.CSharpTemplateFileExtension ) );
 						templateWriter.WriteLine( "	}" ); // table class
 					} );
 				templateWriter.WriteLine( "}" ); // Standard Modification namespace
@@ -106,15 +102,21 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "partial void preInsert();" );
 			writer.WriteLine( "partial void preUpdate();" );
 			writeExecuteWithoutAdditionalLogicMethod( table );
-			writeExecuteInsertOrUpdateMethod( cn, table, isRevisionHistoryClass, columns.KeyColumns, columns.IdentityColumn, commandTimeoutSeconds );
+			writeExecuteInsertOrUpdateMethod(
+				cn,
+				table,
+				isRevisionHistoryClass,
+				columns.KeyColumns,
+				columns.IdentityColumn,
+				commandTimeoutSeconds );
 			writeAddColumnModificationsMethod( columns.AllNonIdentityColumnsExceptRowVersion );
 			if( isRevisionHistoryClass ) {
 				writeCopyLatestRevisionsMethod( cn, table, columns.AllNonIdentityColumnsExceptRowVersion, commandTimeoutSeconds );
 				DataAccessStatics.WriteGetLatestRevisionsConditionMethod( writer, columns.PrimaryKeyAndRevisionIdColumn.Name );
 			}
+
 			writeRethrowAsEwfExceptionIfNecessary();
-			writer.WriteLine(
-				"static partial void populateConstraintNamesToViolationErrorMessages( Dictionary<string,string> constraintNamesToViolationErrorMessages );" );
+			writer.WriteLine( "static partial void populateConstraintNamesToViolationErrorMessages( Dictionary<string,string> constraintNamesToViolationErrorMessages );" );
 			writer.WriteLine( "partial void postInsert();" );
 			writer.WriteLine( "partial void postUpdate();" );
 			writeMarkColumnValuesUnchangedMethod();
@@ -152,9 +154,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 		private static void writeUpdateRowsMethod( DBConnection cn, Table table, string revisionHistorySuffix, string additionalLogicSuffix ) {
 			// header
-			CodeGenerationStatics.AddSummaryDocComment(
-				writer,
-				"Updates rows in the " + table.ObjectIdentifier + " table that match the specified conditions with the specified data." );
+			CodeGenerationStatics.AddSummaryDocComment( writer, "Updates rows in the " + table.ObjectIdentifier + " table that match the specified conditions with the specified data." );
 			writeDocCommentsForColumnParams( columns.DataColumns );
 			CodeGenerationStatics.AddParamDocComment( writer, "requiredCondition", "A condition." ); // This prevents Resharper warnings.
 			CodeGenerationStatics.AddParamDocComment( writer, "additionalConditions", "Additional conditions." ); // This prevents Resharper warnings.
@@ -220,7 +220,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "try {" );
 			writer.WriteLine( "return delete.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + " );" );
 			writer.WriteLine( "}" ); // try
-			writer.WriteLine( "catch(" + nameof( Exception ) + " e) {" );
+			writer.WriteLine( "catch(" + nameof(Exception) + " e) {" );
 			writer.WriteLine( "rethrowAsDataModificationExceptionIfNecessary( e );" );
 			writer.WriteLine( "throw;" );
 			writer.WriteLine( "}" ); // catch
@@ -230,23 +230,21 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getPostDeleteCallClassName( DBConnection cn, Table table )
-			=> "PostDeleteCall<IEnumerable<TableRetrieval." + table.GetTableRetrievalClassReference() + ".Row>>";
+		private static string getPostDeleteCallClassName( DBConnection cn, Table table ) =>
+			"PostDeleteCall<IEnumerable<TableRetrieval." + table.GetTableRetrievalClassReference() + ".Row>>";
 
 		private static void writeFieldsAndPropertiesForColumn( Column column ) {
 			var columnIsReadOnly = !columns.DataColumns.Contains( column );
 
-			writer.WriteLine(
-				$"private readonly {TypeNames.DataValue}<{column.DataTypeName}> {getColumnFieldName( column )} = new {TypeNames.DataValue}<{column.DataTypeName}>();" );
+			writer.WriteLine( $"private readonly {TypeNames.DataValue}<{column.DataTypeName}> {getColumnFieldName( column )} = new {TypeNames.DataValue}<{column.DataTypeName}>();" );
 			CodeGenerationStatics.AddSummaryDocComment(
 				writer,
-				"Gets " + ( columnIsReadOnly ? "" : "or sets " ) + "the value for the " + column.Name +
-				" column. Throws an exception if the value has not been initialized. " + getComment( column ) );
-			var propertyDeclarationBeginning = "public " + column.DataTypeName + " " + Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) +
-			                                   " { get { return " + getColumnFieldName( column ) + ".Value; } ";
-			if( columnIsReadOnly ) {
+				"Gets " + ( columnIsReadOnly ? "" : "or sets " ) + "the value for the " + column.Name + " column. Throws an exception if the value has not been initialized. " +
+				getComment( column ) );
+			var propertyDeclarationBeginning = "public " + column.DataTypeName + " " + Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) + " { get { return " +
+			                                   getColumnFieldName( column ) + ".Value; } ";
+			if( columnIsReadOnly )
 				writer.WriteLine( propertyDeclarationBeginning + "}" );
-			}
 			else {
 				writer.WriteLine( propertyDeclarationBeginning + "set { " + getColumnFieldName( column ) + ".Value = value; } }" );
 
@@ -259,8 +257,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			}
 		}
 
-		private static void writeCreateForInsertMethod(
-			DBConnection cn, Table table, bool isRevisionHistoryTable, bool isRevisionHistoryClass, string methodNameSuffix ) {
+		private static void writeCreateForInsertMethod( DBConnection cn, Table table, bool isRevisionHistoryTable, bool isRevisionHistoryClass, string methodNameSuffix ) {
 			CodeGenerationStatics.AddSummaryDocComment(
 				writer,
 				"Creates a modification object in insert mode, which can be used to do a piecemeal insert of a new row in the " + table + " table." );
@@ -270,14 +267,12 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static void writeCreateForUpdateMethod(
-			DBConnection cn, Table table, bool isRevisionHistoryTable, bool isRevisionHistoryClass, string methodNameSuffix ) {
+		private static void writeCreateForUpdateMethod( DBConnection cn, Table table, bool isRevisionHistoryTable, bool isRevisionHistoryClass, string methodNameSuffix ) {
 			// header
 			CodeGenerationStatics.AddSummaryDocComment(
 				writer,
 				"Creates a modification object in update mode with the specified conditions, which can be used to do a piecemeal update of the " + table.ObjectIdentifier + " table." );
-			writer.WriteLine(
-				$"public static {table.GetStandardModificationClassReference()} CreateForUpdate{methodNameSuffix}( {getConditionParameterDeclarations( cn, table )} ) {{" );
+			writer.WriteLine( $"public static {table.GetStandardModificationClassReference()} CreateForUpdate{methodNameSuffix}( {getConditionParameterDeclarations( cn, table )} ) {{" );
 
 
 			// body
@@ -294,6 +289,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer.WriteLine( $"mod.{getColumnFieldName( column )}.Value = ( condition as {table.GetEqualityConditionClassReference( cn, column )} ).Value;" );
 				prefix = "else if";
 			}
+
 			writer.WriteLine( "}" );
 			writer.WriteLine( writer.NewLine + "mod.markColumnValuesUnchanged();" );
 
@@ -301,8 +297,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static void writeCreateForSingleRowUpdateMethod(
-			DBConnection cn, Table table, bool isRevisionHistoryTable, bool isRevisionHistoryClass, string methodNameSuffix ) {
+		private static void writeCreateForSingleRowUpdateMethod( DBConnection cn, Table table, bool isRevisionHistoryTable, bool isRevisionHistoryClass, string methodNameSuffix ) {
 			// header
 			CodeGenerationStatics.AddSummaryDocComment(
 				writer,
@@ -320,8 +315,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			// Use the values of key columns as conditions.
 			writer.WriteLine( $"mod.conditions = new List<{table.GetTableConditionInterfaceReference()}>();" );
 			foreach( var column in columns.KeyColumns ) {
-				writer.WriteLine(
-					$"mod.conditions.Add( new {table.GetEqualityConditionClassReference( cn, column )}( {Utility.GetCSharpIdentifier( column.CamelCasedName )} ) );" );
+				writer.WriteLine( $"mod.conditions.Add( new {table.GetEqualityConditionClassReference( cn, column )}( {Utility.GetCSharpIdentifier( column.CamelCasedName )} ) );" );
 			}
 
 			writeColumnValueAssignmentsFromParameters( columns.AllColumnsExceptRowVersion, "mod" );
@@ -331,8 +325,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 		}
 
 		private static void writeGetConditionListMethod( DBConnection cn, Table table ) {
-			writer.WriteLine(
-				$"private static List<{table.GetTableConditionInterfaceReference()}> getConditionList( {getConditionParameterDeclarations( cn, table )} ) {{" );
+			writer.WriteLine( $"private static List<{table.GetTableConditionInterfaceReference()}> getConditionList( {getConditionParameterDeclarations( cn, table )} ) {{" );
 			writer.WriteLine( $"var conditions = new List<{table.GetTableConditionInterfaceReference()}>();" );
 			writer.WriteLine( "conditions.Add( requiredCondition );" );
 			writer.WriteLine( "foreach( var condition in additionalConditions )" );
@@ -341,9 +334,8 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 			writer.WriteLine( "}" );
 		}
 
-		private static string getConditionParameterDeclarations( DBConnection cn, Table table )
-			=>
-				$"{table.GetTableConditionInterfaceReference()} requiredCondition, params {table.GetTableConditionInterfaceReference()}[] additionalConditions";
+		private static string getConditionParameterDeclarations( DBConnection cn, Table table ) =>
+			$"{table.GetTableConditionInterfaceReference()} requiredCondition, params {table.GetTableConditionInterfaceReference()}[] additionalConditions";
 
 		private static string getClassFilePath( DBConnection cn, Table table ) {
 			var fileName = table.Name.TableNameToPascal( cn ) + "Modification";
@@ -355,9 +347,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 		private static void writeSetAllDataMethod() {
 			// header
-			CodeGenerationStatics.AddSummaryDocComment(
-				writer,
-				"Sets all column values. This is useful for enforcing the number of arguments when deferred execution is needed." );
+			CodeGenerationStatics.AddSummaryDocComment( writer, "Sets all column values. This is useful for enforcing the number of arguments when deferred execution is needed." );
 			writeDocCommentsForColumnParams( columns.DataColumns );
 			writer.Write( "public void SetAllData( " );
 			writeColumnParameterDeclarations( columns.DataColumns );
@@ -373,12 +363,10 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				CodeGenerationStatics.AddParamDocComment( writer, column.CamelCasedName, getComment( column ) );
 		}
 
-		private static string getComment( Column column )
-			=> column.AllowsNull && !column.NullValueExpression.Any() ? "Object allows null." : "Object does not allow null.";
+		private static string getComment( Column column ) => column.AllowsNull && !column.NullValueExpression.Any() ? "Object allows null." : "Object does not allow null.";
 
 		private static void writeColumnParameterDeclarations( IEnumerable<Column> columns ) {
-			writer.Write(
-				StringTools.ConcatenateWithDelimiter( ", ", columns.Select( i => i.DataTypeName + " " + Utility.GetCSharpIdentifier( i.CamelCasedName ) ).ToArray() ) );
+			writer.Write( StringTools.ConcatenateWithDelimiter( ", ", columns.Select( i => i.DataTypeName + " " + Utility.GetCSharpIdentifier( i.CamelCasedName ) ).ToArray() ) );
 		}
 
 		private static void writeColumnValueAssignmentsFromParameters( IEnumerable<Column> columns, string modObjectName ) {
@@ -444,19 +432,20 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer.WriteLine( "var revisionHistorySetup = RevisionHistoryStatics.SystemProvider;" );
 				writer.WriteLine( getColumnFieldName( columns.PrimaryKeyAndRevisionIdColumn ) + ".Value = revisionHistorySetup.GetNextMainSequenceValue();" );
 				writer.WriteLine(
-					"revisionHistorySetup.InsertRevision( System.Convert.ToInt32( " + getColumnFieldName( columns.PrimaryKeyAndRevisionIdColumn ) +
-					".Value ), System.Convert.ToInt32( " + getColumnFieldName( columns.PrimaryKeyAndRevisionIdColumn ) + ".Value ), " +
-					DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".GetUserTransactionId() );" );
+					"revisionHistorySetup.InsertRevision( System.Convert.ToInt32( " + getColumnFieldName( columns.PrimaryKeyAndRevisionIdColumn ) + ".Value ), System.Convert.ToInt32( " +
+					getColumnFieldName( columns.PrimaryKeyAndRevisionIdColumn ) + ".Value ), " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
+					".GetUserTransactionId() );" );
 			}
 
-			writer.WriteLine( $@"var insert = new {TypeNames.InlineInsert}( ""{table.ObjectIdentifier}"", {( identityColumn != null ? "true" : "false" )}, {commandTimeoutSeconds?.ToString() ?? "null"} );" );
+			writer.WriteLine(
+				$@"var insert = new {TypeNames.InlineInsert}( ""{table.ObjectIdentifier}"", {( identityColumn != null ? "true" : "false" )}, {commandTimeoutSeconds?.ToString() ?? "null"} );" );
 			writer.WriteLine( "addColumnModifications( insert );" );
 			if( identityColumn != null ) {
 				// One reason the ChangeType call is necessary: SQL Server identities always come back as decimal, and you can't cast a boxed decimal to an int.
 				var convertedIdentityValue = identityColumn.GetIncomingValueConversionExpression(
 					$"{nameof(Utility)}.{nameof(Utility.ChangeType)}( insert.Execute( {DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression} ), typeof( {identityColumn.UnconvertedDataTypeName} ) )" );
 				writer.WriteLine( $"{getColumnFieldName( identityColumn )}.Value = {convertedIdentityValue};" );
-			} 
+			}
 			else
 				writer.WriteLine( "insert.Execute( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + " );" );
 
@@ -464,9 +453,8 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 			// We have to abort turning it into an update if doing so would result in an exception from trying to retrieve a key value that hasn't been set or retrieved (as in the case where the primary key is set by a default constraint, for example).
 			if( identityColumn == null ) {
-				foreach( var column in keyColumns ) {
-					writer.WriteLine( $"if( !{ Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) }HasChanged ) return;" );
-				}
+				foreach( var column in keyColumns )
+					writer.WriteLine( $"if( !{Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle )}HasChanged ) return;" );
 			}
 
 			writer.WriteLine( "modType = ModificationType.Update;" );
@@ -495,7 +483,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				writer.WriteLine( "} );" ); // cn.ExecuteInTransaction
 			writer.WriteLine( "}" ); // try
 
-			writer.WriteLine( "catch(" + nameof( Exception ) + " " + "e) {" );
+			writer.WriteLine( "catch(" + nameof(Exception) + " " + "e) {" );
 			writer.WriteLine( "rethrowAsDataModificationExceptionIfNecessary( e );" );
 			writer.WriteLine( "throw;" );
 			writer.WriteLine( "}" ); // catch
@@ -510,6 +498,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 				var columnValueExpression = column.GetCommandColumnValueExpression( Utility.GetCSharpIdentifier( column.PascalCasedNameExceptForOracle ) );
 				writer.WriteLine( "cmd.AddColumnModification( " + columnValueExpression + " );" );
 			}
+
 			writer.WriteLine( "}" );
 		}
 
@@ -520,8 +509,8 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 			writer.WriteLine(
 				$@"var command = new {TypeNames.InlineSelect}( ""new [] {{{columns.PrimaryKeyAndRevisionIdColumn.Name}""}}, ""FROM {table.ObjectIdentifier}"", false, {commandTimeoutSeconds
-					                                                                                                                                          ?.ToString() ??
-				                                                                                                                                          "null"} );" );
+						                                                                                                                                                       ?.ToString() ??
+					                                                                                                                                                       "null"} );" );
 			writer.WriteLine( "conditions.ForEach( condition => command.AddCondition( condition.CommandCondition ) );" );
 			writer.WriteLine( "command.AddCondition( getLatestRevisionsCondition() );" );
 			writer.WriteLine( "var latestRevisionIds = new List<int>();" );
@@ -535,8 +524,7 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 
 			// If this condition is true, we've already modified the row in this transaction. If we were to copy it, we'd end up with two revisions of the same entity
 			// in the same user transaction, which we don't support.
-			writer.WriteLine(
-				"if( latestRevision.UserTransactionId == " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".GetUserTransactionId() )" );
+			writer.WriteLine( "if( latestRevision.UserTransactionId == " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression + ".GetUserTransactionId() )" );
 			writer.WriteLine( "continue;" );
 
 			// Update the latest revision with a new user transaction.
@@ -561,10 +549,10 @@ namespace CommandRunner.CodeGeneration.Subsystems.StandardModification {
 						"copyCommand.Parameters.Add( revisionIdParameter.GetAdoDotNetParameter( " + DataAccessStatics.DataAccessStateCurrentDatabaseConnectionExpression +
 						".DatabaseInfo ) );" );
 				}
-				else {
+				else
 					writer.WriteLine( "copyCommand.CommandText += \"" + column.Name + ", \";" );
-				}
 			}
+
 			writer.WriteLine( "copyCommand.CommandText = copyCommand.CommandText.Remove( copyCommand.CommandText.Length - 2 );" );
 			writer.WriteLine( "copyCommand.CommandText += \" FROM " + table.ObjectIdentifier + " WHERE \";" );
 			writer.WriteLine(

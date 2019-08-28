@@ -9,7 +9,8 @@ namespace TypedDataLayer.DataAccess.StandardModification {
 		private readonly T rowCollection;
 
 		/// <summary>
-		/// Creates a post delete call with the specified method and row collection. The row collection should be retrieved based on the conditions in preDelete.
+		/// Creates a post delete call with the specified method and row collection. The row collection should be retrieved based
+		/// on the conditions in preDelete.
 		/// </summary>
 		public PostDeleteCall( Action<T> method, T rowCollection ) {
 			this.method = method;
