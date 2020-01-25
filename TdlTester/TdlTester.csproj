@@ -7,4 +7,8 @@
     <RootNamespace>Tdl.Tester</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CommandRunner\CommandRunner.csproj" />
+  </ItemGroup>
+
 </Project>
