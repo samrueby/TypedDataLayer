@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{52F1219A-7EE4-40AF-B12A-2A4E01E750C4}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TestTdlDml</RootNamespace>
-    <AssemblyName>TestTdlDml</AssemblyName>
+    <RootNamespace>Tdl.TestDml</RootNamespace>
+    <AssemblyName>Tdl.TestDml</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -73,6 +73,10 @@
     <ProjectReference Include="..\TestTdlGeneration\TestTdlGeneration.csproj">
       <Project>{3718cc44-0f9a-46b2-a56f-7e56032db725}</Project>
       <Name>TestTdlGeneration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TypedDataLayer\TypedDataLayer.csproj">
+      <Project>{86a9c472-70ea-4dd1-b36e-5276c754e720}</Project>
+      <Name>TypedDataLayer</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

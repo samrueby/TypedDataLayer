@@ -34,4 +34,5 @@ INSERT INTO States VALUES( 1, 'Alabama', 'AL' );
 INSERT INTO States VALUES( 2, 'Alaska', 'AK' );
 INSERT INTO States VALUES( 3, 'Arizona', 'AZ' );
 INSERT INTO States VALUES( 4, 'Arkansas', 'AR' );
+INSERT INTO States VALUES( 4000, 'New York', 'NY' );
 GO

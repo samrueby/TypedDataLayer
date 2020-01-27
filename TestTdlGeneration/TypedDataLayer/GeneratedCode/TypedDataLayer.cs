@@ -22,13 +22,13 @@ using TypedDataLayer.DataAccess.CommandWriting.Commands;
 using TypedDataLayer.Containers;
 using TypedDataLayer.Collections;
 
-namespace Tdl.Tester.DataAccess {
+namespace Tdl.TestGeneration.DataAccess {
 public static class Configuration {
 public const int CommandTimeoutSeconds = 5;
 }
 }
 
-namespace Tdl.Tester.DataAccess.TableConstants {
+namespace Tdl.TestGeneration.DataAccess.TableConstants {
 namespace dbo {
 /// <summary>
 /// This object represents the constants of the CommandRunner.DatabaseAbstraction.Table table.
@@ -118,7 +118,7 @@ public const int Size = 2;
 }
 }
 
-namespace Tdl.Tester.DataAccess.RowConstants {
+namespace Tdl.TestGeneration.DataAccess.RowConstants {
 namespace dbo {
 /// <summary>
 /// Provides constants copied from the dbo.States table.
@@ -163,7 +163,7 @@ return valuesAndNames.GetLeftFromRight( constantName );
 }
 }
 
-namespace Tdl.Tester.DataAccess.CommandConditions {
+namespace Tdl.TestGeneration.DataAccess.CommandConditions {
 namespace dbo {
 public interface GlobalIntsTableCondition: TableCondition {}
 public static class @GlobalIntsTableEqualityConditions {
@@ -473,7 +473,7 @@ InlineDbCommandCondition TableCondition.CommandCondition { get { return new Like
 }
 }
 
-namespace Tdl.Tester.DataAccess.TableRetrieval {
+namespace Tdl.TestGeneration.DataAccess.TableRetrieval {
 /// <summary>
 /// Contains logic that retrieves rows from the CommandRunner.DatabaseAbstraction.Table table.
 /// </summary>
@@ -672,7 +672,7 @@ return rows.ToDictionary( i => i.@StateId );
 }
 }
 
-namespace Tdl.Tester.DataAccess.Modification {
+namespace Tdl.TestGeneration.DataAccess.Modification {
 namespace dbo {
 public partial class @GlobalIntsModification {
 /// <summary>
@@ -1150,7 +1150,7 @@ private void markColumnValuesUnchanged() {
 }
 }
 
-namespace Tdl.Tester.DataAccess.Retrieval {
+namespace Tdl.TestGeneration.DataAccess.Retrieval {
 /// <summary>
 /// This object holds the values returned from a PrimarySequence query.
 /// </summary>
