@@ -57,6 +57,7 @@ namespace TypedDataLayer.Collections {
 				value = newValueCreator();
 				dictionary.Add( key, value );
 			}
+			// GMS NOTE: Debug write cache hits?
 
 			return value;
 		}
