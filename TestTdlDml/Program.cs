@@ -5,7 +5,7 @@ using Tdl.TestGeneration.DataAccess.Modification.dbo;
 using Tdl.TestGeneration.DataAccess.TableRetrieval.dbo;
 using TypedDataLayer;
 
-namespace TestTdlDml {
+namespace Tdl.TestDml {
 	class Program {
 		static void Main( string[] args ) {
 			Database.ExecuteInDbConnection(

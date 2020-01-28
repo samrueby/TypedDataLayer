@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
+﻿using System.Diagnostics;
 
-namespace TestTdlGeneration {
+namespace Tdl.TestGeneration {
 	class Program {
 		static void Main( string[] args ) {
 			Debug.WriteLine( "Hello World!" );
@@ -14,24 +8,13 @@ namespace TestTdlGeneration {
 			CommandRunner.Program.LoadConfigAndRunUpdateAllDependentLogic( @"C:\GitHub\TypedDataLayer\TestTdlGeneration", true );
 		}
 
-
-		/*Replacing Tuple-based unique/primary key lookups with structs:
-		 as an inner struct of StatesTableRetrieval:
-			once per table/key: struct StateKey {
-				public int StateId;
-			}
-
-		once per lookup/old tuple use.
-		new StateKey{StateId=id }
-			
-
-		Actually put it in the Cache class:
-
-		internal struct
-		Cache.StateKey
-
+		/*
 		Where to try runtime retrieval of "keys" or columns with IsKey=true?
 		What is TablesUsingRowVersionedDataCaching? Is that revision history or something else? Can we axe it?
+
+		Why does backspace no longer delete the entire line regardless of whitespace? 
+		Why does debug work when I start VS but not after? 
+		Why does it always step in/pretend I have a backpoint set on the first line?
 		 */
 	}
 }
