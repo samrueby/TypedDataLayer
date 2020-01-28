@@ -140,12 +140,17 @@ public const int @Ar = 4;
 /// Constant generated from row in database table.
 /// </summary>
 public const int @Az = 3;
+/// <summary>
+/// Constant generated from row in database table.
+/// </summary>
+public const int @Ny = 4000;
 private static readonly OneToOneMap<int, string> valuesAndNames = new OneToOneMap<int, string>();
 static StatesRows() {
 valuesAndNames.Add( (int)(2), "AK" );
 valuesAndNames.Add( (int)(1), "AL" );
 valuesAndNames.Add( (int)(4), "AR" );
 valuesAndNames.Add( (int)(3), "AZ" );
+valuesAndNames.Add( (int)(4000), "NY" );
 }
 /// <summary>
 /// Returns the name of the constant given the constant's value.
@@ -522,12 +527,15 @@ return Modification.dbo.@GlobalIntsModification.CreateForSingleRowUpdate( @Param
 }
 }
 private partial class Cache {
+internal struct Key {
+internal string ParameterName;
+}
 internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( "GlobalIntsTableRetrieval", () => new Cache() ); } }
 private readonly TableRetrievalQueryCache<Row> queries = new TableRetrievalQueryCache<Row>();
-private readonly Dictionary<Tuple<string>, Row> rowsByPk = new Dictionary<Tuple<string>, Row>();
+private readonly Dictionary<Key, Row> rowsByPk = new Dictionary<Key, Row>();
 private Cache() {}
 internal TableRetrievalQueryCache<Row> Queries => queries; 
-internal Dictionary<Tuple<string>, Row> RowsByPk => rowsByPk;
+internal Dictionary<Key, Row> RowsByPk => rowsByPk;
 }
 /// <summary>
 /// Retrieves the rows from the table that match the specified conditions, ordered in a stable way.
@@ -538,7 +546,7 @@ var cache = Cache.Current;
 var isPkQuery = parameterNameCondition != null && conditions.Count() == 1;
 if( isPkQuery ) {
 Row row;
-if( cache.RowsByPk.TryGetValue( Tuple.Create( parameterNameCondition.Value ), out row ) )
+if( cache.RowsByPk.TryGetValue( new Cache.Key {ParameterName = parameterNameCondition.Value}, out row ) )
 return new [] {row};
 }
 return cache.Queries.GetResultSet( conditions.Select( i => i.CommandCondition ), commandConditions => {
@@ -547,7 +555,7 @@ foreach( var i in commandConditions ) command.AddCondition( i );
 var results = new List<Row>();
 command.Execute( DataAccessState.Current.DatabaseConnection, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );
 foreach( var i in results ) {
-cache.RowsByPk[ System.Tuple.Create( i.@ParameterName ) ] = i;
+cache.RowsByPk[ new Cache.Key {ParameterName = i.ParameterName} ] = i;
 }
 return results;
 } );
@@ -612,12 +620,15 @@ return Modification.dbo.@StatesModification.CreateForSingleRowUpdate( @StateId, 
 }
 }
 private partial class Cache {
+internal struct Key {
+internal int StateId;
+}
 internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( "StatesTableRetrieval", () => new Cache() ); } }
 private readonly TableRetrievalQueryCache<Row> queries = new TableRetrievalQueryCache<Row>();
-private readonly Dictionary<Tuple<int>, Row> rowsByPk = new Dictionary<Tuple<int>, Row>();
+private readonly Dictionary<Key, Row> rowsByPk = new Dictionary<Key, Row>();
 private Cache() {}
 internal TableRetrievalQueryCache<Row> Queries => queries; 
-internal Dictionary<Tuple<int>, Row> RowsByPk => rowsByPk;
+internal Dictionary<Key, Row> RowsByPk => rowsByPk;
 }
 /// <summary>
 /// Retrieves the rows from the table, ordered in a stable way.
@@ -634,7 +645,7 @@ var cache = Cache.Current;
 var isPkQuery = stateIdCondition != null && conditions.Count() == 1;
 if( isPkQuery ) {
 Row row;
-if( cache.RowsByPk.TryGetValue( Tuple.Create( stateIdCondition.Value ), out row ) )
+if( cache.RowsByPk.TryGetValue( new Cache.Key {StateId = stateIdCondition.Value}, out row ) )
 return new [] {row};
 }
 return cache.Queries.GetResultSet( conditions.Select( i => i.CommandCondition ), commandConditions => {
@@ -643,7 +654,7 @@ foreach( var i in commandConditions ) command.AddCondition( i );
 var results = new List<Row>();
 command.Execute( DataAccessState.Current.DatabaseConnection, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );
 foreach( var i in results ) {
-cache.RowsByPk[ System.Tuple.Create( i.@StateId ) ] = i;
+cache.RowsByPk[ new Cache.Key {StateId = i.StateId} ] = i;
 }
 return results;
 } );
@@ -656,14 +667,14 @@ foreach( var i in commandConditions ) command.AddCondition( i );
 var results = new List<Row>();
 command.Execute( DataAccessState.Current.DatabaseConnection, r => { while( r.Read() ) results.Add( new Row( new BasicRow( r ) ) ); } );
 foreach( var i in results ) {
-cache.RowsByPk[ System.Tuple.Create( i.@StateId ) ] = i;
+cache.RowsByPk[ new Cache.Key {StateId = i.StateId} ] = i;
 }
 return results;
 } );
 if( !returnNullIfNoMatch )
-return cache.RowsByPk[ Tuple.Create( id ) ];
+return cache.RowsByPk[ new Cache.Key {StateId = id} ];
 Row row;
-return cache.RowsByPk.TryGetValue( Tuple.Create( id ), out row ) ? row : null;
+return cache.RowsByPk.TryGetValue( new Cache.Key {StateId = id}, out row ) ? row : null;
 }
 public static Dictionary<int, Row> ToIdDictionary( this IEnumerable<Row> rows ) {
 return rows.ToDictionary( i => i.@StateId );

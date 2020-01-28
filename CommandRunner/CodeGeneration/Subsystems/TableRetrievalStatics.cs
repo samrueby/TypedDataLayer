@@ -176,23 +176,27 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 		private static void writeCacheClass( DBConnection cn, TextWriter writer, IDatabase database, Table table, TableColumns tableColumns, bool isRevisionHistoryTable ) {
 			var cacheKey = table.Name.TableNameToPascal( cn ) + "TableRetrieval";
-			var pkTupleTypeArguments = getPkTupleTypeArguments( tableColumns );
 
 			writer.WriteLine( "private partial class Cache {" );
+			// We use a struct here as the key to the cache. Comparisons are easy/fast and it doesn't have a limit of 7 like Tuples do.
+			writer.WriteLine( "internal struct Key {" );
+			writer.WriteLine( getPkStructMembers( tableColumns ) );
+			writer.WriteLine( "}" ); // Key struct.
+
 			writer.WriteLine( "internal static Cache Current { get { return DataAccessState.Current.GetCacheValue( \"" + cacheKey + "\", () => new Cache() ); } }" );
 			writer.WriteLine( "private readonly TableRetrievalQueryCache<Row> queries = new TableRetrievalQueryCache<Row>();" );
 			writer.WriteLine(
-				$"private readonly Dictionary<{TypeNames.Tuple}<{pkTupleTypeArguments}>, Row> rowsByPk = new Dictionary<{TypeNames.Tuple}<{pkTupleTypeArguments}>, Row>();" );
+				$"private readonly Dictionary<Key, Row> rowsByPk = new Dictionary<Key, Row>();" );
 			if( isRevisionHistoryTable ) {
 				writer.WriteLine(
-					$"private readonly Dictionary<{TypeNames.Tuple}<{pkTupleTypeArguments}>, Row> latestRevisionRowsByPk = new Dictionary<{TypeNames.Tuple}<{pkTupleTypeArguments}>, Row>();" );
+					$"private readonly Dictionary<Key, Row> latestRevisionRowsByPk = new Dictionary<Key, Row>();" );
 			}
 
 			writer.WriteLine( "private Cache() {}" );
 			writer.WriteLine( "internal TableRetrievalQueryCache<Row> Queries => queries; " );
-			writer.WriteLine( $"internal Dictionary<{TypeNames.Tuple}<" + pkTupleTypeArguments + ">, Row> RowsByPk => rowsByPk;" );
+			writer.WriteLine( $"internal Dictionary<Key, Row> RowsByPk => rowsByPk;" );
 			if( isRevisionHistoryTable ) {
-				writer.WriteLine( $"internal Dictionary<{TypeNames.Tuple}<" + pkTupleTypeArguments + ">, Row> LatestRevisionRowsByPk { get { return latestRevisionRowsByPk; } }" );
+				writer.WriteLine( "internal Dictionary<Key, Row> LatestRevisionRowsByPk { get { return latestRevisionRowsByPk; } }" );
 			}
 
 			writer.WriteLine( "}" );
@@ -228,14 +232,14 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 			writer.WriteLine( "var cache = Cache.Current;" );
 			var pkConditionVariableNames = tableColumns.KeyColumns.Select( i => i.CamelCasedName + "Condition" );
+			var newKeyStructObject = "new Cache.Key {" + StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( kc => $"{kc.PascalCasedName} = {kc.CamelCasedName}Condition.Value" ) ) + "}";
 			writer.WriteLine(
 				"var isPkQuery = " + StringTools.ConcatenateWithDelimiter( " && ", pkConditionVariableNames.Select( i => i + " != null" ).ToArray() ) + " && conditions.Count() == " +
 				tableColumns.KeyColumns.Count() + ";" );
 			writer.WriteLine( "if( isPkQuery ) {" );
 			writer.WriteLine( "Row row;" );
 			writer.WriteLine(
-				"if( cache." + ( excludePreviousRevisions ? "LatestRevision" : "" ) + $"RowsByPk.TryGetValue( {TypeNames.Tuple}.Create( " +
-				StringTools.ConcatenateWithDelimiter( ", ", pkConditionVariableNames.Select( i => i + ".Value" ).ToArray() ) + " ), out row ) )" );
+				"if( cache." + ( excludePreviousRevisions ? "LatestRevision" : "" ) + $"RowsByPk.TryGetValue( {newKeyStructObject}, out row ) )" );
 			writer.WriteLine( "return new [] {row};" );
 			writer.WriteLine( "}" );
 
@@ -291,11 +295,11 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 						writer.WriteLine( "} );" );
 
 						var rowsByPkExpression = $"cache.{( isRevisionHistoryTable ? "LatestRevision" : "" )}RowsByPk";
-						var pkTupleCreationArguments = pkIsId ? id : StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.CamelCasedName ) );
+						var newKeyStructObject = "new Cache.Key {" + StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( kc => $"{kc.PascalCasedName} = { ( pkIsId ? "id" : kc.CamelCasedName )}" ) ) + "}";
 						writer.WriteLine( $"if( !{returnNullIfNoMatch} )" );
-						writer.WriteLine( $"return {rowsByPkExpression}[ {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ) ];" );
+						writer.WriteLine( $"return {rowsByPkExpression}[ {newKeyStructObject} ];" );
 						writer.WriteLine( "Row row;" );
-						writer.WriteLine( $"return {rowsByPkExpression}.TryGetValue( {TypeNames.Tuple}.Create( {pkTupleCreationArguments} ), out row ) ? row : null;" );
+						writer.WriteLine( $"return {rowsByPkExpression}.TryGetValue( {newKeyStructObject}, out row ) ? row : null;" );
 					}
 					else {
 						var condition = pkIsId
@@ -397,11 +401,10 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 			// Add all results to RowsByPk.
 			writer.WriteLine( "foreach( var i in results ) {" );
-			var pkTupleCreationArgs = tableColumns.KeyColumns.Select( i => "i." + Utility.GetCSharpIdentifier( i.PascalCasedNameExceptForOracle ) );
-			var pkTuple = "System.Tuple.Create( " + StringTools.ConcatenateWithDelimiter( ", ", pkTupleCreationArgs.ToArray() ) + " )";
-			writer.WriteLine( $"cache.RowsByPk[ {pkTuple} ] = i;" );
+			var newKeyStructObject = "new Cache.Key {" + StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( kc => $"{kc.PascalCasedName} = i.{kc.PascalCasedName}" ) ) + "}";
+			writer.WriteLine( $"cache.RowsByPk[ {newKeyStructObject} ] = i;" );
 			if( excludesPreviousRevisions )
-				writer.WriteLine( $"cache.LatestRevisionRowsByPk[ {pkTuple} ] = i;" );
+				writer.WriteLine( $"cache.LatestRevisionRowsByPk[ {newKeyStructObject} ] = i;" );
 			writer.WriteLine( "}" );
 
 			writer.WriteLine( "return results;" );
@@ -416,11 +419,16 @@ namespace CommandRunner.CodeGeneration.Subsystems {
 
 		private static string getCommandConditionAddingStatement( string commandName ) => $"foreach( var i in commandConditions ) {commandName}.AddCondition( i );";
 
+		// GMS NOTE: Really unsure of the RowVersion feature in TDL and whether or not it should be stripped out. If we keep it it needs much more testing/support.
 		private static string getPkAndVersionTupleTypeArguments( DBConnection cn, TableColumns tableColumns ) =>
 			"{0}, {1}".FormatWith( getPkTupleTypeArguments( tableColumns ), cn.DatabaseInfo is OracleInfo ? oracleRowVersionDataType : tableColumns.RowVersionColumn.DataTypeName );
 
 		private static string getPkTupleTypeArguments( TableColumns tableColumns ) {
 			return StringTools.ConcatenateWithDelimiter( ", ", tableColumns.KeyColumns.Select( i => i.DataTypeName ).ToArray() );
+		}
+
+		private static string getPkStructMembers( TableColumns tableColumns ) {
+			return StringTools.ConcatenateWithDelimiter( Environment.NewLine, tableColumns.KeyColumns.Select( i => $"internal {i.DataTypeName} {i.PascalCasedName};" ).ToArray() );
 		}
 
 		private static void writeToIdDictionaryMethod( TextWriter writer, TableColumns tableColumns ) {
