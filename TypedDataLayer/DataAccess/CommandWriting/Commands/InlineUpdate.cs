@@ -53,8 +53,9 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			foreach( var columnMod in columnModifications ) {
 				var parameter = columnMod.GetParameter( name: GetParamNameFromNumber( paramNumber++ ) );
 
+				sb.Append( '[' );
 				sb.Append( columnMod.ColumnName );
-				sb.Append( " = " );
+				sb.Append( "] = " );
 				sb.Append( parameter.GetNameForCommandText( cn.DatabaseInfo ) );
 				sb.Append( ", " );
 				cmd.Parameters.Add( parameter.GetAdoDotNetParameter( cn.DatabaseInfo ) );
