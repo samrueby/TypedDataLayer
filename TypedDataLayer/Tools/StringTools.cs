@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
+// GMS NOTE: Should really reference TEWL.
 namespace TypedDataLayer.Tools {
 	/// <summary>
 	/// Provides helpful string methods.

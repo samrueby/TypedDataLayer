@@ -12,9 +12,13 @@ using CommandRunner.Tools;
 using TypedDataLayer.Tools;
 
 namespace CommandRunner {
-	class Program {
-		static int Main( string[] args ) {
-			var log = new Logger( args.Any( a => a == "-debug" ) );
+	public class Program {
+		/// <summary>
+		/// Loads config and always runs UpdateDependentLogic.
+		/// </summary>
+		public static int Main( string[] args ) {
+			var debug = args.Any( a => a == "-debug" );
+			var log = new Logger( debug );
 
 			if( args.Any( a => a == "-attachDebugger" ) ) {
 				log.Info( "Waiting 15s for debugger" );
@@ -24,15 +28,16 @@ namespace CommandRunner {
 			}
 
 			log.Debug( "TypedDataLayer version " + Assembly.GetExecutingAssembly().GetName().Version );
-
 			log.Debug( "args: " + string.Join( " ", args ) );
 
-			var command = args[ 0 ];
 			var workingDirectory = Environment.CurrentDirectory;
+			return LoadConfigAndRunUpdateAllDependentLogic( workingDirectory, debug );
+		}
 
+		public static int LoadConfigAndRunUpdateAllDependentLogic( string workingDirectory, bool debug ) {
+			var log = new Logger( debug );
 			log.Debug( "Executing directory: " + AppDomain.CurrentDomain.BaseDirectory );
 			log.Info( "Current working directory: " + workingDirectory );
-			log.Info( "Running " + command );
 
 			var sw = new Stopwatch();
 			try {

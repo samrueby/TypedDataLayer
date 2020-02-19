@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"  ?>
+<systemDevelopmentConfiguration xmlns="http://samrueby.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                   xmlns:rs="http://samrueby.com" xsi:schemaLocation="http://samrueby.com ..\TypedDataLayerConfig.xsd">
+<LibraryNamespaceAndAssemblyName>Tdl.TestGeneration</LibraryNamespaceAndAssemblyName>
+  <databaseConfiguration xsi:type="SqlServerDatabase">
+	  <ConnectionString>data source=(local);Initial Catalog=TdlTest;Integrated Security=SSPI;</ConnectionString>
+  </databaseConfiguration>
+  <database>
+    <CommandTimeoutSeconds>5</CommandTimeoutSeconds>
+		<rowConstantTables>
+			<table tableName="dbo.States" nameColumn="Abbreviation" valueColumn="StateId"/>
+		</rowConstantTables>
+		<SmallTables>
+			<Table>dbo.States</Table>
+		</SmallTables>
+		<queries>
+			<query name="PrimarySequence">
+				<selectFromClause>SELECT NEXT VALUE FOR PrimarySequence as Id</selectFromClause>
+				<postSelectFromClauses>
+					<postSelectFromClause name="Next"></postSelectFromClause>
+				</postSelectFromClauses>
+			</query>
+		</queries>
+  </database>
+</systemDevelopmentConfiguration>
