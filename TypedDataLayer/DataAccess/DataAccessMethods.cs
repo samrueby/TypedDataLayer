@@ -1,7 +1,7 @@
 using System;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
+using Microsoft.Data.SqlClient;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction;
 using TypedDataLayer.DatabaseSpecification;
 using TypedDataLayer.DatabaseSpecification.Databases;
