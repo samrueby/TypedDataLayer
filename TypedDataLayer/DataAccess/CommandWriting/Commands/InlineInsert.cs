@@ -39,10 +39,11 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 			if( columnModifications.Count == 0 )
 				sb.Append( " DEFAULT VALUES" );
 			else {
-				sb.Append( "(" );
+				sb.Append( '(' );
 				foreach( var columnMod in columnModifications ) {
+					sb.Append( '[' );
 					sb.Append( columnMod.ColumnName );
-					sb.Append( ", " );
+					sb.Append( "], " );
 				}
 
 				sb.Remove( sb.Length - 2, 2 );
@@ -51,12 +52,12 @@ namespace TypedDataLayer.DataAccess.CommandWriting.Commands {
 				foreach( var columnMod in columnModifications ) {
 					var parameter = columnMod.GetParameter();
 					sb.Append( parameter.GetNameForCommandText( cn.DatabaseInfo ) );
-					sb.Append( "," );
+					sb.Append( ',' );
 					cmd.Parameters.Add( parameter.GetAdoDotNetParameter( cn.DatabaseInfo ) );
 				}
 
 				sb.Remove( sb.Length - 1, 1 );
-				sb.Append( ")" );
+				sb.Append( ')' );
 			}
 
 			cmd.CommandText = sb.ToString();
