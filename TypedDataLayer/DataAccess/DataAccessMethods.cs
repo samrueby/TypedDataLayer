@@ -1,5 +1,5 @@
 using System;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using TypedDataLayer.DataAccess.CommandWriting.InlineConditionAbstraction;
