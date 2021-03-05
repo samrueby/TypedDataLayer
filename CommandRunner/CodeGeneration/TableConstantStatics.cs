@@ -16,7 +16,7 @@ namespace CommandRunner.CodeGeneration {
 						writer.WriteLine( "public class " + Utility.GetCSharpIdentifier( table.Name.TableNameToPascal( cn ) + "Table" ) + " {" );
 
 						CodeGenerationStatics.AddSummaryDocComment( writer, "The name of this table." );
-						writer.WriteLine( "public const string Name = \"" + table + "\";" );
+						writer.WriteLine( "public const string Name = \"" + table.ObjectIdentifier + "\";" );
 
 						foreach( var column in new TableColumns( cn, table.ObjectIdentifier, false ).AllColumnsExceptRowVersion ) {
 							CodeGenerationStatics.AddSummaryDocComment( writer, "Contains schema information about this column." );
