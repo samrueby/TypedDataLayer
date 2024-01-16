@@ -21,7 +21,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="10.3.0" />
     <PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
   <ItemGroup>
